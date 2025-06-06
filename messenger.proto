@@ -11,6 +11,8 @@ message ServerAnnounce {
     repeated Feature feature = 2;
 }
 
+
+// Typing Indicator Structure
 message TypingEvent {
     string userId = 1;
     double timestamp = 2;
