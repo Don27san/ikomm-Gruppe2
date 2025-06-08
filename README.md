@@ -4,3 +4,6 @@
 - [ ] Feature: Writing Indicators
 - [ ] Feature: Live Location
 - [ ] Support: Read Receipts
+
+compile protoc command:
+protoc --python_out=. --pyi_out=. messenger.proto
