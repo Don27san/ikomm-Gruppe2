@@ -1,5 +1,5 @@
 import socket
-import messenger_pb2
+from protobuf import messenger_pb2
 from utils import connect_client
 from google.protobuf.json_format import MessageToDict
 

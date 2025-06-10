@@ -1,8 +1,8 @@
 import socket
-import messenger_pb2
-from utils import server_announce
 import threading
 from google.protobuf.json_format import MessageToDict
+from protobuf import messenger_pb2
+from utils import server_announce
 
 class Server:
     def __init__(self, src_addr = 'localhost'):

@@ -1,4 +1,4 @@
-import messenger_pb2
+from protobuf import messenger_pb2
 
 # Server_Announce Payload
 server_announce = messenger_pb2.ServerAnnounce()
