@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package typing_indicator;
 
+
+//General Connection Management Messages
 message ServerAnnounce {
     string serverId = 1;
     message Feature {
@@ -10,6 +12,17 @@ message ServerAnnounce {
     }
     repeated Feature feature = 2;
 }
+
+message ConnectClient { 
+    message User {
+        string userId = 1; 
+        string serverId = 2;
+    }
+    User user = 1;
+    int32 portId = 2; //Important! Added this since we need a destination port for our server to send realtime data to.
+}
+
+
 
 
 // Typing Indicator Structure
@@ -21,3 +34,4 @@ message TypingEvent {
 message TypingEvents {
     repeated TypingEvent typing_events = 1;
 }
+

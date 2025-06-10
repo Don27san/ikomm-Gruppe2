@@ -20,6 +20,21 @@ class ServerAnnounce(_message.Message):
     feature: _containers.RepeatedCompositeFieldContainer[ServerAnnounce.Feature]
     def __init__(self, serverId: _Optional[str] = ..., feature: _Optional[_Iterable[_Union[ServerAnnounce.Feature, _Mapping]]] = ...) -> None: ...
 
+class ConnectClient(_message.Message):
+    __slots__ = ("user", "portId")
+    class User(_message.Message):
+        __slots__ = ("userId", "serverId")
+        USERID_FIELD_NUMBER: _ClassVar[int]
+        SERVERID_FIELD_NUMBER: _ClassVar[int]
+        userId: str
+        serverId: str
+        def __init__(self, userId: _Optional[str] = ..., serverId: _Optional[str] = ...) -> None: ...
+    USER_FIELD_NUMBER: _ClassVar[int]
+    PORTID_FIELD_NUMBER: _ClassVar[int]
+    user: ConnectClient.User
+    portId: int
+    def __init__(self, user: _Optional[_Union[ConnectClient.User, _Mapping]] = ..., portId: _Optional[int] = ...) -> None: ...
+
 class TypingEvent(_message.Message):
     __slots__ = ("userId", "timestamp")
     USERID_FIELD_NUMBER: _ClassVar[int]
