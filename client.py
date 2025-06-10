@@ -35,12 +35,11 @@ def on_press(key):
             'user': username,
             'key': str(key)
         }
-        client.sendto(json.dumps(body).encode(), ('192.168.178.75', 5000))
+        client.sendto(json.dumps(body).encode(), ('localhost', 5000))
         
     except AttributeError:
         pass
 
-  
 
 # Listen for broadcasts
 def listen_for_res():
