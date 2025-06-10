@@ -5,5 +5,8 @@
 - [ ] Feature: Live Location
 - [ ] Support: Read Receipts
 
-compile protoc command:
-protoc --python_out=. --pyi_out=. messenger.proto
+*Important commands:*
+pip freeze > requirements.txt
+protoc --python_out=. --pyi_out=. ./protobuf/messenger.proto
+venv/bin/python -m client.main
+venv/bin/python -m server.main
