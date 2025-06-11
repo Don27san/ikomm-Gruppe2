@@ -37,7 +37,7 @@ class TypingForwarder:
 
             #Forward updated typing_events_list to all subscribers.
             for subscriber in self.subscriber_list:
-                print(f'Forwarded to {subscriber['subscriberIP']}:{subscriber['subscriberPort']}')
+                print(f'Forwarded to {subscriber['subscriberIP']}:{subscriber['subscriberPort']}\n')
                 typing_events = self.format_typing_events_list()
                 
                 self.forwarding_socket.sendto(typing_events, (subscriber['subscriberIP'], subscriber['subscriberPort']))
