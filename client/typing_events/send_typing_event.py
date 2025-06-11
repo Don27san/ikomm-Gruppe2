@@ -33,5 +33,4 @@ class TypingEvent:
         
         typing_event.timestamp = time.time() #Todo: This is not timezone-proof. Need to deliver "timestamptz" variant.
         self.typing_socket.sendto(typing_event.SerializeToString(), (self.dest_addr, self.dest_port))
-        print(typing_event)
         print(f'Typing Event sent to {self.dest_addr}:{self.dest_port}')

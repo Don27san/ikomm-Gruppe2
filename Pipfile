@@ -3,21 +3,18 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
-
 [scripts]
 client = "python -m client.main"
 server = "python -m server.main"
 pb-compile = "protoc --python_out=. --pyi_out=. ./protobuf/messenger.proto"
 update-requirements = "pip freeze > requirements.txt"
-
-
+count-lines = "find client server GUI -type f -name '*.py' ! -path '*/__pycache__/*' ! -name '*_pb2.py' | xargs wc -l"
 
 [packages]
 beautifulsoup4 = "==4.13.4"
 certifi = "==2025.4.26"
 distlib = "==0.3.9"
 filelock = "==3.18.0"
-google = "==3.0.0"
 packaging = "==25.0"
 pipenv = "==2025.0.3"
 platformdirs = "==4.3.8"
@@ -32,6 +29,7 @@ six = "==1.17.0"
 soupsieve = "==2.7"
 typing-extensions = "==4.14.0"
 virtualenv = "==20.31.2"
+google = "*"
 
 [dev-packages]
 

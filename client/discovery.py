@@ -14,7 +14,7 @@ class DiscoveryService:
     server_list (list): Servers which have responded to our broadcast containing their address and supported features.
     """
 
-    def __init__(self, src_addr = 'localhost', src_port=4567):
+    def __init__(self, src_addr = '', src_port=4567):
         self.discovery_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.discovery_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.discovery_socket.bind((src_addr, src_port))
@@ -23,7 +23,7 @@ class DiscoveryService:
 
     def discover_servers(self, broadcast_to_port = 9999, timeout=5):
         print(f"\033[94mDiscovering Servers for {timeout} seconds...\033[0m")
-        self.discovery_socket.sendto('DISCOVER_SERVER'.encode(), ('localhost', broadcast_to_port))#Todo: Must be switched to broadcasting!
+        self.discovery_socket.sendto('DISCOVER_SERVER'.encode(), ('0.0.0.0', broadcast_to_port))#Todo: Must be switched to broadcasting!
 
         self.discovery_socket.settimeout(timeout)
         try:

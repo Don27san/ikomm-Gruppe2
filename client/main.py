@@ -2,6 +2,7 @@ import threading
 from . discovery import DiscoveryService
 from . connector import ConnectionService
 from .typing_events.send_typing_event import TypingEvent
+from .typing_events.receive_typing_events import TypingReceiver
 
 
 def main():
@@ -15,9 +16,21 @@ def main():
         server_list=server_list)
     connector.connect_client()
 
-    #Handle typing events
+    #Handle and send typing events
     typing_event=TypingEvent('localhost', 7778, debounce_time=1)
-    typing_event.activate()
+    threading.Thread(target=typing_event.activate, daemon=True).start()
+    
+    #Receive typing events
+    receive_typing_event = TypingReceiver('localhost', 1234)
+    threading.Thread(target=receive_typing_event.listen_for_typing_events, daemon=True).start()
+
+
+
+
+
+    # Keep the main thread alive.
+    while True:
+        pass
 
 
 
