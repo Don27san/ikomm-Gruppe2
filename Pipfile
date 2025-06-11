@@ -9,6 +9,7 @@ client = "python -m client.main"
 server = "python -m server.main"
 pb-compile = "protoc --python_out=. --pyi_out=. ./protobuf/messenger.proto"
 update-requirements = "pip freeze > requirements.txt"
+count-lines = "find client server GUI -type f -name '*.py' ! -path '*/__pycache__/*' ! -name '*_pb2.py' | xargs wc -l"
 
 
 
