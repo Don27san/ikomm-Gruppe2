@@ -1,4 +1,5 @@
 from protobuf import messenger_pb2
+import time
 
 # Server_Announce Payload
 server_announce = messenger_pb2.ServerAnnounce()
@@ -8,9 +9,14 @@ server_announce.feature.add(featureName="TYPING_INDICATOR", port=7777)
 
 # Connect_Client Payload
 connect_client = messenger_pb2.ConnectClient()
-connect_client.user.userId = "user123"
-connect_client.user.serverId = "server456"
+connect_client.user.userId = "user123" #Static value, must be replaced if necessary
+connect_client.user.serverId = "server456" #Static value, must be replaced if necessary
 connect_client.portId = 9999
+
+# Typing_Event Payload
+typing_event = messenger_pb2.TypingEvent()
+connect_client.user.userId = "user123" #Static value, must be replaced if necessary
+typing_event.timestamp = time.time()
 
 
 

@@ -18,13 +18,12 @@ class DiscoveryService:
         self.discovery_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.discovery_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.discovery_socket.bind((src_addr, src_port))
-        print(f'\033[94mCreated discovery-socket at {src_addr} broadcasting/listening from port {src_port}...\033[0m \n')
         self.server_list = []
-        
+    
 
     def discover_servers(self, broadcast_to_port = 9999, timeout=5):
         print(f"\033[94mDiscovering Servers for {timeout} seconds...\033[0m")
-        self.discovery_socket.sendto('DISCOVER_SERVER'.encode(), ('localhost', broadcast_to_port))
+        self.discovery_socket.sendto('DISCOVER_SERVER'.encode(), ('localhost', broadcast_to_port))#Todo: Must be switched to broadcasting!
 
         self.discovery_socket.settimeout(timeout)
         try:

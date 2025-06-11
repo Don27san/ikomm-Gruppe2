@@ -27,7 +27,7 @@ message ConnectClient {
 
 // Typing Indicator Structure
 message TypingEvent {
-    string userId = 1;
+    string userId = 1; //Dont really need this since we identify users via ip
     double timestamp = 2;
 }
 

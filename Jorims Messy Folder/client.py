@@ -55,8 +55,7 @@ udp_thread.start()
 
 
 # Collect events until released
-with keyboard.Listener(on_press=on_press) as listener:
-    listener.join()
+
 
 
 
