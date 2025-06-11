@@ -1,6 +1,6 @@
 beautifulsoup4==4.13.4
 google==3.0.0
-protobuf==6.31.1
+protobuf==5.29.3
 pynput==1.8.1
 pyobjc-core==11.0
 pyobjc-framework-ApplicationServices==11.0

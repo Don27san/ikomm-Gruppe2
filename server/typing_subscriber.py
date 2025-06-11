@@ -30,7 +30,7 @@ class TypingSubscriber:
             dict_data['subscriberIP'] = addr[0]
             dict_data['subscriberPort'] = addr[1]
             self.typing_subscribers.append(dict_data)
-            self.typing_subscriber_socket.send(7778)
+            self.typing_subscriber_socket.send(b'7778')
         
             
 

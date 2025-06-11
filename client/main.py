@@ -19,5 +19,7 @@ def main():
     typing_event=TypingEvent('localhost', 7778, debounce_time=1)
     typing_event.activate()
 
+    
+
 if __name__ == "__main__":
     main()

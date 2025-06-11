@@ -15,8 +15,9 @@ connect_client.portId = 9999
 
 # Typing_Event Payload
 typing_event = messenger_pb2.TypingEvent()
-connect_client.user.userId = "user123" #Static value, must be replaced if necessary
-typing_event.timestamp = time.time()
+typing_event.user.userId = "user123" #Static value, must be replaced if necessary
+typing_event.user.serverId = "server456" #Static value, must be replaced if necessary
+
 
 
 

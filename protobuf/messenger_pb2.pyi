@@ -36,12 +36,19 @@ class ConnectClient(_message.Message):
     def __init__(self, user: _Optional[_Union[ConnectClient.User, _Mapping]] = ..., portId: _Optional[int] = ...) -> None: ...
 
 class TypingEvent(_message.Message):
-    __slots__ = ("userId", "timestamp")
-    USERID_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("user", "timestamp")
+    class User(_message.Message):
+        __slots__ = ("userId", "serverId")
+        USERID_FIELD_NUMBER: _ClassVar[int]
+        SERVERID_FIELD_NUMBER: _ClassVar[int]
+        userId: str
+        serverId: str
+        def __init__(self, userId: _Optional[str] = ..., serverId: _Optional[str] = ...) -> None: ...
+    USER_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
-    userId: str
+    user: TypingEvent.User
     timestamp: float
-    def __init__(self, userId: _Optional[str] = ..., timestamp: _Optional[float] = ...) -> None: ...
+    def __init__(self, user: _Optional[_Union[TypingEvent.User, _Mapping]] = ..., timestamp: _Optional[float] = ...) -> None: ...
 
 class TypingEvents(_message.Message):
     __slots__ = ("typing_events",)

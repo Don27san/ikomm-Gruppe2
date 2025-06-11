@@ -13,7 +13,7 @@ class TypingEvent:
     
     def activate(self):
         with keyboard.Listener(on_press=self.on_press) as listener:
-            print('\033[94mReady to send typing events...\033[0m \n')
+            print('\n\033[94mReady to send typing event...\033[0m \n')
             listener.join()
 
     def debounce(self, fn):
@@ -30,5 +30,8 @@ class TypingEvent:
             pass
     
     def send_typing_event(self):
+        
+        typing_event.timestamp = time.time() #Todo: This is not timezone-proof. Need to deliver "timestamptz" variant.
         self.typing_socket.sendto(typing_event.SerializeToString(), (self.dest_addr, self.dest_port))
+        print(typing_event)
         print(f'Typing Event sent to {self.dest_addr}:{self.dest_port}')
