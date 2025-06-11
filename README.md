@@ -16,9 +16,8 @@
 Follow these steps to set up and run both the server and client:
 
 ### 1. Clone the Repository
-
 ```bash
-git clone <repository-url>
+git clone https://github.com/Don27san/ikomm-Gruppe2.git
 cd ikomm-Gruppe2
 ```
 
