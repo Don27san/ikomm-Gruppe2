@@ -1,7 +1,7 @@
 import threading
 from . announcer import AnnouncingService
 from . typing_subscriber import TypingSubscriber
-from . forward_typing_events import TypingForwarder
+from . typing_forwarder import TypingForwarder
 
 
 def main():
@@ -18,7 +18,7 @@ def main():
     threading.Thread(target=typing_forwarder.handle_forwarding, daemon=True).start()
     
 
-    # Keep the main thread alive (or do other work)
+    # Keep the main thread alive.
     while True:
         pass
     

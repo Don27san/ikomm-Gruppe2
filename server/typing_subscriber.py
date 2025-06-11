@@ -30,7 +30,7 @@ class TypingSubscriber:
             dict_data['subscriberIP'] = addr[0]
             dict_data['subscriberPort'] = addr[1]
             self.typing_subscribers.append(dict_data)
-            self.typing_subscriber_socket.send(b'7778')
+            conn.send(b'Hey there you can send your typing event to us at port blablabla')
         
             
 

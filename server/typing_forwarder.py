@@ -4,7 +4,7 @@ from protobuf import messenger_pb2
 from google.protobuf.json_format import MessageToDict
 
 class TypingForwarder:
-    def __init__(self, src_addr='localhost', src_port=7778, subscriber_list=[]):
+    def __init__(self, src_addr='localhost', src_port=7778, subscriber_list=[{'subscriberIP': '124.001.001', 'subscriberPort': 1234}]):
         self.src_addr = src_addr
         self.src_port = src_port
         self.last_executed = 0
@@ -37,18 +37,20 @@ class TypingForwarder:
 
             #Forward updated typing_events_list to all subscribers.
             for subscriber in self.subscriber_list:
+                print(f'Forwarded to {subscriber['subscriberIP']}:{subscriber['subscriberPort']}')
                 typing_events = self.format_typing_events_list()
+                
                 self.forwarding_socket.sendto(typing_events, (subscriber['subscriberIP'], subscriber['subscriberPort']))
                 
 
     def format_typing_events_list(self):
-        typing_event = messenger_pb2.TypingEvents()
+        typing_events = messenger_pb2.TypingEvents()
         for event in self.typing_events_list:
-                typing_event = typing_event.add()
-                typing_event.user.userId = event["user"]["userId"]
-                typing_event.user.serverId = event["user"]["serverId"]
-                typing_event.timestamp = event["timestamp"]
-        return typing_event.SerializeToString()
+                typing_events = typing_events.typing_events.add()
+                typing_events.user.userId = event["user"]["userId"]
+                typing_events.user.serverId = event["user"]["serverId"]
+                typing_events.timestamp = event["timestamp"]
+        return typing_events.SerializeToString()
 
 
         

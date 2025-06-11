@@ -1,7 +1,7 @@
 import threading
 from . discovery import DiscoveryService
 from . connector import ConnectionService
-from . typing_event import TypingEvent
+from .typing_events.send_typing_event import TypingEvent
 
 
 def main():
@@ -18,6 +18,8 @@ def main():
     #Handle typing events
     typing_event=TypingEvent('localhost', 7778, debounce_time=1)
     typing_event.activate()
+
+
 
     
 
