@@ -27,19 +27,13 @@ cd ikomm-Gruppe2
 pip install -r requirements.txt
 ```
 
-### 3. Generate Python Code from Protobuf
-
-```bash
-protoc --python_out=. --pyi_out=. ./protobuf/messenger.proto
-```
-
-### 4. Start the Server
+### 3. Start the Server
 
 ```bash
 python -m server.main
 ```
 
-### 5. Start the Client (in a new terminal)
+### 4. Start the Client (in a new terminal)
 
 ```bash
 python -m client.main
