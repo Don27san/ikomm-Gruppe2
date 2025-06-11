@@ -36,10 +36,9 @@ class DiscoveryService:
                 dict_data['serverIP'] = addr[0] #Append Server IPs to contact them in future calls.
                 self.server_list.append(dict_data) #Not protected against duplicates yet. (Is that even a case?)
 
-                print("Discovered: ", dict_data, '\n')
+                print("Discovered: ", dict_data)
         except socket.timeout:
             self.discovery_socket.close()
-            print("\033[94mDiscovery finished.\033[0m")
+            print("\033[94mDiscovery finished.\033[0m \n")
         
         return self.server_list
-

@@ -4,7 +4,7 @@ from . connector import ConnectionService
 
 def main():
     #Discovering Servers, Returns list of discovered servers.
-    discovery = DiscoveryService(src_port=4567)
+    discovery = DiscoveryService()
     server_list = discovery.discover_servers()
 
     #Connecting to servers whose features we want to support
