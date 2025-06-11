@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18protobuf/messenger.proto\x12\x10typing_indicator\"\x8b\x01\n\x0eServerAnnounce\x12\x10\n\x08serverId\x18\x01 \x01(\t\x12\x39\n\x07\x66\x65\x61ture\x18\x02 \x03(\x0b\x32(.typing_indicator.ServerAnnounce.Feature\x1a,\n\x07\x46\x65\x61ture\x12\x13\n\x0b\x66\x65\x61tureName\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\"}\n\rConnectClient\x12\x32\n\x04user\x18\x01 \x01(\x0b\x32$.typing_indicator.ConnectClient.User\x12\x0e\n\x06portId\x18\x02 \x01(\x05\x1a(\n\x04User\x12\x0e\n\x06userId\x18\x01 \x01(\t\x12\x10\n\x08serverId\x18\x02 \x01(\t\"0\n\x0bTypingEvent\x12\x0e\n\x06userId\x18\x01 \x01(\t\x12\x11\n\ttimestamp\x18\x02 \x01(\x01\"D\n\x0cTypingEvents\x12\x34\n\rtyping_events\x18\x01 \x03(\x0b\x32\x1d.typing_indicator.TypingEventb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18protobuf/messenger.proto\x12\x10typing_indicator\"\x8b\x01\n\x0eServerAnnounce\x12\x10\n\x08serverId\x18\x01 \x01(\t\x12\x39\n\x07\x66\x65\x61ture\x18\x02 \x03(\x0b\x32(.typing_indicator.ServerAnnounce.Feature\x1a,\n\x07\x46\x65\x61ture\x12\x13\n\x0b\x66\x65\x61tureName\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\"}\n\rConnectClient\x12\x32\n\x04user\x18\x01 \x01(\x0b\x32$.typing_indicator.ConnectClient.User\x12\x0e\n\x06portId\x18\x02 \x01(\x05\x1a(\n\x04User\x12\x0e\n\x06userId\x18\x01 \x01(\t\x12\x10\n\x08serverId\x18\x02 \x01(\t\"|\n\x0bTypingEvent\x12\x30\n\x04user\x18\x01 \x01(\x0b\x32\".typing_indicator.TypingEvent.User\x12\x11\n\ttimestamp\x18\x02 \x01(\x01\x1a(\n\x04User\x12\x0e\n\x06userId\x18\x01 \x01(\t\x12\x10\n\x08serverId\x18\x02 \x01(\t\"D\n\x0cTypingEvents\x12\x34\n\rtyping_events\x18\x01 \x03(\x0b\x32\x1d.typing_indicator.TypingEventb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -40,7 +40,9 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_CONNECTCLIENT_USER']._serialized_start=273
   _globals['_CONNECTCLIENT_USER']._serialized_end=313
   _globals['_TYPINGEVENT']._serialized_start=315
-  _globals['_TYPINGEVENT']._serialized_end=363
-  _globals['_TYPINGEVENTS']._serialized_start=365
-  _globals['_TYPINGEVENTS']._serialized_end=433
+  _globals['_TYPINGEVENT']._serialized_end=439
+  _globals['_TYPINGEVENT_USER']._serialized_start=273
+  _globals['_TYPINGEVENT_USER']._serialized_end=313
+  _globals['_TYPINGEVENTS']._serialized_start=441
+  _globals['_TYPINGEVENTS']._serialized_end=509
 # @@protoc_insertion_point(module_scope)
