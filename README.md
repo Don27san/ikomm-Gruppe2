@@ -11,22 +11,59 @@
 
 ---
 
-## 🏁 Entry Points
+## 📝 Getting Started
+
+Follow these steps to set up and run both the server and client:
+
+### 1. Clone the Repository
+
+```bash
+git clone <repository-url>
+cd ikomm-Gruppe2
+```
+
+### 2. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Generate Python Code from Protobuf
+
+```bash
+protoc --python_out=. --pyi_out=. ./protobuf/messenger.proto
+```
+
+### 4. Start the Server
+
+```bash
+python -m server.main
+```
+
+### 5. Start the Client (in a new terminal)
 
 ```bash
 python -m client.main
-python -m server.main
 ```
 
 ---
 
 ## 💡 Important Commands
 
-```bash
-# Export/Install dependencies
-pip freeze > requirements.txt
-pip install -r requirements.txt
+If you are using `Pipenv`, you can use the following scripts defined in your `Pipfile` for easier setup and management:
 
-# Generate Python code from protobuf
-protoc --python_out=. --pyi_out=. ./protobuf/messenger.proto
+```bash
+# Start the client application
+pipenv run client
+
+# Start the server application
+pipenv run server
+
+# Generate Python code from protobuf definitions
+pipenv run pb-compile
+
+# Update requirements.txt with current dependencies
+pipenv run update-requirements
 ```
+
+These scripts simplify running common tasks without typing full commands. :)
