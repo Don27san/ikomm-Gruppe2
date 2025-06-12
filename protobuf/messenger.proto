@@ -37,3 +37,36 @@ message TypingEvents {
     repeated TypingEvent typing_events = 1;
 }
 
+// Chat Feature Messages
+message User { // Top-level User for ChatMessage
+    string userId = 1;
+    string serverId = 2; // Identifies the user's homeserver or current server
+}
+
+message Group { // Top-level Group for ChatMessage
+    string groupId = 1;
+    string serverId = 2; // Identifies the server hosting/managing the group
+}
+
+message ChatMessage {
+    uint64 messageSnowflake = 1;
+    User author = 2; // Refers to top-level User
+
+    message UserOfGroup {
+        User user = 1;    // Refers to top-level User
+        Group group = 2;  // Refers to top-level Group
+    }
+
+    oneof recipient {
+        User user = 3;        // Refers to top-level User
+        Group group = 4;      // Refers to top-level Group
+        UserOfGroup userOfGroup = 5;
+    }
+    reserved 6 to 10;
+
+    oneof content {
+        string textContent = 11;
+        // Document document = 12; // To be defined or uncommented later if Document message is defined
+    }
+}
+
