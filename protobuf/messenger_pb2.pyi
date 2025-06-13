@@ -30,12 +30,12 @@ class User(_message.Message):
     def __init__(self, userId: _Optional[str] = ..., serverId: _Optional[str] = ...) -> None: ...
 
 class ConnectClient(_message.Message):
-    __slots__ = ("user", "portId")
+    __slots__ = ("user", "typingPort")
     USER_FIELD_NUMBER: _ClassVar[int]
-    PORTID_FIELD_NUMBER: _ClassVar[int]
+    TYPINGPORT_FIELD_NUMBER: _ClassVar[int]
     user: User
-    portId: int
-    def __init__(self, user: _Optional[_Union[User, _Mapping]] = ..., portId: _Optional[int] = ...) -> None: ...
+    typingPort: int
+    def __init__(self, user: _Optional[_Union[User, _Mapping]] = ..., typingPort: _Optional[int] = ...) -> None: ...
 
 class ChatMessage(_message.Message):
     __slots__ = ("messageId", "timestamp", "author", "user", "text", "live_location")

@@ -1,8 +1,7 @@
 import threading
-from . discovery import DiscoveryService
-from . connector import ConnectionService
-from .typing_events.send_typing_event import TypingEvent
-from .typing_events.receive_typing_events import TypingReceiver
+from .discovery_service import DiscoveryService
+from .connection_service import ConnectionService
+from .typing_feature import TypingFeature
 
 
 def main():
@@ -16,14 +15,10 @@ def main():
         server_list=server_list)
     connector.connect_client()
 
-    #Handle and send typing events
-    typing_event=TypingEvent('localhost', 7778, debounce_time=1)
-    threading.Thread(target=typing_event.activate, daemon=True).start()
-    
-    #Receive typing events
-    receive_typing_event = TypingReceiver('localhost', 1234)
-    threading.Thread(target=receive_typing_event.listen_for_typing_events, daemon=True).start()
-
+    #Handle Sending/Receiving of Typing Indicator Feature
+    typing_event=TypingFeature()
+    threading.Thread(target=typing_event.handle_typing, daemon=True).start()
+    threading.Thread(target=typing_event.handle_listening, daemon=True).start()
 
 
 

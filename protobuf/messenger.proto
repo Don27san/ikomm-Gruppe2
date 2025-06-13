@@ -21,7 +21,8 @@ message User {
 
 message ConnectClient { 
     User user = 1;
-    int32 portId = 2; //Important! Added this since we need a destination port for our server to send realtime data to.
+    int32 typingPort = 3; 
+    // int32 location_port = 2; #We'll must likely send a port info for location feature as well.
 }
 
 
