@@ -1,6 +1,7 @@
 syntax = "proto3";
-
 package typing_indicator;
+import "google/protobuf/timestamp.proto";
+
 
 
 //General Connection Management Messages
@@ -13,27 +14,54 @@ message ServerAnnounce {
     repeated Feature feature = 2;
 }
 
+message User {
+    string userId = 1; 
+    string serverId = 2;
+}
+
 message ConnectClient { 
-    message User {
-        string userId = 1; 
-        string serverId = 2;
-    }
     User user = 1;
     int32 portId = 2; //Important! Added this since we need a destination port for our server to send realtime data to.
 }
 
 
+// ALL FEATURE Structures
+// Chat Message
+message ChatMessage {
+    string messageId = 1;
+    google.protobuf.Timestamp timestamp = 2;
+
+    User author = 3;
+
+    oneof recipient {
+        User user = 4;
+    };
+
+    oneof content {
+        string text = 11;
+        LiveLocation live_location = 12;
+       // stickers , etc...
+    }
+}
+
 // Typing Indicator Structure
 message TypingEvent {
-    message User {            //Dont really need this since we identify users via ip but just for consistency reasons
-        string userId = 1; 
-        string serverId = 2;
-    } 
     User user = 1;
     double timestamp = 2;
 }
 
 message TypingEvents {
     repeated TypingEvent typing_events = 1;
+}
+
+//Live Location Structure
+message LiveLocation {
+    User user = 1;
+    double timestamp = 2;
+    double expiry_at = 3;
+    message Location {
+        double latitude = 1;
+        double longitude = 2;
+    };
 }
 

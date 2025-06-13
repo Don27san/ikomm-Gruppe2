@@ -13,11 +13,12 @@ class TypingSubscriber:
     def __init__(self, src_addr='localhost', src_port=7777):
         self.src_addr = src_addr
         self.src_port = src_port
-        self.typing_subscribers = []
         self.typing_subscriber_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.typing_subscriber_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.typing_subscriber_socket.bind((self.src_addr, self.src_port))
         self.typing_subscriber_socket.listen(5)
+
+        self.typing_subscribers = []# List to store typing subscriberssfdsdfsdfsdfsdfsfsdfsdfsdf
 
     def listen_for_subscription_requests(self):
         print(f"\033[94mListening for typing subscription requests on {self.src_addr}:{self.src_port}...\033[0m \n")
