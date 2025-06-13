@@ -1,5 +1,5 @@
 import socket
-from utils import connect_client
+from utils import connect_client, blue, green, red
 
 class ConnectionService:
     """
@@ -16,23 +16,23 @@ class ConnectionService:
         self.server_list = server_list
 
     def connect_client(self):
-        print('\033[94mConnecting client to features: ', ", ".join(self.feature_support_list), '\033[0m')
-
+        blue('Connecting client to features we support ...')
         # Loops through our list of features we wanna support, returns the server IP and port for the given feature which we need to subscribe to this feature
         for feature_name in self.feature_support_list:
-            for server in self.server_list:
-                for features in server['feature']:
+            for feature_server in self.server_list:
+                for features in feature_server['feature']:
                     if features['featureName'] == feature_name:
 
-                        feature_server_ip = server['serverIP']
-                        feature_port = features['port']
+                        feature_ip = feature_server['server_ip'] #IP of server hosting the feature
+                        feature_port = features['port'] #Port at which feature is hosted
         
                         try:
+                            print(f'Connecting to feature: {feature_name}')
                             self.feature_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                            self.feature_socket.connect((feature_server_ip, feature_port))
+                            self.feature_socket.connect((feature_ip, feature_port))
                             self.feature_socket.send(connect_client.SerializeToString())
 
-                            print(f"\033[92mConnected to {feature_name} on {feature_server_ip}:{feature_port}.\033[0m")
+                            green(f"Connected to {feature_name} on {feature_ip}:{feature_port}. \n")
                         except Exception as e:
-                            print(f"\033[91mFailed to connect to {feature_name} on {feature_server_ip}:{feature_port}. Error: {e}\033[0m")
+                            red(f"Failed to connect to {feature_name} on {feature_ip}:{feature_port}. Error: {e} \n")
                             continue

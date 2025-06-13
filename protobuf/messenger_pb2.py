@@ -25,7 +25,7 @@ _sym_db = _symbol_database.Default()
 from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18protobuf/messenger.proto\x12\x10typing_indicator\x1a\x1fgoogle/protobuf/timestamp.proto\"\x8b\x01\n\x0eServerAnnounce\x12\x10\n\x08serverId\x18\x01 \x01(\t\x12\x39\n\x07\x66\x65\x61ture\x18\x02 \x03(\x0b\x32(.typing_indicator.ServerAnnounce.Feature\x1a,\n\x07\x46\x65\x61ture\x12\x13\n\x0b\x66\x65\x61tureName\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\"(\n\x04User\x12\x0e\n\x06userId\x18\x01 \x01(\t\x12\x10\n\x08serverId\x18\x02 \x01(\t\"E\n\rConnectClient\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12\x0e\n\x06portId\x18\x02 \x01(\x05\"\x80\x02\n\x0b\x43hatMessage\x12\x11\n\tmessageId\x18\x01 \x01(\t\x12-\n\ttimestamp\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12&\n\x06\x61uthor\x18\x03 \x01(\x0b\x32\x16.typing_indicator.User\x12&\n\x04user\x18\x04 \x01(\x0b\x32\x16.typing_indicator.UserH\x00\x12\x0e\n\x04text\x18\x0b \x01(\tH\x01\x12\x37\n\rlive_location\x18\x0c \x01(\x0b\x32\x1e.typing_indicator.LiveLocationH\x01\x42\x0b\n\trecipientB\t\n\x07\x63ontent\"F\n\x0bTypingEvent\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12\x11\n\ttimestamp\x18\x02 \x01(\x01\"D\n\x0cTypingEvents\x12\x34\n\rtyping_events\x18\x01 \x03(\x0b\x32\x1d.typing_indicator.TypingEvent\"\x8b\x01\n\x0cLiveLocation\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12\x11\n\ttimestamp\x18\x02 \x01(\x01\x12\x11\n\texpiry_at\x18\x03 \x01(\x01\x1a/\n\x08Location\x12\x10\n\x08latitude\x18\x01 \x01(\x01\x12\x11\n\tlongitude\x18\x02 \x01(\x01\x62\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18protobuf/messenger.proto\x12\x10typing_indicator\x1a\x1fgoogle/protobuf/timestamp.proto\"\x8b\x01\n\x0eServerAnnounce\x12\x10\n\x08serverId\x18\x01 \x01(\t\x12\x39\n\x07\x66\x65\x61ture\x18\x02 \x03(\x0b\x32(.typing_indicator.ServerAnnounce.Feature\x1a,\n\x07\x46\x65\x61ture\x12\x13\n\x0b\x66\x65\x61tureName\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\"(\n\x04User\x12\x0e\n\x06userId\x18\x01 \x01(\t\x12\x10\n\x08serverId\x18\x02 \x01(\t\"I\n\rConnectClient\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12\x12\n\ntypingPort\x18\x03 \x01(\x05\"\x80\x02\n\x0b\x43hatMessage\x12\x11\n\tmessageId\x18\x01 \x01(\t\x12-\n\ttimestamp\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12&\n\x06\x61uthor\x18\x03 \x01(\x0b\x32\x16.typing_indicator.User\x12&\n\x04user\x18\x04 \x01(\x0b\x32\x16.typing_indicator.UserH\x00\x12\x0e\n\x04text\x18\x0b \x01(\tH\x01\x12\x37\n\rlive_location\x18\x0c \x01(\x0b\x32\x1e.typing_indicator.LiveLocationH\x01\x42\x0b\n\trecipientB\t\n\x07\x63ontent\"F\n\x0bTypingEvent\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12\x11\n\ttimestamp\x18\x02 \x01(\x01\"D\n\x0cTypingEvents\x12\x34\n\rtyping_events\x18\x01 \x03(\x0b\x32\x1d.typing_indicator.TypingEvent\"\x8b\x01\n\x0cLiveLocation\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12\x11\n\ttimestamp\x18\x02 \x01(\x01\x12\x11\n\texpiry_at\x18\x03 \x01(\x01\x1a/\n\x08Location\x12\x10\n\x08latitude\x18\x01 \x01(\x01\x12\x11\n\tlongitude\x18\x02 \x01(\x01\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -39,15 +39,15 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_USER']._serialized_start=221
   _globals['_USER']._serialized_end=261
   _globals['_CONNECTCLIENT']._serialized_start=263
-  _globals['_CONNECTCLIENT']._serialized_end=332
-  _globals['_CHATMESSAGE']._serialized_start=335
-  _globals['_CHATMESSAGE']._serialized_end=591
-  _globals['_TYPINGEVENT']._serialized_start=593
-  _globals['_TYPINGEVENT']._serialized_end=663
-  _globals['_TYPINGEVENTS']._serialized_start=665
-  _globals['_TYPINGEVENTS']._serialized_end=733
-  _globals['_LIVELOCATION']._serialized_start=736
-  _globals['_LIVELOCATION']._serialized_end=875
-  _globals['_LIVELOCATION_LOCATION']._serialized_start=828
-  _globals['_LIVELOCATION_LOCATION']._serialized_end=875
+  _globals['_CONNECTCLIENT']._serialized_end=336
+  _globals['_CHATMESSAGE']._serialized_start=339
+  _globals['_CHATMESSAGE']._serialized_end=595
+  _globals['_TYPINGEVENT']._serialized_start=597
+  _globals['_TYPINGEVENT']._serialized_end=667
+  _globals['_TYPINGEVENTS']._serialized_start=669
+  _globals['_TYPINGEVENTS']._serialized_end=737
+  _globals['_LIVELOCATION']._serialized_start=740
+  _globals['_LIVELOCATION']._serialized_end=879
+  _globals['_LIVELOCATION_LOCATION']._serialized_start=832
+  _globals['_LIVELOCATION_LOCATION']._serialized_end=879
 # @@protoc_insertion_point(module_scope)
