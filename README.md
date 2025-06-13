@@ -43,7 +43,7 @@ python -m client.main
 
 ## 💡 Important Commands
 
-If you are using `Pipenv`, you can use the following scripts defined in your `Pipfile` for easier setup and management:
+Its better to use `Pipenv`! Use the following scripts defined in your `Pipfile` for easier setup and management:
 
 ```bash
 # Start the client on localhost
