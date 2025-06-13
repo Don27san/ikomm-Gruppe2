@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package typing_indicator;
+
+message ServerAnnounce {
+    string serverId = 1;
+    message Feature {
+        string featureName = 1;
+        uint32 port = 2;
+    }
+    repeated Feature feature = 2;
+}
+
+
+// Typing Indicator Structure
+message TypingEvent {
+    string userId = 1;
+    double timestamp = 2;
+}
+
+message TypingEvents {
+    repeated TypingEvent typing_events = 1;
+}
