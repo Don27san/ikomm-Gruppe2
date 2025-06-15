@@ -43,14 +43,20 @@ python -m client.main
 
 ## 💡 Important Commands
 
-If you are using `Pipenv`, you can use the following scripts defined in your `Pipfile` for easier setup and management:
+Its better to use `Pipenv`! Use the following scripts defined in your `Pipfile` for easier setup and management:
 
 ```bash
-# Start the client application
+# Start the client on localhost
 pipenv run client
 
-# Start the server application
+# Start the server on localhost
 pipenv run server
+
+# Start the client on local network
+pipenv run client-prod
+
+# Start the server on local network
+pipenv run server-prod
 
 # Generate Python code from protobuf definitions
 pipenv run pb-compile
@@ -59,4 +65,4 @@ pipenv run pb-compile
 pipenv run update-requirements
 ```
 
-These scripts simplify running common tasks without typing full commands. :)
+These scripts simplify running common tasks without typing full commands.:)
