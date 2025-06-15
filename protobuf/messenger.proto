@@ -22,7 +22,7 @@ message User {
 message ConnectClient { 
     User user = 1;
     int32 typingPort = 3; 
-    // int32 location_port = 2; #We'll must likely send a port info for location feature as well.
+    int32 location_port = 2; //We'll must likely send a port info for location feature as well.
 }
 
 
