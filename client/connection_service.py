@@ -1,5 +1,7 @@
 import socket
 from utils import connect_client, blue, green, red
+from protobuf import messenger_pb2
+from google.protobuf.json_format import MessageToDict
 
 class ConnectionService:
     """
@@ -32,7 +34,14 @@ class ConnectionService:
                             self.feature_socket.connect((feature_ip, feature_port))
                             self.feature_socket.send(connect_client.SerializeToString())
 
-                            green(f"Connected to {feature_name} on {feature_ip}:{feature_port}. \n")
+                            #Handle Connection Response
+                            res = self.feature_socket.recv(4096)
+                            connection_response = messenger_pb2.ConnectionResponse()
+                            connection_response.ParseFromString(res)
+                            dict_data = MessageToDict(connection_response)
+
+                            green(f"{dict_data['result']} to {feature_name} on {feature_ip}:{feature_port}. \n")
                         except Exception as e:
                             red(f"Failed to connect to {feature_name} on {feature_ip}:{feature_port}. Error: {e} \n")
+                            self.feature_socket.close()
                             continue

@@ -33,13 +33,23 @@ class TypingService:
             data.ParseFromString(res)
             dict_data = MessageToDict(data)
             dict_data['subscriberIP'] = addr[0]
-            self.subscriber_list.append(dict_data)
-            conn.send(f'CONNECTED to {config['typing_feature']['server_forwarding_port']}'.encode())
-        
-            #Todo: Client connection handling fehlt noch
 
-            green(f"\nTYPING_INDICATOR connection established with: {dict_data}")
-            
+            # If user is already subscribed, send IS_ALREADY_CONNECTED_ERROR
+            if dict_data['subscriberIP'] in [subscriber['subscriberIP'] for subscriber in self.subscriber_list]:
+                connection_response = messenger_pb2.ConnectionResponse()
+                connection_response.result = messenger_pb2.ConnectionResponse.Result.IS_ALREADY_CONNECTED_ERROR
+                conn.send(connection_response.SerializeToString())
+                yellow(f'Subscriber {":".join(map(str, addr))} already subscribed in list.')
+            # If this is a fresh connection, reply with CONNECTED
+            else:
+                connection_response = messenger_pb2.ConnectionResponse()
+                connection_response.result = messenger_pb2.ConnectionResponse.Result.CONNECTED
+                conn.send(connection_response.SerializeToString())
+                self.subscriber_list.append(dict_data)
+                green(f"\nTYPING_INDICATOR connection established with: {dict_data}")
+                
+
+
             
     def handle_forwarding(self):
         addr = config['address']
@@ -75,7 +85,7 @@ class TypingService:
                     forwarding_socket.sendto(typing_events, (subscriber['subscriberIP'], subscriber['typingPort']))
             
             else:
-                yellow('No connected users to forward this feature to.')
+                yellow('Empty subscriber_list. No forwarding of typing_events.')
 
     def format_typing_events_list(self):
         typing_events = messenger_pb2.TypingEvents()

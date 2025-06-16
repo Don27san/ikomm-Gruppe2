@@ -4,7 +4,13 @@ import "google/protobuf/timestamp.proto";
 
 
 
-//General Connection Management Messages
+//General Structures
+message User {
+    string userId = 1; 
+    string serverId = 2;
+}
+
+//Connection Management Structures
 message ServerAnnounce {
     string serverId = 1;
     message Feature {
@@ -14,16 +20,36 @@ message ServerAnnounce {
     repeated Feature feature = 2;
 }
 
-message User {
-    string userId = 1; 
-    string serverId = 2;
-}
 
 message ConnectClient { 
     User user = 1;
     int32 typingPort = 3; 
     int32 location_port = 2; //We'll must likely send a port info for location feature as well.
 }
+
+message ConnectionResponse {
+    enum Result {
+        UNKNOWN_ERROR = 0;
+        CONNECTED = 1;
+        IS_ALREADY_CONNECTED_ERROR = 2;
+    }
+    Result result = 1;
+}
+
+message HangUp {
+    enum Reason {
+        UNKNOWN_REASON = 0;
+        EXIT = 1;
+        TIMEOUT = 2;
+        PAYLOAD_LIMIT_EXCEEDED = 3; // ex. 2mb payload
+        MESSAGE_MALFORMED = 4; // ex. parse fail
+    }
+    Reason reason = 1;
+ }
+
+
+
+
 
 
 // ALL FEATURE Structures
@@ -45,15 +71,18 @@ message ChatMessage {
     }
 }
 
+
 // Typing Indicator Structure
 message TypingEvent {
     User user = 1;
     double timestamp = 2;
 }
 
+// Bundle for multiple typing events
 message TypingEvents {
     repeated TypingEvent typing_events = 1;
 }
+
 
 //Live Location Structure
 message LiveLocation {
