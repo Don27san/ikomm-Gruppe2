@@ -1,5 +1,5 @@
 import socket
-from utils import connect_client, blue, green, red
+from utils import connect_client, blue, green, red, yellow
 from protobuf import messenger_pb2
 from google.protobuf.json_format import MessageToDict
 
@@ -39,8 +39,12 @@ class ConnectionService:
                             connection_response = messenger_pb2.ConnectionResponse()
                             connection_response.ParseFromString(res)
                             dict_data = MessageToDict(connection_response)
-
-                            green(f"{dict_data['result']} to {feature_name} on {feature_ip}:{feature_port}. \n")
+                            if dict_data['result'] == 'IS_ALREADY_CONNECTED_ERROR':
+                                yellow(f"Connection was established. You are already on the server's subscriber list! \n")
+                            elif dict_data['result'] == 'CONNECTED':
+                                green(f"{dict_data['result']} to {feature_name} on {feature_ip}:{feature_port}. \n")
+                            else:
+                                red(f"Unknown connection response for {feature_name} from {feature_ip}:{feature_port}. \n")
                         except Exception as e:
                             red(f"Failed to connect to {feature_name} on {feature_ip}:{feature_port}. Error: {e} \n")
                             self.feature_socket.close()

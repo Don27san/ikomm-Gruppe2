@@ -39,7 +39,7 @@ class TypingService:
                 connection_response = messenger_pb2.ConnectionResponse()
                 connection_response.result = messenger_pb2.ConnectionResponse.Result.IS_ALREADY_CONNECTED_ERROR
                 conn.send(connection_response.SerializeToString())
-                yellow(f'Subscriber {":".join(map(str, addr))} already subscribed in list.')
+                yellow(f'Subscriber {":".join(map(str, addr))} already subscribed to list.')
             # If this is a fresh connection, reply with CONNECTED
             else:
                 connection_response = messenger_pb2.ConnectionResponse()
