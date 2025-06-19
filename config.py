@@ -22,6 +22,10 @@ config = {
     },
 
     'location_feature': {
-        'server_connection_port': 8888,
+        'server_connection_port': 8887, #Server handles client connection
+        'server_forwarding_port': 8888, #Server handles location forwarding
+        'client_location_port': 8889, #Client sends locations and listens to forwardings
+        'client_expiry_time': 5, #in min
+        'client_sending_interval': 30, # in s
     }
 }
