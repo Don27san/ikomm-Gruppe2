@@ -1,5 +1,9 @@
 from protobuf import messenger_pb2
 from config import config
+from google.protobuf.json_format import MessageToDict
+from google.protobuf.message import Message
+from typing import Optional, Type
+
 
 # Server_Announce Payload
 server_announce = messenger_pb2.ServerAnnounce()
@@ -39,13 +43,65 @@ def yellow(string):
 
 
 
-# Could be used to format the payload for sending over a socket.
-# def format_payload(message_name, payload):
-#     purpose = str(message_name).encode('ascii')
-#     serialized_payload = payload.SerializeToString()
-#     payload_size = str(len(serialized_payload)).encode('ascii')    
-    
-#     return purpose + b' ' + payload_size + b' ' + serialized_payload + '\n'.encode('ascii')
+# Serializes data which we want to send
+def serialize_data(message_name: str, payload: Optional[Message] = None) -> bytes:
+    """
+    Serializes a message for transmission by combining a message name and an optional payload.
+    Args:
+        message_name (str): The name of the message `'SERVER_ANNOUNCE', 'DISCOVER_SERVER', etc`.
+        payload (Optional[google.protobuf.message.Message]): An optional protobuf message to serialize. 
+            If None, no payload is included.
+    Returns:
+        bytes: The serialized message in the format: 
+            b'<message_name> <payload_length> <payload_bytes>\\n'
+    Example:
+        >>> serialize_data('SERVER_ANNOUNCE', payload)
+        b'SERVER_ANNOUNCE 42 <payload_bytes>\\n'   
+    """
+    body = b'' if payload is None else payload.SerializeToString()
+    data = f'{message_name} {len(body)} '.encode('ascii') + body + b'\n'
+    return data
+
+
+
+def parse_data(data : bytes, pb_class : Type[Message] | None = None) -> tuple[str, int, dict]:
+    """
+    Parses a byte string containing a message name, size, and payload, optionally decoding the payload using a provided protobuf class.
+    Args:
+        data (bytes): The input byte string, expected to be formatted as `b'<message_name>  <size>  <payload>\\n'`.
+        pb_class (Type[Message] | None, optional): A protobuf message class used to parse the payload. If None, the payload is ignored and an empty dictionary is returned.
+    Returns:
+        tuple[str, int, dict]: A tuple containing:
+            - message_name (str): The decoded message name.
+            - size (int): The decoded size as a string.
+            - dict_payload (dict): The payload parsed into a dictionary if `pb_class` is provided, otherwise an empty dictionary.
+    """
+
+    message_name, size, payload = data.split(b' ', 2)
+
+    message_name = message_name.decode('ascii')
+    size = int(size.decode('ascii'))
+  
+    # Converts payload into dictionary
+    payload = payload.rstrip(b'\n') # Remove \n from last part of the message
+    if pb_class is None:
+        dict_payload = {}
+    else:
+        parsed_instance = pb_class()
+        parsed_instance.ParseFromString(payload)
+        dict_payload = MessageToDict(parsed_instance)
+        
+    # Handle missing protobuf class error
+    if size > 0 and dict_payload == {}:
+        raise ValueError(f"Payload size {size} is greater than 0, but no protobuf class was provided to parse the payload.")
+
+    return message_name, size, dict_payload
+
+
+formatted = serialize_data('SERVER_ANNOUNCE', server_announce)
+parsed = parse_data(formatted)
+print(parsed)
+
 
 
 
