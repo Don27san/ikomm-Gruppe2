@@ -32,6 +32,7 @@ soupsieve = "==2.7"
 typing-extensions = "==4.14.0"
 virtualenv = "==20.31.2"
 google = "*"
+geocoder = "*"
 
 [dev-packages]
 

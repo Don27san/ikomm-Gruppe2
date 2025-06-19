@@ -93,5 +93,16 @@ message LiveLocation {
         double latitude = 1;
         double longitude = 2;
     };
+    Location location = 4;
+}
+
+// Bundle for multiple LiveLocations
+message LiveLocations {
+    message ExtendedLiveLocation {
+        LiveLocation live_location = 1;
+        string chatmessageID = 2;
+    }
+
+    repeated ExtendedLiveLocation extended_live_locations = 1;
 }
 
