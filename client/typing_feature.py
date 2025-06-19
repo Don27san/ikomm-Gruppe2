@@ -62,5 +62,5 @@ class TypingFeature:
             data = messenger_pb2.TypingEvents()
             data.ParseFromString(res)
             dict_data = MessageToDict(data)
-            green(f'Received event_list from {addr[0]}:{addr[1]}')
+            green(f'Received typing_events_list from {addr[0]}:{addr[1]}')
             self.event_list = dict_data # Update the event list with the received typing events

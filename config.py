@@ -5,6 +5,7 @@ import os
 config = {
     # Address based on env set in pipenv script
     'address': socket.gethostbyname(socket.gethostname()) if os.getenv('APP_ENV') == 'prod' else '127.0.0.1',
+    'feature_support': ['TYPING_INDICATOR', 'LIVE_LOCATION'],  # Features our client wants to support
 
     # Features and Ports
     'conn_mgmt': {
