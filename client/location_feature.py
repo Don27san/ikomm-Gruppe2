@@ -16,7 +16,7 @@ class LocationFeature:
         self.src_port = config['location_feature']['client_location_port']
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind((self.src_addr, self.src_port))
-        self.location_list = []  # List to store typing events with timestamps
+        self.location_list = []  # List to store location events with timestamps
         self.last_location_sent = 0
         self.expiry_at = 0   # expiry date for location sharing
 

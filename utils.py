@@ -104,9 +104,6 @@ def parse_data(data : bytes, pb_class : Type[Message] | None = None) -> tuple[st
     return message_name, size, dict_payload
 
 
-formatted = serialize_data('SERVER_ANNOUNCE', server_announce)
-parsed = parse_data(formatted)
-print(parsed)
 
 
 
