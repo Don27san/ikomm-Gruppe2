@@ -1,5 +1,6 @@
 import socket
 from protobuf import messenger_pb2
+from google.protobuf.json_format import ParseDict
 from config import config
 from utils import blue, green, yellow, parse_msg, serialize_msg
 import time
@@ -47,11 +48,11 @@ class LocationService:
 
     def handle_forwarding(self):
 
-        def send_chatmessage(live_location):
+        def send_chatmessage(data):
             chatmessage = messenger_pb2.ChatMessage()
             chatmessage.messageId = "chatmessage123"
-            chatmessage.live_location.CopyFrom(live_location)
-
+            chatmessage.live_location.CopyFrom(format_live_location(data))
+            print("Initial LiveLocation Chatmessage sent to all clients.")
             return chatmessage.messageId
 
         addr = config['address']
@@ -71,20 +72,24 @@ class LocationService:
 
             green(f'\nReceived Live Location from {addr[0]}:{addr[1]}')
 
+            user_found = False
             # either update location_events_list...
             for item in self.location_events_list:
                 if item["userIP"] == data['userIP']:
                     item["location"] = data['location']
-                # ... or append and send chatmessage
-                else:
-                    chatmessageID = send_chatmessage(data['location'])
-                    data["chatMessageID"] = chatmessageID
-                    self.location_events_list.append(data)
+                    user_found = True
+                    break
+            # ... or append and send chatmessage
+            if not user_found:
+                chatmessageID = send_chatmessage(data)
+                data["chatMessageID"] = chatmessageID
+                self.location_events_list.append(data)
+                continue  # skip to the next iteration of the while loop, since initial location event is sent via Chatmessage (TCP)
 
             # Delete expired items in location_events_list
             if len(self.location_events_list) > 0:
                 self.location_events_list = [
-                    item for item in self.location_events_list if item['expiryAt'] < time.time()
+                    item for item in self.location_events_list if item['expiryAt'] > time.time()
                 ]
 
             # Forward location_events_list to all subscribers.
@@ -102,10 +107,22 @@ class LocationService:
         live_locations = messenger_pb2.LiveLocations()
         for event in self.location_events_list:
             extended_live_location = live_locations.extended_live_locations.add()
-            extended_live_location.live_location.CopyFrom(event)
-            extended_live_location.chatmessageID = event["chatmessageID"]
+            extended_live_location.live_location.CopyFrom(format_live_location(event))
+            extended_live_location.chatmessageID = event["chatMessageID"]
         
         return live_locations
+
+def format_live_location(data):
+    user_message = ParseDict(data['user'], messenger_pb2.User())
+
+    live_location = messenger_pb2.LiveLocation()
+    live_location.user.CopyFrom(user_message)
+    live_location.timestamp = data['timestamp']
+    live_location.expiry_at = data['expiryAt']
+    live_location.location.latitude = data['location']['latitude']
+    live_location.location.longitude = data['location']['longitude']
+
+    return live_location
 
 
 

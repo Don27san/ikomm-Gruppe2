@@ -25,8 +25,8 @@ typing_event.user.serverId = "server456" #Static value, must be replaced if nece
 
 # LiveLocation Payload
 live_location = messenger_pb2.LiveLocation()
-typing_event.user.userId = "user123" #Static value, must be replaced if necessary
-typing_event.user.serverId = "server456" #Static value, must be replaced if necessary
+live_location.user.userId = "user123" #Static value, must be replaced if necessary
+live_location.user.serverId = "server456" #Static value, must be replaced if necessary
 
 
 
