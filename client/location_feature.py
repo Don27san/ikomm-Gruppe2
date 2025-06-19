@@ -31,7 +31,7 @@ class LocationFeature:
             g = geocoder.ip('me')
             if g.ok:
                 live_location.location.latitude = g.latlng[0]
-                live_location.Location.longitude = g.latlng[1]
+                live_location.location.longitude = g.latlng[1]
                 # send message
                 self.socket.sendto(live_location.SerializeToString(), (server_addr, server_forwarding_port))
                 print(f'\nLive Location sent to {server_addr}:{server_forwarding_port}')
