@@ -50,7 +50,7 @@ def yellow(string):
 
 
 # Serializes data which we want to send
-def serialize_data(message_name: str, payload: Optional[Message] = None) -> bytes:
+def serialize_msg(message_name: str, payload: Optional[Message] = None) -> bytes:
     """
     Serializes a message for transmission by combining a message name and an optional payload.
     Args:
@@ -70,7 +70,7 @@ def serialize_data(message_name: str, payload: Optional[Message] = None) -> byte
 
 
 
-def parse_data(data : bytes, pb_class : Type[Message] | None = None) -> tuple[str, int, dict]:
+def parse_msg(data : bytes, pb_class : Type[Message] | None = None) -> tuple[str, int, dict]:
     """
     Parses a byte string containing a message name, size, and payload, optionally decoding the payload using a provided protobuf class.
     Args:

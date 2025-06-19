@@ -14,7 +14,7 @@ def main():
     threading.Thread(target=typing_service.handle_connections, daemon=True).start()
     threading.Thread(target=typing_service.handle_forwarding, daemon=True).start()
 
-    # Location Indicator Service
+    # Location Service
     location_service = LocationService()
     threading.Thread(target=location_service.handle_connections, daemon=True).start()
     threading.Thread(target=location_service.handle_forwarding, daemon=True).start()

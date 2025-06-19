@@ -1,7 +1,6 @@
 import socket
-from utils import connect_client, blue, green, red, yellow
+from utils import connect_client, blue, green, red, yellow, serialize_msg, parse_msg
 from protobuf import messenger_pb2
-from google.protobuf.json_format import MessageToDict
 
 class ConnectionService:
     """
@@ -32,17 +31,15 @@ class ConnectionService:
                             print(f'Connecting to feature: {feature_name}')
                             self.feature_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                             self.feature_socket.connect((feature_ip, feature_port))
-                            self.feature_socket.send(connect_client.SerializeToString())
+                            self.feature_socket.send(serialize_msg('CONNECT_CLIENT', connect_client))  # Send connection request to feature server
 
                             #Handle Connection Response
                             res = self.feature_socket.recv(4096)
-                            connection_response = messenger_pb2.ConnectionResponse()
-                            connection_response.ParseFromString(res)
-                            dict_data = MessageToDict(connection_response)
-                            if dict_data['result'] == 'IS_ALREADY_CONNECTED_ERROR':
+                            data = parse_msg(res, messenger_pb2.ConnectionResponse)[2]
+                            if data['result'] == 'IS_ALREADY_CONNECTED_ERROR':
                                 yellow(f"Connection was established. You are already on the server's subscriber list! \n")
-                            elif dict_data['result'] == 'CONNECTED':
-                                green(f"{dict_data['result']} to {feature_name} on {feature_ip}:{feature_port}. \n")
+                            elif data['result'] == 'CONNECTED':
+                                green(f"{data['result']} to {feature_name} on {feature_ip}:{feature_port}. \n")
                             else:
                                 red(f"Unknown connection response for {feature_name} from {feature_ip}:{feature_port}. \n")
                         except Exception as e:

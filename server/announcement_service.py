@@ -1,5 +1,5 @@
 import socket
-from utils import server_announce, blue, green
+from utils import server_announce, blue, green, parse_msg, serialize_msg
 from config import config
 
 
@@ -21,10 +21,10 @@ class AnnouncementService:
 
         while True: #Exception handling missing
             res, addr = self.server.recvfrom(1024)
-            data = res.decode()
-            if data == 'DISCOVER_SERVER':
+            message_name = parse_msg(res)[0]
+            if message_name == 'DISCOVER_SERVER':
                 green(f"\nReceived discovery request from {addr[0]}:{addr[1]}")
-                self.server.sendto(server_announce.SerializeToString(), addr)
+                self.server.sendto(serialize_msg('SERVER_ANNOUNCE', server_announce), addr)
                 print(f"Announced server features back to {addr[0]}:{addr[1]}")
                 
 
