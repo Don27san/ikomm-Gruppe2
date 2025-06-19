@@ -1,8 +1,7 @@
 import socket
-from google.protobuf.json_format import MessageToDict
 from protobuf import messenger_pb2
 from config import config
-from utils import blue, green, yellow
+from utils import blue, green, yellow, parse_msg, serialize_msg
 import time
 
 class LocationService:
@@ -29,24 +28,22 @@ class LocationService:
         while True:
             conn, addr = connection_socket.accept()
             res = conn.recv(1024)
-            data = messenger_pb2.ConnectClient()
-            data.ParseFromString(res)
-            dict_data = MessageToDict(data)
-            dict_data['subscriberIP'] = addr[0]
+            data = parse_msg(res, messenger_pb2.ConnectClient)[2]
+            data['subscriberIP'] = addr[0]
 
-            # If user is already subscribed, send IS_ALREADY_CONNECTED_ERROR
-            if dict_data['subscriberIP'] in [subscriber['subscriberIP'] for subscriber in self.subscriber_list]:
-                connection_response = messenger_pb2.ConnectionResponse()
+            connection_response = messenger_pb2.ConnectionResponse()
+            if data['subscriberIP'] in [subscriber['subscriberIP'] for subscriber in self.subscriber_list]:
+                # If user is already subscribed, send IS_ALREADY_CONNECTED_ERROR
                 connection_response.result = messenger_pb2.ConnectionResponse.Result.IS_ALREADY_CONNECTED_ERROR
-                conn.send(connection_response.SerializeToString())
-                yellow(f'Subscriber {":".join(map(str, addr))} already subscribed to location list.')
-            # If this is a fresh connection, reply with CONNECTED
+                yellow(f'Subscriber {":".join(map(str, addr))} already subscribed to list.')
             else:
-                connection_response = messenger_pb2.ConnectionResponse()
+                # If this is a fresh connection, reply with CONNECTED
                 connection_response.result = messenger_pb2.ConnectionResponse.Result.CONNECTED
-                conn.send(connection_response.SerializeToString())
-                self.subscriber_list.append(dict_data)
-                green(f"\nLOCATION_SERVICE connection established with: {dict_data}")
+                green(f"\nTYPING_INDICATOR connection established with: {data}")
+                self.subscriber_list.append(data)
+
+            # Send connection response
+            conn.send(serialize_msg('CONNECTION_RESPONSE', connection_response))
 
     def handle_forwarding(self):
 
@@ -65,35 +62,29 @@ class LocationService:
         # Listen to incoming LiveLocation
         while True:
             res, addr = forwarding_socket.recvfrom(1024)
-            data = messenger_pb2.LiveLocation()
-            data.ParseFromString(res)
+            data = parse_msg(res, messenger_pb2.LiveLocation)[2]
 
-            # Create dict with relevant data
-            dict_data = {
-                "LiveLocation": data,
-                "userIP": addr[0],
-                "userPort": addr[1],
-                "chatmessageID": None,
-            }
+            # Append dict with relevant data
+            data['userIP'] = addr[0]
+            data['userPort'] = addr[1]
+            data['chatMessageID'] = None
+
             green(f'\nReceived Live Location from {addr[0]}:{addr[1]}')
 
-            # Update location_events_list
-            in_list = False
             # either update location_events_list...
             for item in self.location_events_list:
-                if item["userIP"] == dict_data['userIP']:
-                    item["LiveLocation"] = dict_data['LiveLocation']
-                    in_list = True
-            # ... or append and send chatmessage
-            if not in_list:
-                chatmessageID = send_chatmessage(dict_data['LiveLocation'])
-                dict_data["chatmessageID"] = chatmessageID
-                self.location_events_list.append(dict_data)
+                if item["userIP"] == data['userIP']:
+                    item["location"] = data['location']
+                # ... or append and send chatmessage
+                else:
+                    chatmessageID = send_chatmessage(data['location'])
+                    data["chatMessageID"] = chatmessageID
+                    self.location_events_list.append(data)
 
             # Delete expired items in location_events_list
             if len(self.location_events_list) > 0:
                 self.location_events_list = [
-                    item for item in self.location_events_list if item["LiveLocation"].expiry_at < time.time()
+                    item for item in self.location_events_list if item['expiryAt'] < time.time()
                 ]
 
             # Forward location_events_list to all subscribers.
@@ -101,7 +92,7 @@ class LocationService:
                 live_locations = self.format_live_locations_list()
                 for subscriber in self.subscriber_list:
                     # Forward message
-                    forwarding_socket.sendto(live_locations,
+                    forwarding_socket.sendto(serialize_msg('LIVE_LOCATIONS', live_locations),
                                             (subscriber['subscriberIP'], subscriber['locationPort']))
                     print(f'Forwarded to {subscriber['subscriberIP']}:{subscriber['locationPort']}')
             else:
@@ -111,9 +102,10 @@ class LocationService:
         live_locations = messenger_pb2.LiveLocations()
         for event in self.location_events_list:
             extended_live_location = live_locations.extended_live_locations.add()
-            extended_live_location.live_location.CopyFrom(event["LiveLocation"])
+            extended_live_location.live_location.CopyFrom(event)
             extended_live_location.chatmessageID = event["chatmessageID"]
-        return live_locations.SerializeToString()
+        
+        return live_locations
 
 
 

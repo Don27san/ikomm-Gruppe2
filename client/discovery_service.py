@@ -1,8 +1,7 @@
 from protobuf import messenger_pb2
-from google.protobuf.json_format import MessageToDict
 import socket
 from config import config
-from utils import blue
+from utils import blue, serialize_msg, parse_msg, red
 import os
 
 class DiscoveryService:
@@ -24,22 +23,23 @@ class DiscoveryService:
         blue(f'Discovering servers at port {config['conn_mgmt']['discovery_port']} for {timeout}s ...')
         # Broadcast discovery request to entire local network.
         addr = '<broadcast>' if os.getenv('APP_ENV') == 'prod' else '127.0.0.1' #We only broadcast when in prod. Otherwise we push via localhost for testing.
-        self.discovery_socket.sendto('DISCOVER_SERVER'.encode(), (addr, config['conn_mgmt']['discovery_port']))
+        self.discovery_socket.sendto(serialize_msg('DISCOVER_SERVER'), (addr, config['conn_mgmt']['discovery_port']))
 
         self.discovery_socket.settimeout(timeout)
         try:
             while True:
                 res, addr = self.discovery_socket.recvfrom(1024)
-                data = messenger_pb2.ServerAnnounce()
-                data.ParseFromString(res)
-                dict_data = MessageToDict(data)
-                dict_data['server_ip'] = addr[0] #Append Server IPs to contact them there in future calls.
-                self.server_list.append(dict_data) #Not protected against duplicates yet. (Is that even a case?)
+                payload = parse_msg(res, messenger_pb2.ServerAnnounce)[2] #Get the payload of the received message
+                payload['server_ip'] = addr[0] #Append Server IPs to contact them there in future calls.
+                self.server_list.append(payload) #Not protected against duplicates yet. (Is that even a case?)
+                print("Discovered: ", payload)
 
-                print("Discovered: ", dict_data)
 
         except socket.timeout:
             self.discovery_socket.close()
+            if not self.server_list:
+                red("No servers replied. Please check your network connection or server handling/availability.\n" \
+                "The server might have received your broadcast but didn't respond to it.")
             blue("Discovery finished.\n")
         
         return self.server_list

@@ -1,10 +1,9 @@
 import socket
 import time
 from protobuf import messenger_pb2
-from utils import typing_event, blue, green
+from utils import typing_event, blue, green, parse_msg, serialize_msg
 from pynput import keyboard
 from config import config
-from google.protobuf.json_format import MessageToDict
 
 class TypingFeature:
     
@@ -30,7 +29,7 @@ class TypingFeature:
             server_forwarding_port = config['typing_feature']['server_forwarding_port']
             typing_event.timestamp = time.time() #Todo: This is not timezone-proof. Need to deliver "timestamptz" variant.
 
-            self.socket.sendto(typing_event.SerializeToString(), (server_addr, server_forwarding_port))
+            self.socket.sendto(serialize_msg('TYPING_EVENT', typing_event), (server_addr, server_forwarding_port))
             print(f'\nTyping Event sent to {server_addr}:{server_forwarding_port}')
 
         # Reduces the frequency of typing events sent to the server
@@ -59,8 +58,6 @@ class TypingFeature:
     def handle_listening(self):
         while True:
             res, addr = self.socket.recvfrom(1024)
-            data = messenger_pb2.TypingEvents()
-            data.ParseFromString(res)
-            dict_data = MessageToDict(data)
+            data = parse_msg(res, messenger_pb2.TypingEvents)
             green(f'Received typing_events_list from {addr[0]}:{addr[1]}')
-            self.event_list = dict_data # Update the event list with the received typing events
+            self.event_list = data # Update the event list with the received typing events
