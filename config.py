@@ -9,7 +9,7 @@ config = {
 
     # Features and Ports
     'conn_mgmt': {
-        'discovery_port': 9997,
+        'discovery_port': 9999,
     },
 
     'messaging_feature':{
