@@ -13,13 +13,15 @@ class TypingFeature:
     - Listens for incoming typing_events forwarded by the server.
     """
     
-    def __init__(self, ):
+    def __init__(self,connector ):
+        self.connector = connector
         self.src_addr = config['address']
         self.src_port = config['typing_feature']['client_typing_port']
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind((self.src_addr, self.src_port))
         self.event_list = []  # List to store typing events with timestamps
         self.last_typing_sent = 0
+
 
     # Listens for keystrokes and sends typing event to server
     def handle_typing(self):

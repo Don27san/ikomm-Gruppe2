@@ -1,0 +1,18 @@
+{
+    "files": [
+        "main.py",
+        "chatwindow.py",
+        "chatwindow.ui",
+        "locationviewer.py",
+        "config.py",
+        "utils.py",
+        "client/connection_service.py",
+        "client/discovery_service.py",
+        "client/feature_interface.py",
+        "client/location_feature.py",
+        "client/typing_feature.py",
+        "protobuf/messenger_pb2.py",
+        "logic/message_manager.py",
+        "logic/location_manager.py"
+    ]
+}

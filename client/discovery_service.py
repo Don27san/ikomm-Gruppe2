@@ -20,7 +20,8 @@ class DiscoveryService:
     
 
     def discover_servers(self, timeout=5):
-        blue(f'Discovering servers at port {config['conn_mgmt']['discovery_port']} for {timeout}s ...')
+        blue(f"Discovering servers at port {config['conn_mgmt']['discovery_port']} for {timeout}s ...")
+
         # Broadcast discovery request to entire local network.
         addr = '<broadcast>' if os.getenv('APP_ENV') == 'prod' else '127.0.0.1' #We only broadcast when in prod. Otherwise we push via localhost for testing.
         self.discovery_socket.sendto(serialize_msg('DISCOVER_SERVER'), (addr, config['conn_mgmt']['discovery_port']))
