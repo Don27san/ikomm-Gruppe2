@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 16.0.2, 2025-06-22T20:35:48. -->
+<!-- Written by QtCreator 16.0.2, 2025-06-24T00:25:12. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -154,10 +154,10 @@
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">ProjectExplorer.CustomExecutableRunConfiguration</value>
     <value type="QString" key="ProjectExplorer.RunConfiguration.BuildKey"></value>
     <value type="bool" key="ProjectExplorer.RunConfiguration.Customized">true</value>
-    <value type="QString" key="RunConfiguration.Arguments">C:\Users\jhtde\OneDrive\Desktop\Internetkommunikation\PyQtChatUI_LiveLink\untitled2\main.py</value>
+    <value type="QString" key="RunConfiguration.Arguments">C:\Users\jhtde\OneDrive\Desktop\Internetkommunikation\chatchat\ikomm-Gruppe2\main.py</value>
     <value type="bool" key="RunConfiguration.UseCppDebuggerAuto">true</value>
     <value type="bool" key="RunConfiguration.UseQmlDebuggerAuto">true</value>
-    <value type="QString" key="RunConfiguration.WorkingDirectory">C:/Users/jhtde/OneDrive/Desktop/Internetkommunikation/PyQtChatUI_LiveLink/untitled2</value>
+    <value type="QString" key="RunConfiguration.WorkingDirectory">C:/Users/jhtde/OneDrive/Desktop/Internetkommunikation/chatchat/ikomm-Gruppe2</value>
    </valuemap>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.RunConfiguration.1">
     <value type="bool" key="Analyzer.Perf.Settings.UseGlobalSettings">true</value>

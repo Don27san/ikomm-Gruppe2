@@ -11,8 +11,9 @@ from config import config
 import threading
 
 class ChatWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, config):
         super().__init__()
+        self.config = config
         uic.loadUi("chatwindow.ui", self)
 
         # 网络连接
@@ -24,8 +25,7 @@ class ChatWindow(QMainWindow):
         # 功能模块绑定
         self.typingFeature = TypingFeature(self.connector)
         self.typingFeature.set_gui(self)
-
-        self.locationFeature = LocationFeature(self.connector)
+        self.locationFeature = LocationFeature(self.connector, config)
         self.locationFeature.set_gui(self)
 
         # GUI 控件连接
@@ -49,7 +49,7 @@ class ChatWindow(QMainWindow):
         if text:
             self.chatDisplay.append("[You] " + text)
             self.messageInput.clear()
-            self.connector.send("message", {"text": text})
+            self.connector.send("TYPING_INDICATOR", "CHAT_MESSAGE", {"text": text})
 
     def onTyping(self):
         self.typingLabel.setText("对方正在输入...")
@@ -63,6 +63,11 @@ class ChatWindow(QMainWindow):
         lat, lon = 52.52, 13.4050
         self.locationFeature.send_location(lat, lon)
 
+        # 在本地显示链接（点击后可以触发 handleLinkClick 弹窗）
+        link = f"https://www.google.com/maps?q={lat},{lon}"
+        self.chatDisplay.append(f'<a href="{link}"> 点击查看位置</a>')
+
+
     def show_location_popup(self, lat, lon):
         link = f"https://www.google.com/maps?q={lat},{lon}"
         self.viewer = LocationViewer(link)
@@ -73,7 +78,7 @@ class ChatWindow(QMainWindow):
         self.viewer.show()
 
     def on_typing_received(self):
-        self.typingLabel.setText("对方正在输入...")
+        self.typingLabel.setText("writing")
 
     def on_location_received(self, lat, lon):
         self.show_location_popup(lat, lon)

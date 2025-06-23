@@ -1,7 +1,8 @@
 from PyQt5.QtWidgets import QApplication
 from chatwindow import ChatWindow
+from config2 import config
+
 import sys
-from config import config
 
 if __name__ == "__main__":
     try:

@@ -66,3 +66,51 @@ pipenv run update-requirements
 ```
 
 These scripts simplify running common tasks without typing full commands. :)
+
+
+
+
+
+🖥️ GUI-Client – Anleitung zur Ausführung
+Dieses Projekt enthält einen grafischen Chat-Client, der mit PyQt5 entwickelt wurde. Diese Anleitung erklärt, wie man den GUI-Client lokal ausführt und testet.
+
+📦 Abhängigkeiten installieren
+Stelle sicher, dass Python 3.10+ installiert ist, und installiere die benötigten Pakete mit:
+
+bash
+
+pip install -r requirements.txt
+Alternativ (falls keine requirements.txt vorhanden ist):
+
+bash
+
+pip install PyQt5 protobuf geocoder netifaces pynput
+📁 Projektstruktur
+bash
+
+ikomm-Gruppe2/
+├── chatwindow.py           # GUI-Hauptfenster
+├── main.py                 # Einstiegspunkt für den ersten Client
+├── main2.py                # Zweiter Einstiegspunkt (für parallele Tests)
+├── config.py               # Konfiguration für Client 1 (Ports, Adresse usw.)
+├── config2.py              # Konfiguration für Client 2 (mit anderen Ports)
+├── client/
+│   ├── connection_service.py
+│   ├── discovery_service.py
+│   ├── typing_feature.py
+│   └── location_feature.py
+├── server/                 # Servermodule
+├── locationviewer.py       # Popup zur Standortanzeige
+└── chatwindow.ui           # UI-Datei für Qt Designer
+🚀 GUI starten
+✅ Haupt-Client starten:
+bash
+
+python main.py
+✅ Zweiten Client starten (für Kommunikationstests):
+Stelle sicher, dass config2.py andere Ports als config.py verwendet.
+
+bash
+
+python main2.py
+Nun kannst du in zwei Fenstern chatten, Tipp-Anzeigen testen und Standorte teilen.
