@@ -28,7 +28,7 @@ class TypingService:
         while True:
             conn, addr = connection_socket.accept()
             res = conn.recv(1024)
-            data = parse_msg(res, messenger_pb2.ConnectClient)[2]
+            data = parse_msg(res)[2]
             data['subscriberIP'] = addr[0]
 
             connection_response = messenger_pb2.ConnectionResponse()
@@ -61,7 +61,7 @@ class TypingService:
         #Listen to incoming typing_event
         while True:
             res, addr = forwarding_socket.recvfrom(1024)
-            data = parse_msg(res, messenger_pb2.TypingEvent)[2]
+            data = parse_msg(res)[2]
             data['userIP'] = addr[0]
             data['userPort'] = addr[1]
             green(f'\nReceived typing_event from {addr[0]}:{addr[1]}')
