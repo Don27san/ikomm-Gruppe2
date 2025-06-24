@@ -32,8 +32,3 @@ def serialize_msg(message_name: MessageName, payload: Optional[Message] = None) 
     body = b'' if payload is None else payload.SerializeToString()
     data = f'{message_name} {len(body)} '.encode('ascii') + body + b'\n'
     return data
-
-    def disconnect_client(self):
-        blue('Disconnecting client from features ...')
-        hangup = messenger_pb2.HangUp(reason=messenger_pb2.HangUp.EXIT)
-        self.feature_socket.send(serialize_msg('HANGUP', hangup))  # Send hangup request to feature server
