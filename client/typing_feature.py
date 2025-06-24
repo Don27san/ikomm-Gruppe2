@@ -58,6 +58,6 @@ class TypingFeature:
     def handle_listening(self):
         while True:
             res, addr = self.socket.recvfrom(1024)
-            data = parse_msg(res, messenger_pb2.TypingEvents)
+            data = parse_msg(res)
             green(f'Received typing_events_list from {addr[0]}:{addr[1]}')
             self.event_list = data # Update the event list with the received typing events

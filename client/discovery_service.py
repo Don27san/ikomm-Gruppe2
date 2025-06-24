@@ -1,7 +1,6 @@
-from protobuf import messenger_pb2
 import socket
+from utils import red, blue, parse_msg, serialize_msg
 from config import config
-from utils import blue, serialize_msg, parse_msg, red
 import os
 
 class DiscoveryService:
@@ -29,7 +28,7 @@ class DiscoveryService:
         try:
             while True:
                 res, addr = self.discovery_socket.recvfrom(1024)
-                payload = parse_msg(res, messenger_pb2.ServerAnnounce)[2] #Get the payload of the received message
+                payload = parse_msg(res)[2] #Get the payload of the received message
                 payload['server_ip'] = addr[0] #Append Server IPs to contact them there in future calls.
                 self.server_list.append(payload) #Not protected against duplicates yet. (Is that even a case?)
                 print("Discovered: ", payload)

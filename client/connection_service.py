@@ -1,6 +1,5 @@
 import socket
-from utils import connect_client, blue, green, red, yellow, serialize_msg, parse_msg
-from protobuf import messenger_pb2
+from utils import blue, green, red, yellow, serialize_msg, parse_msg, connect_client
 
 class ConnectionService:
     """
@@ -35,7 +34,7 @@ class ConnectionService:
 
                             #Handle Connection Response
                             res = self.feature_socket.recv(4096)
-                            data = parse_msg(res, messenger_pb2.ConnectionResponse)[2]
+                            data = parse_msg(res)[2]
                             if data['result'] == 'IS_ALREADY_CONNECTED_ERROR':
                                 yellow(f"Connection was established. You are already on the server's subscriber list! \n")
                             elif data['result'] == 'CONNECTED':
