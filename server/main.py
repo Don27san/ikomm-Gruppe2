@@ -1,8 +1,7 @@
 import threading
-from . announcer import AnnouncingService
-from . typing_subscriber import TypingSubscriber
-from . typing_forwarder import TypingForwarder
-from .chat_server import start_server as start_chat_server, SERVER_ID as CHAT_SERVER_ID, PORT as CHAT_PORT
+from .announcement_service import AnnouncementService
+from .typing_service import TypingService
+from .location_service import LocationService
 
 
 def main():
@@ -26,19 +25,16 @@ def main():
                                 features=server_features)
     threading.Thread(target=announcer.announce_server, daemon=True).start()
 
-    # Listen for client connections w.r.t. typing indicator feature
-    # The TypingSubscriber might also need to be aware of the main_server_id if it registers clients against it
-    typing_subscriber = TypingSubscriber(src_addr='localhost', src_port=7777) # Port where typing subscription happens
-    threading.Thread(target=typing_subscriber.listen_for_subscription_requests, daemon=True).start()
+    # Typing Indicator Feature
+    typing_service= TypingService()
+    threading.Thread(target=typing_service.handle_connections, daemon=True).start()
+    threading.Thread(target=typing_service.handle_forwarding, daemon=True).start()
 
-    #Listen for and forward incoming typing_events
-    # The TypingForwarder might also need context about server IDs if it interacts with other servers
-    typing_forwarder = TypingForwarder('localhost', 7778) # Port where typing events are received by server to be forwarded
-    threading.Thread(target=typing_forwarder.handle_forwarding, daemon=True).start()
-    
-    # Start the Chat Server
-    print(f"Starting Chat Server (ID: {CHAT_SERVER_ID}) on port {CHAT_PORT}...")
-    threading.Thread(target=start_chat_server, daemon=True).start()
+    # Location Service
+    location_service = LocationService()
+    threading.Thread(target=location_service.handle_connections, daemon=True).start()
+    threading.Thread(target=location_service.handle_forwarding, daemon=True).start()
+
 
     # Keep the main thread alive.
     try:

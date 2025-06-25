@@ -4,7 +4,17 @@ import "google/protobuf/timestamp.proto";
 
 
 
-//General Connection Management Messages
+//General Structures
+message User {
+    string userId = 1; 
+    string serverId = 2;
+}
+
+message DiscoverServer {
+  // Empty by design. Need this for correct parsing. Do not delete!
+}
+
+//Connection Management Structures
 message ServerAnnounce {
     string serverId = 1;
     message Feature {
@@ -14,16 +24,36 @@ message ServerAnnounce {
     repeated Feature feature = 2;
 }
 
-message User {
-    string userId = 1; 
-    string serverId = 2;
-}
 
 message ConnectClient { 
     User user = 1;
     int32 typingPort = 3; 
-    // int32 location_port = 2; #We'll must likely send a port info for location feature as well.
+    int32 location_port = 2; //We'll must likely send a port info for location feature as well.
 }
+
+message ConnectionResponse {
+    enum Result {
+        UNKNOWN_ERROR = 0;
+        CONNECTED = 1;
+        IS_ALREADY_CONNECTED_ERROR = 2;
+    }
+    Result result = 1;
+}
+
+message HangUp {
+    enum Reason {
+        UNKNOWN_REASON = 0;
+        EXIT = 1;
+        TIMEOUT = 2;
+        PAYLOAD_LIMIT_EXCEEDED = 3; // ex. 2mb payload
+        MESSAGE_MALFORMED = 4; // ex. parse fail
+    }
+    Reason reason = 1;
+ }
+
+
+
+
 
 
 // ALL FEATURE Structures
@@ -45,46 +75,38 @@ message ChatMessage {
     }
 }
 
+
 // Typing Indicator Structure
 message TypingEvent {
     User user = 1;
     double timestamp = 2;
 }
 
+// Bundle for multiple typing events
 message TypingEvents {
     repeated TypingEvent typing_events = 1;
 }
 
-// Chat Feature Messages
-message User { // Top-level User for ChatMessage
-    string userId = 1;
-    string serverId = 2; // Identifies the user's homeserver or current server
+
+//Live Location Structure
+message LiveLocation {
+    User user = 1;
+    double timestamp = 2;
+    double expiry_at = 3;
+    message Location {
+        double latitude = 1;
+        double longitude = 2;
+    };
+    Location location = 4;
 }
 
-message Group { // Top-level Group for ChatMessage
-    string groupId = 1;
-    string serverId = 2; // Identifies the server hosting/managing the group
-}
-
-message ChatMessage {
-    uint64 messageSnowflake = 1;
-    User author = 2; // Refers to top-level User
-
-    message UserOfGroup {
-        User user = 1;    // Refers to top-level User
-        Group group = 2;  // Refers to top-level Group
+// Bundle for multiple LiveLocations
+message LiveLocations {
+    message ExtendedLiveLocation {
+        LiveLocation live_location = 1;
+        string chatmessageID = 2;
     }
 
-    oneof recipient {
-        User user = 3;        // Refers to top-level User
-        Group group = 4;      // Refers to top-level Group
-        UserOfGroup userOfGroup = 5;
-    }
-    reserved 6 to 10;
-
-    oneof content {
-        string textContent = 11;
-        // Document document = 12; // To be defined or uncommented later if Document message is defined
-    }
+    repeated ExtendedLiveLocation extended_live_locations = 1;
 }
 

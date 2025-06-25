@@ -1,5 +1,5 @@
 import socket
-from utils import connect_client, blue, green, red
+from utils import blue, green, red, yellow, serialize_msg, parse_msg, connect_client
 
 class ConnectionService:
     """
@@ -30,9 +30,18 @@ class ConnectionService:
                             print(f'Connecting to feature: {feature_name}')
                             self.feature_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                             self.feature_socket.connect((feature_ip, feature_port))
-                            self.feature_socket.send(connect_client.SerializeToString())
+                            self.feature_socket.send(serialize_msg('CONNECT_CLIENT', connect_client))  # Send connection request to feature server
 
-                            green(f"Connected to {feature_name} on {feature_ip}:{feature_port}. \n")
+                            #Handle Connection Response
+                            res = self.feature_socket.recv(4096)
+                            data = parse_msg(res)[2]
+                            if data['result'] == 'IS_ALREADY_CONNECTED_ERROR':
+                                yellow(f"Connection was established. You are already on the server's subscriber list! \n")
+                            elif data['result'] == 'CONNECTED':
+                                green(f"{data['result']} to {feature_name} on {feature_ip}:{feature_port}. \n")
+                            else:
+                                red(f"Unknown connection response for {feature_name} from {feature_ip}:{feature_port}. \n")
                         except Exception as e:
                             red(f"Failed to connect to {feature_name} on {feature_ip}:{feature_port}. Error: {e} \n")
+                            self.feature_socket.close()
                             continue
