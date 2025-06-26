@@ -17,7 +17,7 @@ def main():
     connector = ConnectionService(
         feature_support_list=config['feature_support'], 
         server_list=server_list)
-    connected_servers = connector.connect_client() # Assuming this returns info about connected servers
+    connector.connect_client()
 
     #Handle Sending/Receiving of Typing Indicator Feature
     typing_event=TypingFeature()
