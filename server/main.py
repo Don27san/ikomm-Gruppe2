@@ -1,6 +1,7 @@
 import threading
 from .announcement_service import AnnouncementService
 from .typing_service import TypingService
+from .location_service import LocationService
 
 
 def main():
@@ -12,7 +13,12 @@ def main():
     typing_service= TypingService()
     threading.Thread(target=typing_service.handle_connections, daemon=True).start()
     threading.Thread(target=typing_service.handle_forwarding, daemon=True).start()
-    
+
+    # Location Service
+    location_service = LocationService()
+    threading.Thread(target=location_service.handle_connections, daemon=True).start()
+    threading.Thread(target=location_service.handle_forwarding, daemon=True).start()
+
 
     # Keep the main thread alive.
     while True:

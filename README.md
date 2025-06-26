@@ -65,4 +65,4 @@ pipenv run pb-compile
 pipenv run update-requirements
 ```
 
-These scripts simplify running common tasks without typing full commands.
+These scripts simplify running common tasks without typing full commands. :)

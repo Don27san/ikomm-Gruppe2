@@ -15,6 +15,10 @@ class User(_message.Message):
     serverId: str
     def __init__(self, userId: _Optional[str] = ..., serverId: _Optional[str] = ...) -> None: ...
 
+class DiscoverServer(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
 class ServerAnnounce(_message.Message):
     __slots__ = ("serverId", "feature")
     class Feature(_message.Message):
@@ -103,7 +107,7 @@ class TypingEvents(_message.Message):
     def __init__(self, typing_events: _Optional[_Iterable[_Union[TypingEvent, _Mapping]]] = ...) -> None: ...
 
 class LiveLocation(_message.Message):
-    __slots__ = ("user", "timestamp", "expiry_at")
+    __slots__ = ("user", "timestamp", "expiry_at", "location")
     class Location(_message.Message):
         __slots__ = ("latitude", "longitude")
         LATITUDE_FIELD_NUMBER: _ClassVar[int]
@@ -114,7 +118,22 @@ class LiveLocation(_message.Message):
     USER_FIELD_NUMBER: _ClassVar[int]
     TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
     EXPIRY_AT_FIELD_NUMBER: _ClassVar[int]
+    LOCATION_FIELD_NUMBER: _ClassVar[int]
     user: User
     timestamp: float
     expiry_at: float
-    def __init__(self, user: _Optional[_Union[User, _Mapping]] = ..., timestamp: _Optional[float] = ..., expiry_at: _Optional[float] = ...) -> None: ...
+    location: LiveLocation.Location
+    def __init__(self, user: _Optional[_Union[User, _Mapping]] = ..., timestamp: _Optional[float] = ..., expiry_at: _Optional[float] = ..., location: _Optional[_Union[LiveLocation.Location, _Mapping]] = ...) -> None: ...
+
+class LiveLocations(_message.Message):
+    __slots__ = ("extended_live_locations",)
+    class ExtendedLiveLocation(_message.Message):
+        __slots__ = ("live_location", "chatmessageID")
+        LIVE_LOCATION_FIELD_NUMBER: _ClassVar[int]
+        CHATMESSAGEID_FIELD_NUMBER: _ClassVar[int]
+        live_location: LiveLocation
+        chatmessageID: str
+        def __init__(self, live_location: _Optional[_Union[LiveLocation, _Mapping]] = ..., chatmessageID: _Optional[str] = ...) -> None: ...
+    EXTENDED_LIVE_LOCATIONS_FIELD_NUMBER: _ClassVar[int]
+    extended_live_locations: _containers.RepeatedCompositeFieldContainer[LiveLocations.ExtendedLiveLocation]
+    def __init__(self, extended_live_locations: _Optional[_Iterable[_Union[LiveLocations.ExtendedLiveLocation, _Mapping]]] = ...) -> None: ...
