@@ -11,6 +11,8 @@ server-prod = "env APP_ENV=prod python -m server.main"
 pb-compile = "protoc --python_out=. --pyi_out=. ./protobuf/messenger.proto"
 update-requirements = "pip freeze > requirements.txt"
 count-lines = "find client server GUI -type f -name '*.py' ! -path '*/__pycache__/*' ! -name '*_pb2.py' | xargs wc -l"
+gui = "python GUI.main.py"
+
 
 [packages]
 beautifulsoup4 = "==4.13.4"
@@ -33,6 +35,16 @@ typing-extensions = "==4.14.0"
 virtualenv = "==20.31.2"
 google = "*"
 geocoder = "*"
+
+# GUI support for macOS
+pyobjc-core = "==11.0"
+pyobjc-framework-applicationservices = "==11.0"
+pyobjc-framework-cocoa = "==11.0"
+pyobjc-framework-coretext = "==11.0"
+pyobjc-framework-quartz = "==11.0"
+
+# Qt support
+pyqt5 = "*"
 
 [dev-packages]
 

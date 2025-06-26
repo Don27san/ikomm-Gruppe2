@@ -1,0 +1,8 @@
+{
+    "files": [
+        "main.py",
+        "chatwindow.py",
+        "chatwindow.ui",
+        "locationviewer.py",
+    ]
+}
