@@ -5,7 +5,7 @@ import netifaces as ni
 config = {
     # Address based on env set in pipenv script
     'address': ni.ifaddresses('en0')[ni.AF_INET][0]['addr'] if os.getenv('APP_ENV') == 'prod' else '127.0.0.1',
-    'feature_support': ['TYPING_INDICATOR', 'LIVE_LOCATION'],  # Features our client wants to support
+    'feature_support': ['TYPING_INDICATOR', 'LIVE_LOCATION', 'CHAT'],  # Features our client wants to support
 
     # Features and Ports
     'conn_mgmt': {
@@ -14,6 +14,10 @@ config = {
 
     'messaging_feature':{
         'connection_port': 6666,
+    },
+
+    'chat_feature': {
+        'server_port': 6001,  # Chat server port
     },
 
     'typing_feature': {

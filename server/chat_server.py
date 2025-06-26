@@ -2,22 +2,23 @@
 import socket
 import threading
 import time
-from protobuf import messenger_pb2 # Assuming your compiled protobuf file is here
+from protobuf import messenger_pb2
+from config import config
 
 # Server configuration
-HOST = '0.0.0.0' # Listen on all available interfaces
-PORT = 6001 # Port for TCP chat service
+HOST = '0.0.0.0'  # Listen on all available interfaces
+PORT = config['chat_feature']['server_port']  # Port for TCP chat service
 MAX_CLIENTS = 10
-SERVER_ID = "homeserver1" # This server's unique ID
+SERVER_ID = "homeserver1"  # This server's unique ID
 
 # In-memory storage for connected clients and server/group info (for a real app, use a database)
-connected_clients = {} # { (user_id, server_id): client_socket }
-# server_directory = { "server_id": ("host", port) } # For inter-server communication
-# group_members = { ("group_id", "group_server_id"): [("user_id", "user_server_id")] }
+connected_clients = {}  # { user_id: client_socket }
+server_directory = {}  # { "server_id": ("host", port) } For inter-server communication
+group_members = {}  # { ("group_id", "group_server_id"): [("user_id", "user_server_id")] }
 
 def handle_client(client_socket, addr):
     print(f"[NEW CONNECTION] {addr} connected.")
-    client_id_str = f"{addr[0]}:{addr[1]}" # Temporary ID until proper client registration
+    user_id = None  # Will be set when client registers
 
     try:
         while True:
@@ -37,16 +38,24 @@ def handle_client(client_socket, addr):
                 chunk = client_socket.recv(msg_len - len(serialized_msg))
                 if not chunk:
                     print(f"[DISCONNECTED] {addr} (incomplete message).")
-                    return # Exit thread for this client
+                    return
                 serialized_msg += chunk
             
             chat_msg = messenger_pb2.ChatMessage()
             chat_msg.ParseFromString(serialized_msg)
 
             print(f"[RECEIVED from {addr}] Author: {chat_msg.author.userId}@{chat_msg.author.serverId}")
-            print(f"  Content: {chat_msg.textContent}")
+            print(f"  Message Snowflake: {chat_msg.messageSnowflake}")
+            
+            # Register client if not already registered
+            if user_id is None:
+                user_id = chat_msg.author.userId
+                connected_clients[user_id] = client_socket
+                print(f"[REGISTERED] Client {user_id} registered")
 
-            process_chat_message(chat_msg, client_socket, addr)
+            response = process_chat_message(chat_msg, client_socket, addr)
+            if response:
+                send_response(client_socket, response)
 
     except ConnectionResetError:
         print(f"[DISCONNECTED] {addr} (connection reset).")
@@ -54,96 +63,185 @@ def handle_client(client_socket, addr):
         print(f"[ERROR] For {addr}: {e}")
     finally:
         # Clean up client connection
-        # if client_id_str in connected_clients: # More robust cleanup needed if using user_id based keys
-        #     del connected_clients[client_id_str]
+        if user_id and user_id in connected_clients:
+            del connected_clients[user_id]
         client_socket.close()
         print(f"[CLOSED] Connection with {addr}.")
 
 def process_chat_message(chat_msg, source_socket, source_addr):
-    # This server's ID
-    current_server_id = SERVER_ID 
-
+    """
+    Process incoming chat message according to the protocol:
+    - If source is different server, validate author/group belongs to that server
+    - Route message based on recipient type
+    - Return ChatMessageResponse
+    """
+    current_server_id = SERVER_ID
     author = chat_msg.author
     recipient_type = chat_msg.WhichOneof('recipient')
-    content_type = chat_msg.WhichOneof('content') # e.g. 'textContent'
+    content_type = chat_msg.WhichOneof('content')
 
-    # Rule 1: Source is a different server (inter-server message)
-    # This basic example doesn't fully implement inter-server connections yet.
-    # We assume for now messages are from clients connected directly to this server.
-    # If chat_msg.author.serverId != current_server_id: # This would be a message relayed from another server
-        # print(f"  Message from another server {chat_msg.author.serverId}")
-        # if recipient_type == 'userOfGroup':
-        #     if chat_msg.recipient.userOfGroup.group.serverId != current_server_id and \ 
-        #        author.serverId != chat_msg.recipient.userOfGroup.group.serverId: # Simplified check
-        #         print(f"  Validation Error: Group {chat_msg.recipient.userOfGroup.group.groupId} or author {author.userId} not on source server {author.serverId}")
-        #         return # Or send error back
-        # elif author.serverId != current_server_id: # Simplified check for direct user/group messages from other servers
-        #     pass # Basic validation, more needed
+    print(f"  Content type: {content_type}")
+    if content_type == 'textContent':
+        print(f"  Text content: {chat_msg.textContent}")
+    elif content_type == 'live_location':
+        print(f"  Live location from: {chat_msg.live_location.user.userId}")
+
+    # Create response message
+    response = messenger_pb2.ChatMessageResponse()
+    response.messageSnowflake = chat_msg.messageSnowflake
 
     if recipient_type == 'user':
-        target_user = chat_msg.recipient.user
+        target_user = chat_msg.user
         print(f"  Recipient: User {target_user.userId}@{target_user.serverId}")
+        
+        status = messenger_pb2.ChatMessageResponse.Status.DELIVERED
         if target_user.serverId == current_server_id:
-            # Recipient is on this server, relay to client_id (if known and connected)
-            print(f"  Action: Relay to local user {target_user.userId}")
-            # relay_to_local_client(target_user.userId, chat_msg)
+            # Recipient is on this server
+            if target_user.userId in connected_clients:
+                print(f"  Action: Relay to local user {target_user.userId}")
+                relay_to_local_client(target_user.userId, chat_msg)
+            else:
+                print(f"  User {target_user.userId} not found on this server")
+                status = messenger_pb2.ChatMessageResponse.Status.USER_NOT_FOUND
         else:
-            # Recipient is on another server, relay according to server_id
-            print(f"  Action: Relay to server {target_user.serverId} for user {target_user.userId}")
-            # relay_to_other_server(target_user.serverId, chat_msg)
+            # Recipient is on another server
+            print(f"  Action: Relay to server {target_user.serverId}")
+            success = relay_to_other_server(target_user.serverId, chat_msg)
+            if not success:
+                status = messenger_pb2.ChatMessageResponse.Status.OTHER_SERVER_NOT_FOUND
+
+        # Add delivery status
+        delivery_status = response.statuses.add()
+        delivery_status.user.CopyFrom(target_user)
+        delivery_status.status = status
 
     elif recipient_type == 'group':
-        target_group = chat_msg.recipient.group
+        target_group = chat_msg.group
         print(f"  Recipient: Group {target_group.groupId}@{target_group.serverId}")
+        
         if target_group.serverId == current_server_id:
-            # Recipient group is hosted here. Split into UserOfGroup messages.
+            # Group is hosted here - split into UserOfGroup messages
             print(f"  Action: Group {target_group.groupId} is local. Splitting message.")
-            # members = get_group_members(target_group.groupId, target_group.serverId)
-            # for member_user_id, member_server_id in members:
-            #     uog_msg = messenger_pb2.ChatMessage()
-            #     uog_msg.CopyFrom(chat_msg) # Copy original message details
-            #     uog_msg.recipient.userOfGroup.user.userId = member_user_id
-            #     uog_msg.recipient.userOfGroup.user.serverId = member_server_id
-            #     uog_msg.recipient.userOfGroup.group.groupId = target_group.groupId
-            #     uog_msg.recipient.userOfGroup.group.serverId = target_group.serverId
-            #     print(f"    Relaying to UserOfGroup: {member_user_id} in {target_group.groupId}")
-            #     process_chat_message(uog_msg, None, None) # Recursive call for UserOfGroup
+            members = get_group_members(target_group.groupId, target_group.serverId)
+            
+            for member_user_id, member_server_id in members:
+                # Create UserOfGroup message
+                uog_msg = messenger_pb2.ChatMessage()
+                uog_msg.CopyFrom(chat_msg)
+                # Clear the group recipient and set userOfGroup
+                uog_msg.ClearField('group')
+                uog_msg.userOfGroup.user.userId = member_user_id
+                uog_msg.userOfGroup.user.serverId = member_server_id
+                uog_msg.userOfGroup.group.CopyFrom(target_group)
+                
+                print(f"    Relaying to UserOfGroup: {member_user_id}@{member_server_id}")
+                member_response = process_chat_message(uog_msg, None, None)
+                if member_response:
+                    # Merge member responses into main response
+                    for status in member_response.statuses:
+                        response.statuses.append(status)
         else:
-            # Recipient group is elsewhere, relay to that server
-            print(f"  Action: Relay to server {target_group.serverId} for group {target_group.groupId}")
-            # relay_to_other_server(target_group.serverId, chat_msg)
+            # Group is on another server
+            print(f"  Action: Relay to server {target_group.serverId}")
+            success = relay_to_other_server(target_group.serverId, chat_msg)
+            status = messenger_pb2.ChatMessageResponse.Status.DELIVERED if success else messenger_pb2.ChatMessageResponse.Status.OTHER_SERVER_NOT_FOUND
+            
+            # Add status for the group (represented by a placeholder user)
+            delivery_status = response.statuses.add()
+            delivery_status.user.userId = f"group_{target_group.groupId}"
+            delivery_status.user.serverId = target_group.serverId
+            delivery_status.status = status
 
     elif recipient_type == 'userOfGroup':
-        target_uog = chat_msg.recipient.userOfGroup
-        print(f"  Recipient: UserOfGroup {target_uog.user.userId} in {target_uog.group.groupId}@{target_uog.group.serverId}")
+        target_uog = chat_msg.userOfGroup
+        print(f"  Recipient: UserOfGroup {target_uog.user.userId}@{target_uog.user.serverId} in {target_uog.group.groupId}@{target_uog.group.serverId}")
+        
         if target_uog.group.serverId == current_server_id:
-            # User is part of a group hosted on this server. Relay to specific client.
-            print(f"  Action: Relay to local user {target_uog.user.userId} (member of {target_uog.group.groupId})")
-            # relay_to_local_client(target_uog.user.userId, chat_msg)
+            # User is part of a group hosted on this server
+            if target_uog.user.userId in connected_clients:
+                print(f"  Action: Relay to local user {target_uog.user.userId}")
+                relay_to_local_client(target_uog.user.userId, chat_msg)
+                status = messenger_pb2.ChatMessageResponse.Status.DELIVERED
+            else:
+                print(f"  User {target_uog.user.userId} not found")
+                status = messenger_pb2.ChatMessageResponse.Status.USER_NOT_FOUND
+                
+            delivery_status = response.statuses.add()
+            delivery_status.user.CopyFrom(target_uog.user)
+            delivery_status.status = status
         else:
-            # UserOfGroup for a group on another server. This is an error according to rules.
-            print(f"  Error: Recipient UserOfGroup for group {target_uog.group.groupId} on another server {target_uog.group.serverId}. This should not happen if source is client.")
-            # Potentially send an error message back to the sender if it was a server relaying.
+            # UserOfGroup for a group on another server - this is an error
+            print(f"  Error: UserOfGroup for group on another server {target_uog.group.serverId}")
+            delivery_status = response.statuses.add()
+            delivery_status.user.CopyFrom(target_uog.user)
+            delivery_status.status = messenger_pb2.ChatMessageResponse.Status.OTHER_ERROR
 
     else:
         print(f"  Unknown recipient type: {recipient_type}")
+        # Add error status
+        delivery_status = response.statuses.add()
+        delivery_status.user.CopyFrom(author)  # Return error to sender
+        delivery_status.status = messenger_pb2.ChatMessageResponse.Status.OTHER_ERROR
 
-# Placeholder functions for relaying (these would need actual implementation)
-# def relay_to_local_client(user_id, chat_msg):
-#     # Find client_socket for user_id and send the message
-#     # This requires a mapping of user_id to client_socket upon connection/authentication
-#     print(f"    Attempting to relay to local client {user_id}")
-#     pass
+    return response
 
-# def relay_to_other_server(server_id, chat_msg):
-#     # Find connection to other server and send the message
-#     print(f"    Attempting to relay to other server {server_id}")
-#     pass
 
-# def get_group_members(group_id, group_server_id):
-#     # Lookup group members from a database or in-memory store
-#     print(f"    Looking up members for group {group_id}@{group_server_id}")
-#     return [("userA", "homeserver1"), ("userB", "otherserver2")] # Example members
+def relay_to_local_client(user_id, chat_msg):
+    """Relay message to a local client"""
+    if user_id in connected_clients:
+        try:
+            client_socket = connected_clients[user_id]
+            serialized_msg = chat_msg.SerializeToString()
+            msg_len = len(serialized_msg).to_bytes(4, 'big')
+            client_socket.sendall(msg_len + serialized_msg)
+            print(f"    Successfully relayed to local client {user_id}")
+            return True
+        except Exception as e:
+            print(f"    Error relaying to local client {user_id}: {e}")
+            # Remove disconnected client
+            del connected_clients[user_id]
+            return False
+    else:
+        print(f"    Client {user_id} not connected")
+        return False
+
+
+def relay_to_other_server(server_id, chat_msg):
+    """Relay message to another server"""
+    if server_id in server_directory:
+        try:
+            host, port = server_directory[server_id]
+            # TODO: Implement inter-server communication
+            print(f"    Would relay to server {server_id} at {host}:{port}")
+            return True  # Placeholder
+        except Exception as e:
+            print(f"    Error relaying to server {server_id}: {e}")
+            return False
+    else:
+        print(f"    Server {server_id} not found in directory")
+        return False
+
+
+def get_group_members(group_id, group_server_id):
+    """Get members of a group"""
+    group_key = (group_id, group_server_id)
+    if group_key in group_members:
+        return group_members[group_key]
+    else:
+        # Return some example members for testing
+        print(f"    Group {group_id} not found, returning example members")
+        return [("user1", SERVER_ID), ("user2", SERVER_ID)]
+
+
+def send_response(client_socket, response):
+    """Send ChatMessageResponse back to client"""
+    try:
+        serialized_response = response.SerializeToString()
+        msg_len = len(serialized_response).to_bytes(4, 'big')
+        client_socket.sendall(msg_len + serialized_response)
+        print(f"  Sent response with {len(response.statuses)} delivery statuses")
+    except Exception as e:
+        print(f"  Error sending response: {e}")
 
 def start_server():
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
