@@ -39,10 +39,11 @@ class TypingFeature:
                 fn()
                 self.last_typing_sent = now
 
-        # Handles key press events
-        def on_press():
+        # Handles key press events for alphanumeric and symbol keys
+        def on_press(key):
             try:
-                debounce(fn=send_typing_event)
+                if isinstance(key, keyboard.KeyCode) and key.char and key.char.strip():
+                    debounce(fn=send_typing_event)
             except AttributeError:
                 pass
             

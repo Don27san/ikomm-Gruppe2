@@ -1,7 +1,7 @@
 import socket
 from protobuf import messenger_pb2
 from config import config
-from utils import blue, green, yellow, parse_msg, serialize_msg, parse_msg, serialize_msg, MessageStream
+from utils import blue, green, yellow, parse_msg, serialize_msg, MessageStream
 import time
 
 class TypingService:
@@ -16,14 +16,13 @@ class TypingService:
         self.typing_events_list = [] #List to bundle typing activities. No filtering, this is client's task!
 
     def handle_connections(self):
-        addr = config['address']
-        connection_port = config['typing_feature']['server_connection_port']
-        stream = MessageStream(addr, connection_port)
-        
-        blue(f"Listening for typing_connections on {addr}:{connection_port}...")
+        bind_addr = config['address']
+        bind_port = config['typing_feature']['server_connection_port']
+        stream = MessageStream(bind_addr, bind_port)
+        blue(f"Listening for TYPING_INDICATOR connections on {bind_addr}:{bind_port}...")
 
         while True:
-            msg, addr = stream.recv_msg()
+            msg, addr, conn = stream.recv_msg()
             
             data = parse_msg(msg)[2]
             data['subscriberIP'] = addr[0]
@@ -40,7 +39,7 @@ class TypingService:
                 self.subscriber_list.append(data)
 
             # Send connection response
-            stream.conn.send(serialize_msg('CONNECTION_RESPONSE', connection_response))
+            conn.send(serialize_msg('CONNECTION_RESPONSE', connection_response))
             
             
                 

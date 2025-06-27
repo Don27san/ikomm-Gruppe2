@@ -1,79 +1,80 @@
 import socket
+from threading import Thread
 from typing import Tuple
+from utils import blue
+import queue
+
 
 class MessageStream:
-    """
-    A TCP message stream handler for receiving structured messages over a socket connection 
-    Parameters:
-        connection_addr (str): The IP address to bind the server socket to.
-        connection_port (int): The port number to bind the server socket to.
-    Attributes:
-        connection_socket (socket.socket): The server socket listening for incoming connections.
-        conn (socket.socket): The accepted client connection socket.
-        addr (tuple): The address of the connected client.
-        buffer (bytes): Internal buffer for accumulating received data.
-    Methods:
-        recv_msg():
-            Receives the next complete message from the stream.
-            Reads data until a message with a valid header and payload is fully received.
-            Returns:
-                tuple: (msg, addr) where `msg` is the raw message bytes (including header and payload),
-                       and `addr` is the address of the connected client.
-                Returns None if the message is malformed or the connection is closed unexpectedly.
-    """
-    
-    def __init__(self, connection_addr : str, connection_port : int):
+    def __init__(self, connection_addr: str, connection_port: int):
         self.connection_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connection_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.connection_socket.bind((connection_addr, connection_port))
         self.connection_socket.listen(5)
-        
+        self.msg_queue = queue.Queue()
+        Thread(target=self.listen, daemon=True).start()  # Start listener in background thread
 
-        self.buffer = b'' # Stores the data which we receive via TCP
+    def listen(self):
+        while True:
+            client_socket, addr = self.connection_socket.accept()
+            Thread(target=self.handle_new_client, args=(client_socket, addr)).start()
 
-    def recv_msg(self) -> Tuple[bytes, Tuple[str, int]]:
-        """
-        Receives a complete message from the connection, parsing the header and payload.
-        The message format is expected to be: `b'<message_name>  <size>  <payload>\\n'`
-        Reads from the connection until the full message (including header and payload) is available.
-        Validates the message structure and ensures the message ends with a newline delimiter.
-        Returns:
-            Tuple[bytes, Tuple[str, int]]: A tuple containing the raw message bytes (including header and payload)
-            and the address of the sender.
-        Raises:
-            Exception: If the header is malformed, the connection is closed prematurely, or the message does not end with a newline.
-        """
-        self.conn, self.addr = self.connection_socket.accept()
-
-        # Reads until 2 spaces (header of message_name and payload length) are found
-        while self.buffer.count(b' ') < 2:
-            res = self.conn.recv(1024)
-            self.buffer += res
-
-        # Retrieve message_name and payload length
+    def handle_new_client(self, client_socket: socket.socket, addr: Tuple[str, int]):
+        buffer = b''
         try:
-            first_space_idx = self.buffer.index(b' ')
-            second_space_idx = self.buffer.index(b' ', first_space_idx + 1)
-            payload_length = int(self.buffer[first_space_idx + 1: second_space_idx].decode())
+            while True:
+                try:
+                    msg, buffer = self.extract_msg(client_socket, buffer)
+                    if msg:
+                        self.msg_queue.put((msg, addr, client_socket))
+                except (ConnectionResetError, BrokenPipeError) as e:
+                    continue  # Retry — don't close
+                except Exception as e:
+                    print(f"Fatal error from {addr}: {e}. Closing connection.")
+                    break  # Exit loop on fatal
+        finally:
+            client_socket.close()
+            print(f"Closed connection with {addr}")
+  
+
+    def extract_msg(self, conn: socket.socket, buffer: bytes) -> Tuple[bytes, bytes]:
+        # Read until 2 spaces are found: "name length payload\n"
+        while buffer.count(b' ') < 2:
+            res = conn.recv(1024)
+            buffer += res
+
+        # Parse header
+        try:
+            first_space = buffer.index(b' ')
+            second_space = buffer.index(b' ', first_space + 1)
+            payload_length = int(buffer[first_space + 1:second_space].decode())
         except ValueError:
             raise Exception("Malformed header")
-            
 
-        payload_start_idx = second_space_idx + 1
-        total_needed = payload_start_idx + payload_length + 1  # +1 for \n delimiter at the end of each message
+        payload_start = second_space + 1
+        total_needed = payload_start + payload_length + 1  # +1 for the \n
 
-        # Reads full payload
-        while len(self.buffer) < total_needed:
-            res = self.conn.recv(1024)
-            if not res:
+        while len(buffer) < total_needed:
+            data = conn.recv(1024)
+            if not data:
                 raise Exception("Connection closed while reading payload.")
-            self.buffer += res
+            buffer += data
 
-        # Validates if message ends with newline
-        if self.buffer[total_needed - 1] != ord('\n'):
+        if buffer[total_needed - 1] != ord('\n'):
             raise Exception("Expected newline delimiter after payload.")
 
-        # Return message and clear its data from buffer to proceed in the queue
-        msg = self.buffer[:total_needed]
-        self.buffer = self.buffer[total_needed:]
-        return msg, self.addr
+        msg = buffer[:total_needed]
+        buffer = buffer[total_needed:]  # trim processed message
+        return msg, buffer
+
+    def recv_msg(self) -> Tuple[bytes, Tuple[str, int], socket.socket]:
+        """
+        Blocks until a complete message is available from any connected client.
+
+        Returns:
+            Tuple[bytes, Tuple[str, int], socket.socket]: A 3-tuple in the following order:
+                - msg (bytes): The full raw message received (including header and payload).
+                - addr (Tuple[str, int]): The client's address as a (host, port) tuple.
+                - conn (socket.socket): The socket object representing the client connection.
+        """
+        return self.msg_queue.get()  # (msg, addr, conn)
