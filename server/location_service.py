@@ -2,7 +2,7 @@ import socket
 from protobuf import messenger_pb2
 from google.protobuf.json_format import ParseDict
 from config import config
-from utils import blue, green, yellow, parse_msg, serialize_msg
+from utils import blue, green, yellow, parse_msg, serialize_msg, ConnectionHandler
 import time
 
 class LocationService:
@@ -17,19 +17,15 @@ class LocationService:
         self.location_events_list = [] #List to bundle location activities. No filtering, this is client's task!
 
     def handle_connections(self):
-        addr = config['address']
-        connection_port = config['location_feature']['server_connection_port']
-        connection_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        connection_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        connection_socket.bind((addr, connection_port))
-        connection_socket.listen(5)
-
-        blue(f"Listening for location_connections on {addr}:{connection_port}...")
+        bind_ip = config['address']
+        bind_port = config['location_feature']['server_connection_port']
+        server = ConnectionHandler()
+        server.start_server(bind_ip, bind_port)
+        blue(f"Listening for LIVE_LOCATION connections on {bind_ip}:{bind_port}...")
 
         while True:
-            conn, addr = connection_socket.accept()
-            res = conn.recv(1024)
-            data = parse_msg(res)[2]
+            msg, addr, conn = server.recv_msg()
+            data = parse_msg(msg)[2]
             data['subscriberIP'] = addr[0]
 
             connection_response = messenger_pb2.ConnectionResponse()
@@ -45,6 +41,8 @@ class LocationService:
 
             # Send connection response
             conn.send(serialize_msg('CONNECTION_RESPONSE', connection_response))
+
+
 
     def handle_forwarding(self):
 
