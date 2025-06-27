@@ -2,7 +2,7 @@ import socket
 from protobuf import messenger_pb2
 from google.protobuf.json_format import ParseDict
 from config import config
-from utils import blue, green, yellow, parse_msg, serialize_msg, MessageStream
+from utils import blue, green, yellow, parse_msg, serialize_msg, ConnectionHandler
 import time
 
 class LocationService:
@@ -17,13 +17,14 @@ class LocationService:
         self.location_events_list = [] #List to bundle location activities. No filtering, this is client's task!
 
     def handle_connections(self):
-        bind_addr = config['address']
+        bind_ip = config['address']
         bind_port = config['location_feature']['server_connection_port']
-        stream = MessageStream(bind_addr, bind_port)
-        blue(f"Listening for LIVE_LOCATION connections on {bind_addr}:{bind_port}...")
+        server = ConnectionHandler()
+        server.start_server(bind_ip, bind_port)
+        blue(f"Listening for LIVE_LOCATION connections on {bind_ip}:{bind_port}...")
 
         while True:
-            msg, addr, conn = stream.recv_msg()
+            msg, addr, conn = server.recv_msg()
             data = parse_msg(msg)[2]
             data['subscriberIP'] = addr[0]
 
