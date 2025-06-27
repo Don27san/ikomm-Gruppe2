@@ -28,7 +28,8 @@ class MessageStream:
         self.connection_socket.bind((connection_addr, connection_port))
         self.connection_socket.listen(5)
         
-
+        self.conn = None  # Current connection
+        self.addr = None  # Current connection address
         self.buffer = b'' # Stores the data which we receive via TCP
 
     def recv_msg(self) -> Tuple[bytes, Tuple[str, int]]:
@@ -43,11 +44,15 @@ class MessageStream:
         Raises:
             Exception: If the header is malformed, the connection is closed prematurely, or the message does not end with a newline.
         """
-        self.conn, self.addr = self.connection_socket.accept()
+        # Accept a new connection if we don't have one
+        if self.conn is None:
+            self.conn, self.addr = self.connection_socket.accept()
 
         # Reads until 2 spaces (header of message_name and payload length) are found
         while self.buffer.count(b' ') < 2:
             res = self.conn.recv(1024)
+            if not res:
+                raise Exception("Connection closed while reading header.")
             self.buffer += res
 
         # Retrieve message_name and payload length
@@ -77,3 +82,27 @@ class MessageStream:
         msg = self.buffer[:total_needed]
         self.buffer = self.buffer[total_needed:]
         return msg, self.addr
+    
+    def close_connection(self):
+        """
+        Closes the current client connection while keeping the server socket open.
+        """
+        if self.conn:
+            self.conn.close()
+            self.conn = None
+            self.addr = None
+            self.buffer = b''  # Clear buffer when closing connection
+    
+    def close_server(self):
+        """
+        Closes the server socket and any current connection.
+        """
+        self.close_connection()
+        if self.connection_socket:
+            self.connection_socket.close()
+    
+    def reset_buffer(self):
+        """
+        Resets the internal buffer. Use this if you want to clear any partially received data.
+        """
+        self.buffer = b''

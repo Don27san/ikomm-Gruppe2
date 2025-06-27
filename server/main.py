@@ -1,5 +1,5 @@
 import threading
-from .announcer import AnnouncingService
+from .announcement_service import AnnouncementService
 from .typing_service import TypingService
 from .location_service import LocationService
 from .chat_server import start_server as start_chat_server

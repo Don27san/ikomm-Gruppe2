@@ -15,6 +15,7 @@ message_classes = {
     'LIVE_LOCATION': messenger_pb2.LiveLocation,
     'LIVE_LOCATIONS': messenger_pb2.LiveLocations,
     'CHAT_MESSAGE': messenger_pb2.ChatMessage,
+    'CHAT_MESSAGE_RESPONSE': messenger_pb2.ChatMessageResponse,
 }
 
 

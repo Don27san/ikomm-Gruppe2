@@ -4,6 +4,7 @@ import threading
 import time
 from protobuf import messenger_pb2
 from config import config
+from utils import MessageStream, parse_msg, serialize_msg
 
 # Server configuration
 HOST = '0.0.0.0'  # Listen on all available interfaces
@@ -16,8 +17,92 @@ connected_clients = {}  # { user_id: client_socket }
 server_directory = {}  # { "server_id": ("host", port) } For inter-server communication
 group_members = {}  # { ("group_id", "group_server_id"): [("user_id", "user_server_id")] }
 
+def handle_client_with_stream():
+    """Handle client connections using MessageStream properly"""
+    print(f"[CHAT SERVER] Starting MessageStream on {HOST}:{PORT}")
+    
+    # Use MessageStream like typing service does
+    stream = MessageStream(HOST, PORT)
+    print(f"[CHAT SERVER] Listening on {HOST}:{PORT} with MessageStream")
+    
+    try:
+        while True:
+            # Use MessageStream.recv_msg() like typing service
+            msg, addr = stream.recv_msg()
+            print(f"[NEW MESSAGE] from {addr}")
+            
+            # Parse the message using standard format
+            message_name, size, payload = parse_msg(msg)
+            
+            if message_name == 'CHAT_MESSAGE':
+                # Process chat message and send response
+                response = handle_chat_message_from_payload(payload, stream, addr)
+                if response:
+                    # Send response using MessageStream format
+                    response_msg = serialize_msg('CHAT_MESSAGE_RESPONSE', response)
+                    stream.conn.sendall(response_msg)
+            else:
+                print(f"[ERROR] Unexpected message type: {message_name}")
+                
+    except KeyboardInterrupt:
+        print("[SHUTTING DOWN] Chat server is shutting down.")
+    except Exception as e:
+        print(f"[ERROR] Server error: {e}")
+    finally:
+        stream.close_server()
+
+
+def handle_chat_message_from_payload(payload, stream, addr):
+    """Process a chat message from parsed payload"""
+    print(f"[CHAT MESSAGE] from {addr}")
+    print(f"  Author: {payload.get('author', {}).get('userId', 'unknown')}@{payload.get('author', {}).get('serverId', 'unknown')}")
+    print(f"  Message Snowflake: {payload.get('messageSnowflake', 'unknown')}")
+    
+    # Register client for local message delivery
+    author_data = payload.get('author', {})
+    user_id = author_data.get('userId')
+    if user_id and user_id not in connected_clients:
+        connected_clients[user_id] = stream.conn
+        print(f"[REGISTERED] Client {user_id} registered from {addr}")
+    
+    # Convert payload dict back to protobuf message
+    chat_msg = messenger_pb2.ChatMessage()
+    
+    # Reconstruct the protobuf message from the dictionary
+    if 'messageSnowflake' in payload:
+        chat_msg.messageSnowflake = int(payload['messageSnowflake'])
+    
+    if 'author' in payload:
+        author_data = payload['author']
+        if 'userId' in author_data:
+            chat_msg.author.userId = author_data['userId']
+        if 'serverId' in author_data:
+            chat_msg.author.serverId = author_data['serverId']
+    
+    # Handle recipient
+    if 'user' in payload:
+        user_data = payload['user']
+        if 'userId' in user_data:
+            chat_msg.user.userId = user_data['userId']
+        if 'serverId' in user_data:
+            chat_msg.user.serverId = user_data['serverId']
+    elif 'group' in payload:
+        group_data = payload['group']
+        if 'groupId' in group_data:
+            chat_msg.group.groupId = group_data['groupId']
+        if 'serverId' in group_data:
+            chat_msg.group.serverId = group_data['serverId']
+    
+    # Handle content
+    if 'textContent' in payload:
+        chat_msg.textContent = payload['textContent']
+    
+    # Use existing process_chat_message function
+    return process_chat_message(chat_msg, stream.conn, addr)
+
 def handle_client(client_socket, addr):
-    print(f"[NEW CONNECTION] {addr} connected.")
+    """Legacy handler - keeping for compatibility but should use MessageStream"""
+    print(f"[LEGACY CONNECTION] {addr} connected - Consider updating to MessageStream")
     user_id = None  # Will be set when client registers
 
     try:
@@ -187,13 +272,13 @@ def process_chat_message(chat_msg, source_socket, source_addr):
 
 
 def relay_to_local_client(user_id, chat_msg):
-    """Relay message to a local client"""
+    """Relay message to a local client using MessageStream format"""
     if user_id in connected_clients:
         try:
             client_socket = connected_clients[user_id]
-            serialized_msg = chat_msg.SerializeToString()
-            msg_len = len(serialized_msg).to_bytes(4, 'big')
-            client_socket.sendall(msg_len + serialized_msg)
+            # Use MessageStream format for sending
+            msg = serialize_msg('CHAT_MESSAGE', chat_msg)
+            client_socket.sendall(msg)
             print(f"    Successfully relayed to local client {user_id}")
             return True
         except Exception as e:
@@ -234,21 +319,34 @@ def get_group_members(group_id, group_server_id):
 
 
 def send_response(client_socket, response):
-    """Send ChatMessageResponse back to client"""
+    """Send ChatMessageResponse back to client using MessageStream format"""
     try:
-        serialized_response = response.SerializeToString()
-        msg_len = len(serialized_response).to_bytes(4, 'big')
-        client_socket.sendall(msg_len + serialized_response)
+        # Use MessageStream format for sending response
+        msg = serialize_msg('CHAT_MESSAGE_RESPONSE', response)
+        client_socket.sendall(msg)
         print(f"  Sent response with {len(response.statuses)} delivery statuses")
     except Exception as e:
         print(f"  Error sending response: {e}")
 
 def start_server():
+    """Start the chat server using MessageStream for standardized message handling"""
+    print(f"[STARTING] Chat server with MessageStream on {HOST}:{PORT} with SERVER_ID: {SERVER_ID}")
+    
+    try:
+        # Use MessageStream for standardized message handling
+        handle_client_with_stream()
+    except KeyboardInterrupt:
+        print("[SHUTTING DOWN] Chat server is shutting down.")
+    except Exception as e:
+        print(f"[ERROR] Server error: {e}")
+
+def start_legacy_server():
+    """Legacy server implementation using direct socket handling"""
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server.bind((HOST, PORT))
     server.listen(MAX_CLIENTS)
-    print(f"[LISTENING] Chat server listening on {HOST}:{PORT} with SERVER_ID: {SERVER_ID}")
+    print(f"[LISTENING] Legacy chat server listening on {HOST}:{PORT} with SERVER_ID: {SERVER_ID}")
 
     try:
         while True:

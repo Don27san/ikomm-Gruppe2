@@ -4,6 +4,7 @@ import threading
 import time
 from protobuf import messenger_pb2
 from config import config
+from utils import serialize_msg, parse_msg, MessageStream
 
 # Placeholder for server details, ideally discovered or configured
 DEFAULT_SERVER_HOST = 'localhost'
@@ -105,10 +106,9 @@ class ChatClient:
             return False
 
         try:
-            serialized_msg = chat_msg.SerializeToString()
-            # Simple framing: send length of message first, then message
-            msg_len = len(serialized_msg).to_bytes(4, 'big')
-            self.sock.sendall(msg_len + serialized_msg)
+            # Use MessageStream format: serialize_msg creates the proper format
+            msg = serialize_msg('CHAT_MESSAGE', chat_msg)
+            self.sock.sendall(msg)
             
             content_desc = text_content if text_content else "live location"
             recipient_desc = recipient_user_id or recipient_group_id
@@ -122,52 +122,100 @@ class ChatClient:
             return False
 
     def _listen_for_messages(self):
-        """Listen for incoming messages and responses"""
+        """Listen for incoming messages and responses using improved MessageStream-compatible parsing"""
+        buffer = b''
+        
         while self.is_connected and self.sock:
             try:
-                # Read message length
-                msg_len_bytes = self.sock.recv(4)
-                if not msg_len_bytes:
-                    print("ChatClient: Server closed connection.")
+                # Check if socket is still valid before attempting to read
+                if not self.sock:
+                    break
+                    
+                # Read data into buffer
+                data = self.sock.recv(1024)
+                if not data:
+                    if self.is_connected:  # Only print if unexpected disconnection
+                        print("ChatClient: Server closed connection.")
                     self.is_connected = False
                     break
                 
-                msg_len = int.from_bytes(msg_len_bytes, 'big')
-                if msg_len == 0:
-                    continue
+                buffer += data
+                
+                # Process complete messages from buffer using MessageStream-compatible logic
+                while True:
+                    # Check if we have at least 2 spaces for header parsing
+                    if buffer.count(b' ') < 2:
+                        break  # Need more data
+                    
+                    try:
+                        # Find header boundaries (message_name and size)
+                        first_space = buffer.find(b' ')
+                        second_space = buffer.find(b' ', first_space + 1)
+                        
+                        if first_space == -1 or second_space == -1:
+                            break  # Need more data
+                        
+                        # Extract payload size
+                        size_str = buffer[first_space + 1:second_space].decode('ascii')
+                        payload_size = int(size_str)
+                        
+                        # Calculate total message size (header + payload + newline)
+                        payload_start = second_space + 1
+                        total_message_size = payload_start + payload_size + 1  # +1 for \n
+                        
+                        # Check if we have the complete message
+                        if len(buffer) < total_message_size:
+                            break  # Need more data
+                        
+                        # Validate message ends with newline
+                        if buffer[total_message_size - 1] != ord('\n'):
+                            print("ChatClient: Message doesn't end with newline, skipping")
+                            buffer = buffer[1:]  # Skip one byte and try again
+                            continue
+                        
+                        # Extract complete message
+                        complete_msg = buffer[:total_message_size]
+                        buffer = buffer[total_message_size:]  # Remove from buffer
+                        
+                        # Parse the message using standard format
+                        try:
+                            msg_name, size, payload = parse_msg(complete_msg)
+                            
+                            if msg_name == 'CHAT_MESSAGE':
+                                # Convert payload dict to ChatMessage
+                                chat_msg = self._dict_to_chat_message(payload)
+                                self._handle_incoming_message(chat_msg)
+                            elif msg_name == 'CHAT_MESSAGE_RESPONSE':
+                                # Convert payload dict to ChatMessageResponse
+                                response = self._dict_to_chat_response(payload)
+                                self._handle_message_response(response)
+                            else:
+                                print(f"ChatClient: Received unrecognized message type: {msg_name}")
+                        except Exception as e:
+                            print(f"ChatClient: Error parsing message: {e}")
+                            
+                    except (ValueError, UnicodeDecodeError) as e:
+                        print(f"ChatClient: Error processing message header: {e}")
+                        # Skip one byte and try to recover
+                        buffer = buffer[1:]
 
-                # Read message data
-                serialized_msg = b''
-                while len(serialized_msg) < msg_len:
-                    chunk = self.sock.recv(msg_len - len(serialized_msg))
-                    if not chunk:
-                        print("ChatClient: Incomplete message received.")
-                        self.is_connected = False
-                        return
-                    serialized_msg += chunk
-
-                # Try to parse as ChatMessage first
-                try:
-                    chat_msg = messenger_pb2.ChatMessage()
-                    chat_msg.ParseFromString(serialized_msg)
-                    self._handle_incoming_message(chat_msg)
-                    continue
-                except:
-                    pass
-
-                # Try to parse as ChatMessageResponse
-                try:
-                    response = messenger_pb2.ChatMessageResponse()
-                    response.ParseFromString(serialized_msg)
-                    self._handle_message_response(response)
-                    continue
-                except:
-                    pass
-
-                print(f"ChatClient: Received unrecognized message type")
-
+            except OSError as e:
+                # Handle specific socket errors gracefully
+                if e.errno == 9:  # Bad file descriptor
+                    # This happens when socket is closed while we're reading
+                    if self.is_connected:
+                        print("ChatClient: Connection was closed during read operation.")
+                    break
+                else:
+                    # Other socket errors
+                    if self.is_connected:
+                        print(f"ChatClient: Socket error: {e}")
+                    self.is_connected = False
+                    break
             except Exception as e:
-                print(f"ChatClient: Error listening for messages: {e}")
+                # Only log error if we're still supposed to be connected
+                if self.is_connected:
+                    print(f"ChatClient: Error listening for messages: {e}")
                 self.is_connected = False
                 break
         
@@ -176,6 +224,61 @@ class ChatClient:
         self.sock = None
         self.is_connected = False
         print("ChatClient: Listener stopped.")
+
+    def _dict_to_chat_message(self, payload):
+        """Convert dictionary payload to ChatMessage protobuf"""
+        chat_msg = messenger_pb2.ChatMessage()
+        
+        if 'messageSnowflake' in payload:
+            chat_msg.messageSnowflake = int(payload['messageSnowflake'])
+        
+        if 'author' in payload:
+            author_data = payload['author']
+            if 'userId' in author_data:
+                chat_msg.author.userId = author_data['userId']
+            if 'serverId' in author_data:
+                chat_msg.author.serverId = author_data['serverId']
+        
+        # Handle recipient
+        if 'user' in payload:
+            user_data = payload['user']
+            if 'userId' in user_data:
+                chat_msg.user.userId = user_data['userId']
+            if 'serverId' in user_data:
+                chat_msg.user.serverId = user_data['serverId']
+        elif 'group' in payload:
+            group_data = payload['group']
+            if 'groupId' in group_data:
+                chat_msg.group.groupId = group_data['groupId']
+            if 'serverId' in group_data:
+                chat_msg.group.serverId = group_data['serverId']
+        
+        # Handle content
+        if 'textContent' in payload:
+            chat_msg.textContent = payload['textContent']
+        
+        return chat_msg
+
+    def _dict_to_chat_response(self, payload):
+        """Convert dictionary payload to ChatMessageResponse protobuf"""
+        response = messenger_pb2.ChatMessageResponse()
+        
+        if 'messageSnowflake' in payload:
+            response.messageSnowflake = int(payload['messageSnowflake'])
+        
+        if 'statuses' in payload:
+            for status_data in payload['statuses']:
+                status = response.statuses.add()
+                if 'user' in status_data:
+                    user_data = status_data['user']
+                    if 'userId' in user_data:
+                        status.user.userId = user_data['userId']
+                    if 'serverId' in user_data:
+                        status.user.serverId = user_data['serverId']
+                if 'status' in status_data:
+                    status.status = status_data['status']
+        
+        return response
 
     def _handle_incoming_message(self, chat_msg):
         """Handle incoming ChatMessage"""
@@ -206,10 +309,25 @@ class ChatClient:
         print()
 
     def close(self):
+        """Gracefully close the connection and stop the listener thread"""
+        print("ChatClient: Closing connection...")
+        
+        # First, signal that we're disconnecting
+        self.is_connected = False
+        
+        # Give the listener thread a moment to notice the flag change
+        time.sleep(0.1)
+        
+        # Then close the socket
         if self.sock:
+            try:
+                self.sock.shutdown(socket.SHUT_RDWR)  # Shutdown both directions
+            except (OSError, socket.error):
+                pass  # Socket might already be closed
+            
             self.sock.close()
             self.sock = None
-        self.is_connected = False
+        
         print("ChatClient: Connection closed.")
 
 if __name__ == '__main__':
