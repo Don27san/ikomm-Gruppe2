@@ -1,7 +1,7 @@
 import socket
 from protobuf import messenger_pb2
 from config import config
-from utils import blue, green, yellow, parse_msg, serialize_msg, parse_msg, serialize_msg
+from utils import blue, green, yellow, parse_msg, serialize_msg, parse_msg, serialize_msg, MessageStream
 import time
 
 class TypingService:
@@ -18,17 +18,14 @@ class TypingService:
     def handle_connections(self):
         addr = config['address']
         connection_port = config['typing_feature']['server_connection_port']
-        connection_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        connection_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        connection_socket.bind((addr, connection_port))
-        connection_socket.listen(5)
+        stream = MessageStream(addr, connection_port)
         
         blue(f"Listening for typing_connections on {addr}:{connection_port}...")
 
         while True:
-            conn, addr = connection_socket.accept()
-            res = conn.recv(1024)
-            data = parse_msg(res, messenger_pb2.ConnectClient)[2]
+            msg, addr = stream.recv_msg()
+            
+            data = parse_msg(msg)[2]
             data['subscriberIP'] = addr[0]
 
             connection_response = messenger_pb2.ConnectionResponse()
@@ -43,7 +40,7 @@ class TypingService:
                 self.subscriber_list.append(data)
 
             # Send connection response
-            conn.send(serialize_msg('CONNECTION_RESPONSE', connection_response))
+            stream.conn.send(serialize_msg('CONNECTION_RESPONSE', connection_response))
             
             
                 
@@ -61,7 +58,7 @@ class TypingService:
         #Listen to incoming typing_event
         while True:
             res, addr = forwarding_socket.recvfrom(1024)
-            data = parse_msg(res, messenger_pb2.TypingEvent)[2]
+            data = parse_msg(res)[2]
             data['userIP'] = addr[0]
             data['userPort'] = addr[1]
             green(f'\nReceived typing_event from {addr[0]}:{addr[1]}')

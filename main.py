@@ -1,6 +1,6 @@
 import sys
 from PyQt5.QtWidgets import QApplication
-from chatwindow import ChatWindow
+from GUI.chatwindow import ChatWindow
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -10,6 +10,10 @@ message User {
     string serverId = 2;
 }
 
+message DiscoverServer {
+  // Empty by design. Need this for correct parsing. Do not delete!
+}
+
 //Connection Management Structures
 message ServerAnnounce {
     string serverId = 1;

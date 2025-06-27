@@ -29,7 +29,7 @@ class LocationService:
         while True:
             conn, addr = connection_socket.accept()
             res = conn.recv(1024)
-            data = parse_msg(res, messenger_pb2.ConnectClient)[2]
+            data = parse_msg(res)[2]
             data['subscriberIP'] = addr[0]
 
             connection_response = messenger_pb2.ConnectionResponse()
@@ -40,7 +40,7 @@ class LocationService:
             else:
                 # If this is a fresh connection, reply with CONNECTED
                 connection_response.result = messenger_pb2.ConnectionResponse.Result.CONNECTED
-                green(f"\nTYPING_INDICATOR connection established with: {data}")
+                green(f"\nLOCATION_SERVICE connection established with: {data}")
                 self.subscriber_list.append(data)
 
             # Send connection response
@@ -63,7 +63,7 @@ class LocationService:
         # Listen to incoming LiveLocation
         while True:
             res, addr = forwarding_socket.recvfrom(1024)
-            data = parse_msg(res, messenger_pb2.LiveLocation)[2]
+            data = parse_msg(res)[2]
 
             # Append dict with relevant data
             data['userIP'] = addr[0]

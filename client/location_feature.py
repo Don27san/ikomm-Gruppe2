@@ -1,10 +1,8 @@
 import socket
 import time
 import geocoder
-from protobuf import messenger_pb2
-from utils import live_location, blue, green, red, parse_msg, serialize_msg
+from utils import green, red, serialize_msg, parse_msg, live_location
 from config import config
-from google.protobuf.json_format import MessageToDict
 
 class LocationFeature:
     """
@@ -33,7 +31,7 @@ class LocationFeature:
                 live_location.location.latitude = g.latlng[0]
                 live_location.location.longitude = g.latlng[1]
                 # send message
-                self.socket.sendto(serialize_msg('LOCATION_EVENT', live_location), (server_addr, server_forwarding_port))
+                self.socket.sendto(serialize_msg('LIVE_LOCATION', live_location), (server_addr, server_forwarding_port))
                 print(f'\nLive Location sent to {server_addr}:{server_forwarding_port}')
             else:
                 red("Could not determine location.")
@@ -52,6 +50,6 @@ class LocationFeature:
     def handle_listening(self):
         while True:
             res, addr = self.socket.recvfrom(1024)
-            data = parse_msg(res, messenger_pb2.LiveLocations)[2]
+            data = parse_msg(res)[2]
             green(f'Received live_locations from {addr[0]}:{addr[1]}')
             self.location_list = data # Update the event list with the received location events
