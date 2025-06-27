@@ -3,13 +3,15 @@ import time
 import geocoder
 from utils import green, red, serialize_msg, parse_msg, live_location
 from config import config
+from .feature_base import FeatureBase
 
-class LocationFeature:
+class LocationFeature(FeatureBase):
     """
     ...
     """
 
-    def __init__(self, ):
+    def __init__(self):
+        super().__init__('LIVE_LOCATION')
         self.src_addr = config['address']
         self.src_port = config['location_feature']['client_location_port']
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

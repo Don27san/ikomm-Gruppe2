@@ -1,10 +1,11 @@
 import socket
 from protobuf import messenger_pb2
 from config import config
-from utils import blue, green, yellow, parse_msg, serialize_msg, parse_msg, serialize_msg, MessageStream
+from utils import blue, green, yellow, parse_msg, serialize_msg
 import time
+from .service_base import ServiceBase
 
-class TypingService:
+class TypingService(ServiceBase):
     """
     Has two purposes:
     - Listens for connections requests, stores the requester as feature subscriber. Responds by telling which port to send typing_events to.
@@ -12,41 +13,8 @@ class TypingService:
     """
 
     def __init__(self):
-        self.subscriber_list = [] #List to store feature subscribers
+        super().__init__('TYPING_INDICATOR', bind_port=config['typing_feature']['server_connection_port'])
         self.typing_events_list = [] #List to bundle typing activities. No filtering, this is client's task!
-
-    def handle_connections(self):
-        addr = config['address']
-        connection_port = config['typing_feature']['server_connection_port']
-        stream = MessageStream(addr, connection_port)
-        
-        blue(f"Listening for typing_connections on {addr}:{connection_port}...")
-
-        while True:
-            msg, addr = stream.recv_msg()
-            
-            data = parse_msg(msg)[2]
-            data['subscriberIP'] = addr[0]
-
-            connection_response = messenger_pb2.ConnectionResponse()
-            if data['subscriberIP'] in [subscriber['subscriberIP'] for subscriber in self.subscriber_list]:
-                # If user is already subscribed, send IS_ALREADY_CONNECTED_ERROR
-                connection_response.result = messenger_pb2.ConnectionResponse.Result.IS_ALREADY_CONNECTED_ERROR
-                yellow(f'Subscriber {":".join(map(str, addr))} already subscribed to list.')
-            else:
-                # If this is a fresh connection, reply with CONNECTED
-                connection_response.result = messenger_pb2.ConnectionResponse.Result.CONNECTED
-                green(f"\nTYPING_INDICATOR connection established with: {data}")
-                self.subscriber_list.append(data)
-
-            # Send connection response
-            stream.conn.send(serialize_msg('CONNECTION_RESPONSE', connection_response))
-            
-            
-                
-                
-                
-
 
             
     def handle_forwarding(self):

@@ -1,19 +1,21 @@
 import socket
 import time
-from protobuf import messenger_pb2
 from utils import typing_event, blue, green, parse_msg, serialize_msg
 from pynput import keyboard
 from config import config
+from .feature_base import FeatureBase
 
-class TypingFeature:
+class TypingFeature(FeatureBase):
     
     """
-    Has two purposes:
+    Has three purposes:
+    - Establishes and maintains connection to feature server
     - Listens for keystroke events to send typing_event to feature host.
     - Listens for incoming typing_events forwarded by the server.
     """
     
-    def __init__(self, ):
+    def __init__(self):
+        super().__init__('TYPING_INDICATOR')  #Takes care of connection
         self.src_addr = config['address']
         self.src_port = config['typing_feature']['client_typing_port']
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -46,10 +48,11 @@ class TypingFeature:
                 fn()
                 self.last_typing_sent = now
 
-        # Handles key press events
-        def on_press():
+        # Handles key press events for alphanumeric and symbol keys
+        def on_press(key):
             try:
-                debounce(fn=send_typing_event)
+                if isinstance(key, keyboard.KeyCode) and key.char and key.char.strip():
+                    debounce(fn=send_typing_event)
             except AttributeError:
                 pass
             

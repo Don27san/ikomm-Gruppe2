@@ -1,8 +1,40 @@
 import os
 import netifaces as ni
+from typing import Literal, List, TypedDict
+
+# Config Types
+Feature = Literal['TYPING_INDICATOR', 'LIVE_LOCATION']
+
+class ConnMgmtConfig(TypedDict):
+    discovery_port: int
+
+class MessagingFeatureConfig(TypedDict):
+    connection_port: int
+
+class TypingFeatureConfig(TypedDict):
+    server_connection_port: int
+    server_forwarding_port: int
+    client_typing_port: int
+
+class LocationFeatureConfig(TypedDict):
+    server_connection_port: int
+    server_forwarding_port: int
+    client_location_port: int
+    client_expiry_time: int  # in minutes
+    client_sending_interval: int  # in seconds
+
+class Config(TypedDict):
+    address: str
+    feature_support: List[Feature]
+    conn_mgmt: ConnMgmtConfig
+    messaging_feature: MessagingFeatureConfig
+    typing_feature: TypingFeatureConfig
+    location_feature: LocationFeatureConfig
+    
 
 
-config = {
+
+config : Config = {
     # Address based on env set in pipenv script
     'address': ni.ifaddresses('en0')[ni.AF_INET][0]['addr'] if os.getenv('APP_ENV') == 'prod' else '127.0.0.1',
     'feature_support': ['TYPING_INDICATOR', 'LIVE_LOCATION'],  # Features our client wants to support
@@ -31,4 +63,4 @@ config = {
     }
 }
 
-print(config['address'])
+print(f'Local IP: {config['address']}')
