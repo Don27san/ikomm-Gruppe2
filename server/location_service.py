@@ -2,10 +2,11 @@ import socket
 from protobuf import messenger_pb2
 from google.protobuf.json_format import ParseDict
 from config import config
-from utils import blue, green, yellow, parse_msg, serialize_msg, ConnectionHandler
+from utils import blue, green, yellow, parse_msg, serialize_msg
 import time
+from .service_base import ServiceBase
 
-class LocationService:
+class LocationService(ServiceBase):
     """
     Has two purposes:
     - Listens for connections requests, stores the requester as feature subscriber. Responds by telling which port to send location_events to.
@@ -13,34 +14,8 @@ class LocationService:
     """
 
     def __init__(self):
-        self.subscriber_list = [] #List to store feature subscribers
+        super().__init__('LIVE_LOCATION', bind_port=config['location_feature']['server_connection_port'])
         self.location_events_list = [] #List to bundle location activities. No filtering, this is client's task!
-
-    def handle_connections(self):
-        bind_ip = config['address']
-        bind_port = config['location_feature']['server_connection_port']
-        server = ConnectionHandler()
-        server.start_server(bind_ip, bind_port)
-        blue(f"Listening for LIVE_LOCATION connections on {bind_ip}:{bind_port}...")
-
-        while True:
-            msg, addr, conn = server.recv_msg()
-            data = parse_msg(msg)[2]
-            data['subscriberIP'] = addr[0]
-
-            connection_response = messenger_pb2.ConnectionResponse()
-            if data['subscriberIP'] in [subscriber['subscriberIP'] for subscriber in self.subscriber_list]:
-                # If user is already subscribed, send IS_ALREADY_CONNECTED_ERROR
-                connection_response.result = messenger_pb2.ConnectionResponse.Result.IS_ALREADY_CONNECTED_ERROR
-                yellow(f'Subscriber {":".join(map(str, addr))} already subscribed to list.')
-            else:
-                # If this is a fresh connection, reply with CONNECTED
-                connection_response.result = messenger_pb2.ConnectionResponse.Result.CONNECTED
-                green(f"\nLOCATION_SERVICE connection established with: {data}")
-                self.subscriber_list.append(data)
-
-            # Send connection response
-            conn.send(serialize_msg('CONNECTION_RESPONSE', connection_response))
 
 
 
