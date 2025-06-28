@@ -20,34 +20,33 @@ class LocationFeature(FeatureBase):
         self.last_location_sent = 0
         self.expiry_at = 0   # expiry date for location sharing
 
+        self._running = True
+
     def start_location_sharing(self):
+        self._running = True
         self.expiry_at = time.time() + 60 * config['location_feature']['client_expiry_time']
-
-        def send_location():
-            live_location.timestamp = now
-            live_location.expiry_at = self.expiry_at
-
-            # Get location
-            g = geocoder.ip('me')
-            if g.ok:
-                live_location.location.latitude = g.latlng[0]
-                live_location.location.longitude = g.latlng[1]
-                # send message
-                self.socket.sendto(serialize_msg('LIVE_LOCATION', live_location), (server_addr, server_forwarding_port))
-                print(f'\nLive Location sent to {server_addr}:{server_forwarding_port}')
-            else:
-                red("Could not determine location.")
 
         server_addr = config['address']
         server_forwarding_port = config['location_feature']['server_forwarding_port']
 
-        # Only send within in predefined regularity (e.g. every 30s)
-        while time.time() < self.expiry_at:
+        while time.time() < self.expiry_at and self._running:
             now = time.time()
             if now - self.last_location_sent > config['location_feature']['client_sending_interval']:
-                # send location
-                send_location()
+                live_location.timestamp = now
+                live_location.expiry_at = self.expiry_at
+
+                g = geocoder.ip('me')
+                if g.ok:
+                    live_location.location.latitude = g.latlng[0]
+                    live_location.location.longitude = g.latlng[1]
+                    self.socket.sendto(serialize_msg('LIVE_LOCATION', live_location), (server_addr, server_forwarding_port))
+                    print(f'\nLive Location sent to {server_addr}:{server_forwarding_port}')
+                else:
+                    red("Could not determine location.")
                 self.last_location_sent = now
+
+    def stop_location_sharing(self):
+        self._running = False
 
     def handle_listening(self):
         while True:

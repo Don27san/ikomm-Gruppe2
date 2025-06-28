@@ -63,4 +63,4 @@ config : Config = {
     }
 }
 
-print(f'Local IP: {config['address']}')
+print(f"Local IP: {config['address']}")

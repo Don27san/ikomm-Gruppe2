@@ -43,7 +43,7 @@ class TypingService(ServiceBase):
             if len(self.subscriber_list) > 0:
 
                 for subscriber in self.subscriber_list:
-                    print(f'Forwarded to {subscriber['subscriberIP']}:{subscriber['typingPort']}')
+                    print(f"Forwarded to {subscriber['subscriberIP']}:{subscriber['typingPort']}")
                     typing_events = self.format_typing_events_list()
                     # Forward message 
                     forwarding_socket.sendto(serialize_msg('TYPING_EVENTS', typing_events), (subscriber['subscriberIP'], subscriber['typingPort']))

@@ -5,12 +5,14 @@ from PyQt5.QtCore import QUrl
 from GUI.locationviewer import LocationViewer
 from PyQt5.QtCore import QThread, pyqtSignal
 import os
+import geocoder
 
-from client.typing_feature import TypingFeature  # 你之前的类
-from utils import parse_msg  # 用于解析收到的消息
+from client.typing_feature import TypingFeature
+from client.location_feature import LocationFeature
+from utils import parse_msg  # For parsing received messages
 
 
-# 👂 监听 TypingEvent 的后台线程
+# Thread for listening to TypingEvent
 class TypingListenerThread(QThread):
     typingEventReceived = pyqtSignal()
 
@@ -24,28 +26,62 @@ class TypingListenerThread(QThread):
             data, addr = self.typing_feature.socket.recvfrom(1024)
             parsed = parse_msg(data)
             self.typing_feature.event_list = parsed
-            self.typingEventReceived.emit()  # 通知 UI
+            self.typingEventReceived.emit()  # Notify UI
 
     def stop(self):
         self.running = False
         self.quit()
         self.wait()
 
+class LocationListenerThread(QThread):
+    location_received = pyqtSignal(float, float)  # lat, lon
+
+    def __init__(self, locationFeature):
+        super().__init__()
+        self.locationFeature = locationFeature
+        self.running = True
+
+    def run(self):
+        while self.running:
+            res, addr = self.locationFeature.socket.recvfrom(1024)
+            data = parse_msg(res)[2]
+            if hasattr(data, 'location'):
+                lat = data.location.latitude
+                lon = data.location.longitude
+                self.location_received.emit(lat, lon)
+
+    def stop(self):
+        self.running = False
+
+class LocationSharingThread(QThread):
+    def __init__(self, location_feature):
+        super().__init__()
+        self.location_feature = location_feature
+
+    def run(self):
+        self.location_feature.start_location_sharing()
 
 
 class ChatWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, typing_feature, location_feature):
         super().__init__()
         uic.loadUi(os.path.join(os.path.dirname(__file__), "chatwindow.ui"), self)
 
-        # 初始化 TypingFeature 实例
-        self.typing_feature = TypingFeature()
+        # Initialize TypingFeature instance
+        self.typing_feature = typing_feature
 
-        # 启动后台监听线程
+        # Start background listener thread
         self.typingThread = TypingListenerThread(self.typing_feature)
         self.typingThread.typingEventReceived.connect(self.showTyping)
         self.typingThread.start()
 
+        # Initialize LocationFeature instance
+        self.locationFeature = location_feature
+
+        # Start background listener thread
+        self.locationListener = LocationListenerThread(self.locationFeature)
+        self.locationListener.location_received.connect(self.displayReceivedLocation)
+        self.locationListener.start()
 
         self.typingTimer = QTimer(self)
         self.typingTimer.setInterval(2000)
@@ -59,9 +95,8 @@ class ChatWindow(QMainWindow):
         self.typingLabel.clear()
 
     def sendTypingEvent(self):
-        self.typing_feature.send_typing_event()  # 👈 使用 TypingFeature 发事件
-        self.showTyping()  # 本地也显示“writing”
-
+        self.typing_feature.send_typing_event()
+        self.showTyping()
 
     def sendMessage(self):
         text = self.messageInput.text().strip()
@@ -78,16 +113,44 @@ class ChatWindow(QMainWindow):
         self.typingLabel.clear()
 
     def shareLocation(self):
-        lat, lon = 52.52, 13.4050
-        link = f"https://www.google.com/maps?q={lat},{lon}"
-        html = f'<a href="{link}">klick to check the location</a>'
-        self.chatDisplay.append(f"[You] live location: {html}")
+        g = geocoder.ip('me')
+        if g.ok:
+            lat, lon = g.latlng
+            link = f"https://www.google.com/maps?q={lat},{lon}"
+            html = f'<a href="{link}">Click to check the location</a>'
+            self.chatDisplay.append(f"[You] live location: {html}")
+
+            # Run location sharing in a separate thread
+            self.locationSharingThread = LocationSharingThread(self.locationFeature)
+            self.locationSharingThread.start()
+        else:
+            self.chatDisplay.append("[System] Could not get current location.")
 
     def handleLinkClick(self, url):
         self.viewer = LocationViewer(url.toString())
         self.viewer.show()
 
+    def displayReceivedLocation(self, lat, lon):
+        link = f"https://www.google.com/maps?q={lat},{lon}"
+        html = f'<a href="{link}">Click to check the location</a>'
+        self.chatDisplay.append(f"[Friend] live location: {html}")
+
+    def stopLocationSharing(self):
+        self.locationFeature.stop_location_sharing()
+        self.chatDisplay.append("[System] Location sharing stopped.")
+
     def closeEvent(self, event):
-        # 窗口关闭时优雅退出线程
+        # Gracefully stop threads when window is closed
         self.typingThread.stop()
+        self.locationFeature.stop_location_sharing()
+
+        if hasattr(self, 'locationSharingThread'):
+            self.locationSharingThread.quit()
+            self.locationSharingThread.wait()
+
+        if hasattr(self, 'locationListener'):
+            self.locationListener.stop()
+            self.locationListener.quit()
+            self.locationListener.wait()
+
         event.accept()
