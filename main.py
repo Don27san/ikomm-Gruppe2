@@ -10,6 +10,6 @@ if __name__ == "__main__":
     time.sleep(1)  #  doesn't work without this delay, probably due to threading issues
     
     app = QApplication(sys.argv)
-    window = ChatWindow(typing_feature, location_feature)  #  Pass both into the window
+    window = ChatWindow(typing_feature, location_feature, chat_feature)  #  Pass all three into the window
     window.show()
     sys.exit(app.exec_())
