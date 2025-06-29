@@ -47,7 +47,7 @@ config : Config = {
     # Features and Ports
     'conn_mgmt': {
         'discovery_port': 9999,
-        'ping_timeout': 5,
+        'ping_timeout': 300,
     },
 
     'messaging_feature':{
