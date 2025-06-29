@@ -43,6 +43,9 @@ class LocationService(ServiceBase):
             data['userPort'] = addr[1]
             data['chatMessageID'] = None
 
+            if addr[0] in self.subscriber_dict.keys():
+                self.subscriber_dict[addr[0]]['lastActive'] = time.time()
+
             green(f'\nReceived Live Location from {addr[0]}:{addr[1]}')
 
             user_found = False
@@ -66,13 +69,13 @@ class LocationService(ServiceBase):
                 ]
 
             # Forward location_events_list to all subscribers.
-            if len(self.subscriber_list) > 0:
+            if len(self.subscriber_dict) > 0:
                 live_locations = self.format_live_locations_list()
-                for subscriber in self.subscriber_list:
+                for subscriberIP, data in self.subscriber_dict.items():
                     # Forward message
                     forwarding_socket.sendto(serialize_msg('LIVE_LOCATIONS', live_locations),
-                                            (subscriber['subscriberIP'], subscriber['locationPort']))
-                    print(f"Forwarded to {subscriber['subscriberIP']}:{subscriber['locationPort']}")
+                                            (subscriberIP, data['locationPort']))
+                    print(f"Forwarded to {subscriberIP}:{data['locationPort']}")
             else:
                 yellow('Empty subscriber_list. No forwarding of live locations.')
 

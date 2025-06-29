@@ -15,6 +15,14 @@ class User(_message.Message):
     serverId: str
     def __init__(self, userId: _Optional[str] = ..., serverId: _Optional[str] = ...) -> None: ...
 
+class Group(_message.Message):
+    __slots__ = ("groupId", "serverId")
+    GROUPID_FIELD_NUMBER: _ClassVar[int]
+    SERVERID_FIELD_NUMBER: _ClassVar[int]
+    groupId: str
+    serverId: str
+    def __init__(self, groupId: _Optional[str] = ..., serverId: _Optional[str] = ...) -> None: ...
+
 class DiscoverServer(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
@@ -76,21 +84,71 @@ class HangUp(_message.Message):
     reason: HangUp.Reason
     def __init__(self, reason: _Optional[_Union[HangUp.Reason, str]] = ...) -> None: ...
 
+class Ping(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class Pong(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
 class ChatMessage(_message.Message):
-    __slots__ = ("messageId", "timestamp", "author", "user", "text", "live_location")
-    MESSAGEID_FIELD_NUMBER: _ClassVar[int]
-    TIMESTAMP_FIELD_NUMBER: _ClassVar[int]
+    __slots__ = ("messageSnowflake", "author", "user", "group", "userOfGroup", "textContent", "live_location")
+    class UserOfGroup(_message.Message):
+        __slots__ = ("user", "group")
+        USER_FIELD_NUMBER: _ClassVar[int]
+        GROUP_FIELD_NUMBER: _ClassVar[int]
+        user: User
+        group: Group
+        def __init__(self, user: _Optional[_Union[User, _Mapping]] = ..., group: _Optional[_Union[Group, _Mapping]] = ...) -> None: ...
+    MESSAGESNOWFLAKE_FIELD_NUMBER: _ClassVar[int]
     AUTHOR_FIELD_NUMBER: _ClassVar[int]
     USER_FIELD_NUMBER: _ClassVar[int]
-    TEXT_FIELD_NUMBER: _ClassVar[int]
+    GROUP_FIELD_NUMBER: _ClassVar[int]
+    USEROFGROUP_FIELD_NUMBER: _ClassVar[int]
+    TEXTCONTENT_FIELD_NUMBER: _ClassVar[int]
     LIVE_LOCATION_FIELD_NUMBER: _ClassVar[int]
-    messageId: str
-    timestamp: _timestamp_pb2.Timestamp
+    messageSnowflake: int
     author: User
     user: User
-    text: str
+    group: Group
+    userOfGroup: ChatMessage.UserOfGroup
+    textContent: str
     live_location: LiveLocation
-    def __init__(self, messageId: _Optional[str] = ..., timestamp: _Optional[_Union[_timestamp_pb2.Timestamp, _Mapping]] = ..., author: _Optional[_Union[User, _Mapping]] = ..., user: _Optional[_Union[User, _Mapping]] = ..., text: _Optional[str] = ..., live_location: _Optional[_Union[LiveLocation, _Mapping]] = ...) -> None: ...
+    def __init__(self, messageSnowflake: _Optional[int] = ..., author: _Optional[_Union[User, _Mapping]] = ..., user: _Optional[_Union[User, _Mapping]] = ..., group: _Optional[_Union[Group, _Mapping]] = ..., userOfGroup: _Optional[_Union[ChatMessage.UserOfGroup, _Mapping]] = ..., textContent: _Optional[str] = ..., live_location: _Optional[_Union[LiveLocation, _Mapping]] = ...) -> None: ...
+
+class ChatMessageResponse(_message.Message):
+    __slots__ = ("messageSnowflake", "statuses")
+    class Status(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        UNKNOWN_STATUS: _ClassVar[ChatMessageResponse.Status]
+        DELIVERED: _ClassVar[ChatMessageResponse.Status]
+        OTHER_ERROR: _ClassVar[ChatMessageResponse.Status]
+        USER_AWAY: _ClassVar[ChatMessageResponse.Status]
+        USER_NOT_FOUND: _ClassVar[ChatMessageResponse.Status]
+        OTHER_SERVER_TIMEOUT: _ClassVar[ChatMessageResponse.Status]
+        OTHER_SERVER_NOT_FOUND: _ClassVar[ChatMessageResponse.Status]
+        USER_BLOCKED: _ClassVar[ChatMessageResponse.Status]
+    UNKNOWN_STATUS: ChatMessageResponse.Status
+    DELIVERED: ChatMessageResponse.Status
+    OTHER_ERROR: ChatMessageResponse.Status
+    USER_AWAY: ChatMessageResponse.Status
+    USER_NOT_FOUND: ChatMessageResponse.Status
+    OTHER_SERVER_TIMEOUT: ChatMessageResponse.Status
+    OTHER_SERVER_NOT_FOUND: ChatMessageResponse.Status
+    USER_BLOCKED: ChatMessageResponse.Status
+    class DeliveryStatus(_message.Message):
+        __slots__ = ("user", "status")
+        USER_FIELD_NUMBER: _ClassVar[int]
+        STATUS_FIELD_NUMBER: _ClassVar[int]
+        user: User
+        status: ChatMessageResponse.Status
+        def __init__(self, user: _Optional[_Union[User, _Mapping]] = ..., status: _Optional[_Union[ChatMessageResponse.Status, str]] = ...) -> None: ...
+    MESSAGESNOWFLAKE_FIELD_NUMBER: _ClassVar[int]
+    STATUSES_FIELD_NUMBER: _ClassVar[int]
+    messageSnowflake: int
+    statuses: _containers.RepeatedCompositeFieldContainer[ChatMessageResponse.DeliveryStatus]
+    def __init__(self, messageSnowflake: _Optional[int] = ..., statuses: _Optional[_Iterable[_Union[ChatMessageResponse.DeliveryStatus, _Mapping]]] = ...) -> None: ...
 
 class TypingEvent(_message.Message):
     __slots__ = ("user", "timestamp")

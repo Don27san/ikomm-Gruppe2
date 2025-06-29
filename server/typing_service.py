@@ -31,6 +31,9 @@ class TypingService(ServiceBase):
             data['userPort'] = addr[1]
             green(f'\nReceived typing_event from {addr[0]}:{addr[1]}')
 
+            if addr[0] in self.subscriber_dict.keys():
+                self.subscriber_dict[addr[0]]['lastActive'] = time.time()
+
             # 'Upsert' typing_events_list
             if data['userIP'] not in [item['userIP'] for item in self.typing_events_list]:
                 self.typing_events_list.append(data)
@@ -40,13 +43,13 @@ class TypingService(ServiceBase):
                         item['timestamp'] = time.time()
 
             #Forward typing_events_list to all subscribers.
-            if len(self.subscriber_list) > 0:
+            if len(self.subscriber_dict) > 0:
 
-                for subscriber in self.subscriber_list:
-                    print(f"Forwarded to {subscriber['subscriberIP']}:{subscriber['typingPort']}")
+                for subscriberIP, data in self.subscriber_dict.items():
+                    print(f"Forwarded to {subscriberIP}:{data['typingPort']}")
                     typing_events = self.format_typing_events_list()
                     # Forward message 
-                    forwarding_socket.sendto(serialize_msg('TYPING_EVENTS', typing_events), (subscriber['subscriberIP'], subscriber['typingPort']))
+                    forwarding_socket.sendto(serialize_msg('TYPING_EVENTS', typing_events), (subscriberIP, data['typingPort']))
             
             else:
                 yellow('Empty subscriber_list. No forwarding of typing_events.')

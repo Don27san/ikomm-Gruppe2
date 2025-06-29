@@ -7,6 +7,7 @@ Feature = Literal['TYPING_INDICATOR', 'LIVE_LOCATION']
 
 class ConnMgmtConfig(TypedDict):
     discovery_port: int
+    ping_timeout: int    # in seconds
 
 class MessagingFeatureConfig(TypedDict):
     connection_port: int
@@ -46,6 +47,7 @@ config : Config = {
     # Features and Ports
     'conn_mgmt': {
         'discovery_port': 9999,
+        'ping_timeout': 5,
     },
 
     'messaging_feature':{
