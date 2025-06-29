@@ -44,9 +44,9 @@ class ServiceBase:
                 message_name, _, data = parse_msg(msg)
                 subscriberIP = addr[0]
                 #data['subscriberIP'] = addr[0]
-                #data['lastActive'] = time.time()
                 data['conn'] = conn
                 data['addr'] = addr
+                data['lastActive'] = time.time()
                 data['ping_sent'] = False
             except queue.Empty:
                 are_clients_active()
