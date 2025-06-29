@@ -57,17 +57,25 @@ class TypingFeature(FeatureBase):
                 pass
             
         # Starts listening for keyboard events
-        with keyboard.Listener(on_press=on_press) as listener:
-            blue('Ready to handle typing event...\n')
-            listener.join()
+        listener = keyboard.Listener(on_press=on_press)
+        listener.start()
+        blue('Ready to handle typing event...\n')
+        while self._running:
+            time.sleep(1)
+        listener.stop()
+
+        # with keyboard.Listener(on_press=on_press) as listener:
+        #     blue('Ready to handle typing event...\n')
+        #     listener.join()
 
 
 
 
     # Listens for incoming typing events forwarded by the server
     def handle_listening(self):
-        while True:
+        while self._running:
             res, addr = self.socket.recvfrom(1024)
             data = parse_msg(res)
+            self.last_msg_received_time = time.time()
             green(f'Received typing_events_list from {addr[0]}:{addr[1]}')
             self.event_list = data # Update the event list with the received typing events

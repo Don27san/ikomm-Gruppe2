@@ -20,7 +20,7 @@ class LocationFeature(FeatureBase):
         self.last_location_sent = 0
         self.expiry_at = 0   # expiry date for location sharing
 
-        self._running = True
+        self._running_sharing = True
 
     def start_location_sharing(self):
         self._running = True
@@ -29,7 +29,7 @@ class LocationFeature(FeatureBase):
         server_addr = config['address']
         server_forwarding_port = config['location_feature']['server_forwarding_port']
 
-        while time.time() < self.expiry_at and self._running:
+        while time.time() < self.expiry_at and self._running and self._running_sharing:
             now = time.time()
             if now - self.last_location_sent > config['location_feature']['client_sending_interval']:
                 live_location.timestamp = now
@@ -46,11 +46,12 @@ class LocationFeature(FeatureBase):
                 self.last_location_sent = now
 
     def stop_location_sharing(self):
-        self._running = False
+        self._running_sharing = False
 
     def handle_listening(self):
-        while True:
+        while self._running:
             res, addr = self.socket.recvfrom(1024)
             data = parse_msg(res)[2]
+            self.last_msg_received_time = time.time()
             green(f'Received live_locations from {addr[0]}:{addr[1]}')
             self.location_list = data # Update the event list with the received location events

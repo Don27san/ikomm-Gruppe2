@@ -13,6 +13,8 @@ MessageName = Literal[
     'LIVE_LOCATION',
     'LIVE_LOCATIONS',
     'CHAT_MESSAGE',
+    'PING',
+    'PONG',
 ]
 
 def serialize_msg(message_name: MessageName, payload: Optional[Message] = None) -> bytes:
