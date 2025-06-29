@@ -1,7 +1,7 @@
 import queue
 import time
 from typing import Literal
-from utils import ConnectionHandler, parse_msg, serialize_msg, green, yellow, blue, ping, pong
+from utils import ConnectionHandler, parse_msg, serialize_msg, red, green, yellow, blue, ping, pong
 from config import config
 from protobuf import messenger_pb2
 
@@ -28,26 +28,26 @@ class ServiceBase:
             def are_clients_active():
                 if len(self.subscriber_dict) == 0:
                     return
-                for subscriberIP, data in self.subscriber_dict.items():
+                for subscriberIP, data in list(self.subscriber_dict.items()):
                     if time.time() - data['lastActive'] > self.ping_timeout and not data['ping_sent']:
                         conn = data['conn']
                         conn.send(serialize_msg('PING', ping))
                         self.subscriber_dict[subscriberIP]['ping_sent'] = True
                         yellow(f"{self.feature_name}: Client not responding. Ping sent to {data['addr']}")
                     elif time.time() - data['lastActive'] > 2 * self.ping_timeout and data['ping_sent']:
-                        # TODO: close connection, end thread
-                        continue
+                        hangup = messenger_pb2.HangUp()
+                        hangup.reason = messenger_pb2.HangUp.Reason.TIMEOUT
+                        conn = data['conn']
+                        conn.send(serialize_msg('HANGUP', hangup))
+                        conn.close()
+                        red(f"{self.feature_name}: Client not responding to Ping. Connection closed to {data['addr']}. \n")
+                        del self.subscriber_dict[subscriberIP]
 
             try:
                 msg, addr, conn = server.recv_msg()
 
                 message_name, _, data = parse_msg(msg)
                 subscriberIP = addr[0]
-                #data['subscriberIP'] = addr[0]
-                data['conn'] = conn
-                data['addr'] = addr
-                data['lastActive'] = time.time()
-                data['ping_sent'] = False
             except queue.Empty:
                 are_clients_active()
                 continue
@@ -56,7 +56,8 @@ class ServiceBase:
             # Known client handling
             if subscriberIP in self.subscriber_dict.keys():
                 # update data
-                self.subscriber_dict[subscriberIP] = data
+                self.subscriber_dict[subscriberIP]['lastActive'] = time.time()
+                self.subscriber_dict[subscriberIP]['ping_sent'] = False
                 # handle received message
                 if message_name == 'CONNECT_CLIENT':
                     response = messenger_pb2.ConnectionResponse()
@@ -70,13 +71,20 @@ class ServiceBase:
                     green(f"{self.feature_name}: Pong received from {addr} \n")
                 elif message_name == 'HANGUP':
                     del self.subscriber_dict[subscriberIP]
-                    # TODO: close thread
-                    green(f"{self.feature_name}: Hangup received from {addr}. Connection closed. \n")
+                    conn.close()
+                    red(f"{self.feature_name}: Hangup received from {addr}. Connection closed. \n")
+                else:
+                    # TODO: error message
+                    pass
 
             # Unknown client handling
             else:
                 # Connect new client or raise error message
                 if message_name == 'CONNECT_CLIENT':
+                    data['conn'] = conn
+                    data['addr'] = addr
+                    data['lastActive'] = time.time()
+                    data['ping_sent'] = False
                     self.subscriber_dict[subscriberIP] = data
                     response = messenger_pb2.ConnectionResponse()
                     response.result = messenger_pb2.ConnectionResponse.Result.CONNECTED

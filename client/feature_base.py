@@ -87,6 +87,7 @@ class FeatureBase:
                     client.close()
                     self._running = False
                     red(f"Server closes. {self.feature_name} connection closed to {feature_ip}:{feature_port}. \n")
+                # TODO: unsupported messages
 
         except Exception as e:
             red(f"Failed to connect to {self.feature_name} on {feature_ip}:{feature_port}. Error: {e} \n")
