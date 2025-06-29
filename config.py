@@ -23,6 +23,9 @@ class LocationFeatureConfig(TypedDict):
     client_expiry_time: int  # in minutes
     client_sending_interval: int  # in seconds
 
+class ChatFeatureConfig(TypedDict):
+    server_port: int
+
 class Config(TypedDict):
     address: str
     feature_support: List[Feature]
@@ -30,6 +33,7 @@ class Config(TypedDict):
     messaging_feature: MessagingFeatureConfig
     typing_feature: TypingFeatureConfig
     location_feature: LocationFeatureConfig
+    chat_feature: ChatFeatureConfig
     
 
 
@@ -60,6 +64,10 @@ config : Config = {
         'client_location_port': 8889, #Client sends locations and listens to forwardings
         'client_expiry_time': 5, #in min
         'client_sending_interval': 30, # in s
+    },
+
+    'chat_feature': {
+        'server_port': 6001,  # TCP port for chat service
     }
 }
 

@@ -3,7 +3,7 @@ import threading
 import time
 from protobuf import messenger_pb2
 from config import config
-from utils import serialize_msg, parse_msg, MessageStream
+from utils import serialize_msg, parse_msg, ConnectionHandler
 
 # Placeholder for server details, ideally discovered or configured
 DEFAULT_SERVER_HOST = 'localhost'
@@ -18,6 +18,10 @@ class ChatClient:
         self.sock = None
         self.is_connected = False
         self._message_counter = 0
+        
+        # Generate simple user hash for snowflake (16 bits = 0-65535)
+        self._user_hash = hash(user_id) & 0xFFFF
+        
         self._connect()
 
     def _connect(self):
@@ -44,9 +48,21 @@ class ChatClient:
         return self.is_connected
 
     def _generate_snowflake(self):
-        """Generate a simple snowflake ID"""
+        """Generate a simple snowflake ID: timestamp + user_id + sequence"""
+        # Get timestamp in milliseconds (42 bits)
+        timestamp_ms = int(time.time() * 1000)
+        
+        # User hash (16 bits = 0-65535)
+        user_hash = self._user_hash
+        
+        # Sequence counter (6 bits = 0-63)
+        sequence = self._message_counter & 0x3F  # 6 bits
         self._message_counter += 1
-        return int(time.time() * 1000) + self._message_counter
+        
+        # Combine: [timestamp 42 bits][user_hash 16 bits][sequence 6 bits] = 64 bits total
+        snowflake = (timestamp_ms << 22) | (user_hash << 6) | sequence
+        
+        return snowflake
 
     def send_message_to_user(self, text_content, recipient_user_id, recipient_server_id):
         """Send a message to a specific user"""
@@ -105,7 +121,7 @@ class ChatClient:
             return False
 
         try:
-            # Use MessageStream format: serialize_msg creates the proper format
+            # Use serialize_msg to create the proper format
             msg = serialize_msg('CHAT_MESSAGE', chat_msg)
             self.sock.sendall(msg)
             
@@ -121,7 +137,7 @@ class ChatClient:
             return False
 
     def _listen_for_messages(self):
-        """Listen for incoming messages and responses using improved MessageStream-compatible parsing"""
+        """Listen for incoming messages and responses"""
         buffer = b''
         
         while self.is_connected and self.sock:
@@ -140,7 +156,7 @@ class ChatClient:
                 
                 buffer += data
                 
-                # Process complete messages from buffer using MessageStream-compatible logic
+                # Process complete messages from buffer
                 while True:
                     # Check if we have at least 2 spaces for header parsing
                     if buffer.count(b' ') < 2:
