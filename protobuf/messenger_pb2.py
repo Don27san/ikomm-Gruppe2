@@ -26,6 +26,7 @@ from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fmessenger.proto\x12\x10typing_indicator\x1a\x1fgoogle/protobuf/timestamp.proto\"(\n\x04User\x12\x0e\n\x06userId\x18\x01 \x01(\t\x12\x10\n\x08serverId\x18\x02 \x01(\t\"*\n\x05Group\x12\x0f\n\x07groupId\x18\x01 \x01(\t\x12\x10\n\x08serverId\x18\x02 \x01(\t\"\x10\n\x0e\x44iscoverServer\"\x8b\x01\n\x0eServerAnnounce\x12\x10\n\x08serverId\x18\x01 \x01(\t\x12\x39\n\x07\x66\x65\x61ture\x18\x02 \x03(\x0b\x32(.typing_indicator.ServerAnnounce.Feature\x1a,\n\x07\x46\x65\x61ture\x12\x13\n\x0b\x66\x65\x61tureName\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\"`\n\rConnectClient\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12\x12\n\ntypingPort\x18\x03 \x01(\x05\x12\x15\n\rlocation_port\x18\x02 \x01(\x05\"\x9d\x01\n\x12\x43onnectionResponse\x12;\n\x06result\x18\x01 \x01(\x0e\x32+.typing_indicator.ConnectionResponse.Result\"J\n\x06Result\x12\x11\n\rUNKNOWN_ERROR\x10\x00\x12\r\n\tCONNECTED\x10\x01\x12\x1e\n\x1aIS_ALREADY_CONNECTED_ERROR\x10\x02\"\xa1\x01\n\x06HangUp\x12/\n\x06reason\x18\x01 \x01(\x0e\x32\x1f.typing_indicator.HangUp.Reason\"f\n\x06Reason\x12\x12\n\x0eUNKNOWN_REASON\x10\x00\x12\x08\n\x04\x45XIT\x10\x01\x12\x0b\n\x07TIMEOUT\x10\x02\x12\x1a\n\x16PAYLOAD_LIMIT_EXCEEDED\x10\x03\x12\x15\n\x11MESSAGE_MALFORMED\x10\x04\"\xae\x03\n\x0b\x43hatMessage\x12\x18\n\x10messageSnowflake\x18\x01 \x01(\x04\x12&\n\x06\x61uthor\x18\x02 \x01(\x0b\x32\x16.typing_indicator.User\x12&\n\x04user\x18\x03 \x01(\x0b\x32\x16.typing_indicator.UserH\x00\x12(\n\x05group\x18\x04 \x01(\x0b\x32\x17.typing_indicator.GroupH\x00\x12@\n\x0buserOfGroup\x18\x05 \x01(\x0b\x32).typing_indicator.ChatMessage.UserOfGroupH\x00\x12\x15\n\x0btextContent\x18\x0b \x01(\tH\x01\x12\x37\n\rlive_location\x18\x0c \x01(\x0b\x32\x1e.typing_indicator.LiveLocationH\x01\x1a[\n\x0bUserOfGroup\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12&\n\x05group\x18\x02 \x01(\x0b\x32\x17.typing_indicator.GroupB\x0b\n\trecipientB\t\n\x07\x63ontentJ\x04\x08\x06\x10\x0b\"\x97\x03\n\x13\x43hatMessageResponse\x12\x18\n\x10messageSnowflake\x18\x01 \x01(\x04\x12\x46\n\x08statuses\x18\x02 \x03(\x0b\x32\x34.typing_indicator.ChatMessageResponse.DeliveryStatus\x1at\n\x0e\x44\x65liveryStatus\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12<\n\x06status\x18\x02 \x01(\x0e\x32,.typing_indicator.ChatMessageResponse.Status\"\xa7\x01\n\x06Status\x12\x12\n\x0eUNKNOWN_STATUS\x10\x00\x12\r\n\tDELIVERED\x10\x01\x12\x0f\n\x0bOTHER_ERROR\x10\x02\x12\r\n\tUSER_AWAY\x10\x03\x12\x12\n\x0eUSER_NOT_FOUND\x10\x04\x12\x18\n\x14OTHER_SERVER_TIMEOUT\x10\x05\x12\x1a\n\x16OTHER_SERVER_NOT_FOUND\x10\x06\x12\x10\n\x0cUSER_BLOCKED\x10\x07\"F\n\x0bTypingEvent\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12\x11\n\ttimestamp\x18\x02 \x01(\x01\"D\n\x0cTypingEvents\x12\x34\n\rtyping_events\x18\x01 \x03(\x0b\x32\x1d.typing_indicator.TypingEvent\"\xc6\x01\n\x0cLiveLocation\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12\x11\n\ttimestamp\x18\x02 \x01(\x01\x12\x11\n\texpiry_at\x18\x03 \x01(\x01\x12\x39\n\x08location\x18\x04 \x01(\x0b\x32\'.typing_indicator.LiveLocation.Location\x1a/\n\x08Location\x12\x10\n\x08latitude\x18\x01 \x01(\x01\x12\x11\n\tlongitude\x18\x02 \x01(\x01\"\xcc\x01\n\rLiveLocations\x12U\n\x17\x65xtended_live_locations\x18\x01 \x03(\x0b\x32\x34.typing_indicator.LiveLocations.ExtendedLiveLocation\x1a\x64\n\x14\x45xtendedLiveLocation\x12\x35\n\rlive_location\x18\x01 \x01(\x0b\x32\x1e.typing_indicator.LiveLocation\x12\x15\n\rchatmessageID\x18\x02 \x01(\tb\x06proto3')
 
 _globals = globals()
@@ -122,4 +123,55 @@ if _descriptor._USE_C_DESCRIPTORS == False:
   _LIVELOCATIONS_EXTENDEDLIVELOCATION._serialized_start=1487
   _LIVELOCATIONS_EXTENDEDLIVELOCATION._serialized_end=1587
 >>>>>>> d6411f4 (Finished Service and Feature Base)
+=======
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0fmessenger.proto\x12\x10typing_indicator\x1a\x1fgoogle/protobuf/timestamp.proto\"(\n\x04User\x12\x0e\n\x06userId\x18\x01 \x01(\t\x12\x10\n\x08serverId\x18\x02 \x01(\t\"*\n\x05Group\x12\x0f\n\x07groupId\x18\x01 \x01(\t\x12\x10\n\x08serverId\x18\x02 \x01(\t\"\x10\n\x0e\x44iscoverServer\"\x8b\x01\n\x0eServerAnnounce\x12\x10\n\x08serverId\x18\x01 \x01(\t\x12\x39\n\x07\x66\x65\x61ture\x18\x02 \x03(\x0b\x32(.typing_indicator.ServerAnnounce.Feature\x1a,\n\x07\x46\x65\x61ture\x12\x13\n\x0b\x66\x65\x61tureName\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\"`\n\rConnectClient\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12\x12\n\ntypingPort\x18\x03 \x01(\x05\x12\x15\n\rlocation_port\x18\x02 \x01(\x05\"\x9d\x01\n\x12\x43onnectionResponse\x12;\n\x06result\x18\x01 \x01(\x0e\x32+.typing_indicator.ConnectionResponse.Result\"J\n\x06Result\x12\x11\n\rUNKNOWN_ERROR\x10\x00\x12\r\n\tCONNECTED\x10\x01\x12\x1e\n\x1aIS_ALREADY_CONNECTED_ERROR\x10\x02\"\xa1\x01\n\x06HangUp\x12/\n\x06reason\x18\x01 \x01(\x0e\x32\x1f.typing_indicator.HangUp.Reason\"f\n\x06Reason\x12\x12\n\x0eUNKNOWN_REASON\x10\x00\x12\x08\n\x04\x45XIT\x10\x01\x12\x0b\n\x07TIMEOUT\x10\x02\x12\x1a\n\x16PAYLOAD_LIMIT_EXCEEDED\x10\x03\x12\x15\n\x11MESSAGE_MALFORMED\x10\x04\"\xae\x03\n\x0b\x43hatMessage\x12\x18\n\x10messageSnowflake\x18\x01 \x01(\x04\x12&\n\x06\x61uthor\x18\x02 \x01(\x0b\x32\x16.typing_indicator.User\x12&\n\x04user\x18\x03 \x01(\x0b\x32\x16.typing_indicator.UserH\x00\x12(\n\x05group\x18\x04 \x01(\x0b\x32\x17.typing_indicator.GroupH\x00\x12@\n\x0buserOfGroup\x18\x05 \x01(\x0b\x32).typing_indicator.ChatMessage.UserOfGroupH\x00\x12\x15\n\x0btextContent\x18\x0b \x01(\tH\x01\x12\x37\n\rlive_location\x18\x0c \x01(\x0b\x32\x1e.typing_indicator.LiveLocationH\x01\x1a[\n\x0bUserOfGroup\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12&\n\x05group\x18\x02 \x01(\x0b\x32\x17.typing_indicator.GroupB\x0b\n\trecipientB\t\n\x07\x63ontentJ\x04\x08\x06\x10\x0b\"\x97\x03\n\x13\x43hatMessageResponse\x12\x18\n\x10messageSnowflake\x18\x01 \x01(\x04\x12\x46\n\x08statuses\x18\x02 \x03(\x0b\x32\x34.typing_indicator.ChatMessageResponse.DeliveryStatus\x1at\n\x0e\x44\x65liveryStatus\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12<\n\x06status\x18\x02 \x01(\x0e\x32,.typing_indicator.ChatMessageResponse.Status\"\xa7\x01\n\x06Status\x12\x12\n\x0eUNKNOWN_STATUS\x10\x00\x12\r\n\tDELIVERED\x10\x01\x12\x0f\n\x0bOTHER_ERROR\x10\x02\x12\r\n\tUSER_AWAY\x10\x03\x12\x12\n\x0eUSER_NOT_FOUND\x10\x04\x12\x18\n\x14OTHER_SERVER_TIMEOUT\x10\x05\x12\x1a\n\x16OTHER_SERVER_NOT_FOUND\x10\x06\x12\x10\n\x0cUSER_BLOCKED\x10\x07\"F\n\x0bTypingEvent\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12\x11\n\ttimestamp\x18\x02 \x01(\x01\"D\n\x0cTypingEvents\x12\x34\n\rtyping_events\x18\x01 \x03(\x0b\x32\x1d.typing_indicator.TypingEvent\"\xc6\x01\n\x0cLiveLocation\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12\x11\n\ttimestamp\x18\x02 \x01(\x01\x12\x11\n\texpiry_at\x18\x03 \x01(\x01\x12\x39\n\x08location\x18\x04 \x01(\x0b\x32\'.typing_indicator.LiveLocation.Location\x1a/\n\x08Location\x12\x10\n\x08latitude\x18\x01 \x01(\x01\x12\x11\n\tlongitude\x18\x02 \x01(\x01\"\xcc\x01\n\rLiveLocations\x12U\n\x17\x65xtended_live_locations\x18\x01 \x03(\x0b\x32\x34.typing_indicator.LiveLocations.ExtendedLiveLocation\x1a\x64\n\x14\x45xtendedLiveLocation\x12\x35\n\rlive_location\x18\x01 \x01(\x0b\x32\x1e.typing_indicator.LiveLocation\x12\x15\n\rchatmessageID\x18\x02 \x01(\tb\x06proto3')
+
+_globals = globals()
+_builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
+_builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'messenger_pb2', _globals)
+if not _descriptor._USE_C_DESCRIPTORS:
+  DESCRIPTOR._loaded_options = None
+  _globals['_USER']._serialized_start=70
+  _globals['_USER']._serialized_end=110
+  _globals['_GROUP']._serialized_start=112
+  _globals['_GROUP']._serialized_end=154
+  _globals['_DISCOVERSERVER']._serialized_start=156
+  _globals['_DISCOVERSERVER']._serialized_end=172
+  _globals['_SERVERANNOUNCE']._serialized_start=175
+  _globals['_SERVERANNOUNCE']._serialized_end=314
+  _globals['_SERVERANNOUNCE_FEATURE']._serialized_start=270
+  _globals['_SERVERANNOUNCE_FEATURE']._serialized_end=314
+  _globals['_CONNECTCLIENT']._serialized_start=316
+  _globals['_CONNECTCLIENT']._serialized_end=412
+  _globals['_CONNECTIONRESPONSE']._serialized_start=415
+  _globals['_CONNECTIONRESPONSE']._serialized_end=572
+  _globals['_CONNECTIONRESPONSE_RESULT']._serialized_start=498
+  _globals['_CONNECTIONRESPONSE_RESULT']._serialized_end=572
+  _globals['_HANGUP']._serialized_start=575
+  _globals['_HANGUP']._serialized_end=736
+  _globals['_HANGUP_REASON']._serialized_start=634
+  _globals['_HANGUP_REASON']._serialized_end=736
+  _globals['_CHATMESSAGE']._serialized_start=739
+  _globals['_CHATMESSAGE']._serialized_end=1169
+  _globals['_CHATMESSAGE_USEROFGROUP']._serialized_start=1048
+  _globals['_CHATMESSAGE_USEROFGROUP']._serialized_end=1139
+  _globals['_CHATMESSAGERESPONSE']._serialized_start=1172
+  _globals['_CHATMESSAGERESPONSE']._serialized_end=1579
+  _globals['_CHATMESSAGERESPONSE_DELIVERYSTATUS']._serialized_start=1293
+  _globals['_CHATMESSAGERESPONSE_DELIVERYSTATUS']._serialized_end=1409
+  _globals['_CHATMESSAGERESPONSE_STATUS']._serialized_start=1412
+  _globals['_CHATMESSAGERESPONSE_STATUS']._serialized_end=1579
+  _globals['_TYPINGEVENT']._serialized_start=1581
+  _globals['_TYPINGEVENT']._serialized_end=1651
+  _globals['_TYPINGEVENTS']._serialized_start=1653
+  _globals['_TYPINGEVENTS']._serialized_end=1721
+  _globals['_LIVELOCATION']._serialized_start=1724
+  _globals['_LIVELOCATION']._serialized_end=1922
+  _globals['_LIVELOCATION_LOCATION']._serialized_start=1875
+  _globals['_LIVELOCATION_LOCATION']._serialized_end=1922
+  _globals['_LIVELOCATIONS']._serialized_start=1925
+  _globals['_LIVELOCATIONS']._serialized_end=2129
+  _globals['_LIVELOCATIONS_EXTENDEDLIVELOCATION']._serialized_start=2029
+  _globals['_LIVELOCATIONS_EXTENDEDLIVELOCATION']._serialized_end=2129
+>>>>>>> 20884c4 (implemented chat feature)
 # @@protoc_insertion_point(module_scope)
