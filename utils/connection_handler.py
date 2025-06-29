@@ -10,14 +10,10 @@ class ConnectionHandler:
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
         self.msg_queue = queue.Queue()
         self.msg_queue_timeout = timeout
-        self.open_threads = {}
 
     def start_client(self, conn_ip, conn_port) -> socket.socket:
         self.socket.connect((conn_ip, conn_port))
-        stop_event = threading.Event()
-        t = Thread(target=self._handle_new_connection, args=(self.socket, self.socket.getpeername(), stop_event), daemon=True)
-        t.start()
-        self.open_threads[self.socket.getpeername()] = {'thread': t, 'stop_event': stop_event, 'socket': self.socket}
+        Thread(target=self._handle_new_connection, args=(self.socket, self.socket.getpeername()), daemon=True).start()
     
 
     def start_server(self, bind_ip : str, bind_port: int):
@@ -29,15 +25,12 @@ class ConnectionHandler:
     def _server_listen(self):
         while True:
             client_socket, addr = self.socket.accept()
-            stop_event = threading.Event()
-            t = Thread(target=self._handle_new_connection, args=(client_socket, addr, stop_event))
-            t.start()
-            self.open_threads[addr] = {'thread': t, 'stop_event': stop_event, 'socket': client_socket}
+            Thread(target=self._handle_new_connection, args=(client_socket, addr)).start()
 
-    def _handle_new_connection(self, client_socket: socket.socket, addr: Tuple[str, int], stop_event: threading.Event):
+    def _handle_new_connection(self, client_socket: socket.socket, addr: Tuple[str, int]):
         buffer = b''  # internal buffer for received data
         try:
-            while not stop_event.is_set():
+            while True:
                 try:
                     msg, buffer = self._extract_msg(client_socket, buffer)
                     if msg:
@@ -113,8 +106,4 @@ class ConnectionHandler:
             return self.msg_queue.get()
 
     def close(self) -> None:
-        for addr, thread_info in list(self.open_threads.items()):
-            thread_info['stop_event'].set()
-            thread_info['socket'].close()
-            del self.open_threads[addr]
         self.socket.close()
