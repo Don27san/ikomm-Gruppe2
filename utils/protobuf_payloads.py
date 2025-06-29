@@ -23,3 +23,9 @@ typing_event.user.serverId = "server456" #Static value, must be replaced if nece
 live_location = messenger_pb2.LiveLocation()
 live_location.user.userId = "user123" #Static value, must be replaced if necessary
 live_location.user.serverId = "server456" #Static value, must be replaced if necessary
+
+# Ping Payload
+ping = messenger_pb2.Ping()
+
+# Pong Payload
+pong = messenger_pb2.Pong()

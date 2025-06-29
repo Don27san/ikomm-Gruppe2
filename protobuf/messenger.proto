@@ -51,6 +51,11 @@ message HangUp {
     Reason reason = 1;
  }
 
+message Ping {
+}
+
+message Pong {
+}
 
 
 

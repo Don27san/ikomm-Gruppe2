@@ -1,13 +1,15 @@
 import socket
+import threading
 from threading import Thread
 from typing import Tuple
 import queue
 
 
 class ConnectionHandler:      
-    def __init__(self):
+    def __init__(self, timeout: int=None):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
         self.msg_queue = queue.Queue()
+        self.msg_queue_timeout = timeout
 
     def start_client(self, conn_ip, conn_port) -> socket.socket:
         self.socket.connect((conn_ip, conn_port))
@@ -98,7 +100,10 @@ class ConnectionHandler:
                 - addr (Tuple[str, int]): The client's address as a (host, port) tuple.
                 - connection_socket (socket.socket): The socket object representing the client connection. Use this to send your respond to client of this exact connection. This is only relevant for the server to differentiate between connections. 
         """
-        return self.msg_queue.get()  # (msg, addr, connection_socket)
+        if self.msg_queue_timeout is not None:
+            return self.msg_queue.get(timeout=self.msg_queue_timeout)
+        else:
+            return self.msg_queue.get()
 
     def close(self) -> None:
         self.socket.close()
