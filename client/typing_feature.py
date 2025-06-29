@@ -23,6 +23,13 @@ class TypingFeature(FeatureBase):
         self.event_list = []  # List to store typing events with timestamps
         self.last_typing_sent = 0
 
+    # public send_typing_event methode：
+    def send_typing_event(self):
+        server_addr = config['address']
+        server_forwarding_port = config['typing_feature']['server_forwarding_port']
+        typing_event.timestamp = time.time()
+        self.socket.sendto(serialize_msg('TYPING_EVENT', typing_event), (server_addr, server_forwarding_port))
+
     # Listens for keystrokes and sends typing event to server
     def handle_typing(self):
 
@@ -35,7 +42,7 @@ class TypingFeature(FeatureBase):
             print(f'\nTyping Event sent to {server_addr}:{server_forwarding_port}')
 
         # Reduces the frequency of typing events sent to the server
-        def debounce(fn, debounce_time=1):            
+        def debounce(fn, debounce_time=1):
             now = time.time()
             if now - self.last_typing_sent > debounce_time:
                 fn()

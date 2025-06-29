@@ -72,7 +72,7 @@ class LocationService(ServiceBase):
                     # Forward message
                     forwarding_socket.sendto(serialize_msg('LIVE_LOCATIONS', live_locations),
                                             (subscriber['subscriberIP'], subscriber['locationPort']))
-                    print(f'Forwarded to {subscriber['subscriberIP']}:{subscriber['locationPort']}')
+                    print(f"Forwarded to {subscriber['subscriberIP']}:{subscriber['locationPort']}")
             else:
                 yellow('Empty subscriber_list. No forwarding of live locations.')
 
