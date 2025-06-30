@@ -2,7 +2,7 @@ import socket
 from protobuf import messenger_pb2
 from google.protobuf.json_format import ParseDict
 from config import config
-from utils import blue, green, yellow, parse_msg, serialize_msg
+from utils import blue, green, yellow, red, parse_msg, serialize_msg
 import time
 from .service_base import ServiceBase
 
@@ -36,49 +36,53 @@ class LocationService(ServiceBase):
 
         # Listen to incoming LiveLocation
         while True:
-            res, addr = forwarding_socket.recvfrom(1024)
-            data = parse_msg(res)[2]
+            try:
+                res, addr = forwarding_socket.recvfrom(1024)
+                data = parse_msg(res)[2]
 
-            # Append dict with relevant data
-            data['userIP'] = addr[0]
-            data['userPort'] = addr[1]
-            data['chatMessageID'] = None
+                # Append dict with relevant data
+                data['userIP'] = addr[0]
+                data['userPort'] = addr[1]
+                data['chatMessageID'] = None
 
-            if addr[0] in self.subscriber_dict.keys():
-                self.subscriber_dict[addr[0]]['lastActive'] = time.time()
+                if addr[0] in self.subscriber_dict.keys():
+                    self.subscriber_dict[addr[0]]['lastActive'] = time.time()
 
-            green(f'\nReceived Live Location from {addr[0]}:{addr[1]}')
+                green(f'\nReceived Live Location from {addr[0]}:{addr[1]}')
 
-            user_found = False
-            # either update location_events_list...
-            for item in self.location_events_list:
-                if item["userIP"] == data['userIP']:
-                    item["location"] = data['location']
-                    user_found = True
-                    break
-            # ... or append and send chatmessage
-            if not user_found:
-                chatmessageID = send_chatmessage(data)
-                data["chatMessageID"] = chatmessageID
-                self.location_events_list.append(data)
-                continue  # skip to the next iteration of the while loop, since initial location event is sent via Chatmessage (TCP)
+                user_found = False
+                # either update location_events_list...
+                for item in self.location_events_list:
+                    if item["userIP"] == data['userIP']:
+                        item["location"] = data['location']
+                        user_found = True
+                        break
+                # ... or append and send chatmessage
+                if not user_found:
+                    chatmessageID = send_chatmessage(data)
+                    data["chatMessageID"] = chatmessageID
+                    self.location_events_list.append(data)
+                    continue  # skip to the next iteration of the while loop, since initial location event is sent via Chatmessage (TCP)
 
-            # Delete expired items in location_events_list
-            if len(self.location_events_list) > 0:
-                self.location_events_list = [
-                    item for item in self.location_events_list if item['expiryAt'] > time.time()
-                ]
+                # Delete expired items in location_events_list
+                if len(self.location_events_list) > 0:
+                    self.location_events_list = [
+                        item for item in self.location_events_list if item['expiryAt'] > time.time()
+                    ]
 
-            # Forward location_events_list to all subscribers.
-            if len(self.subscriber_dict) > 0:
-                live_locations = self.format_live_locations_list()
-                for subscriberIP, data in self.subscriber_dict.items():
-                    # Forward message
-                    forwarding_socket.sendto(serialize_msg('LIVE_LOCATIONS', live_locations),
-                                            (subscriberIP, data['locationPort']))
-                    print(f"Forwarded to {subscriberIP}:{data['locationPort']}")
-            else:
-                yellow('Empty subscriber_list. No forwarding of live locations.')
+                # Forward location_events_list to all subscribers.
+                if len(self.subscriber_dict) > 0:
+                    live_locations = self.format_live_locations_list()
+                    for subscriberIP, data in self.subscriber_dict.items():
+                        # Forward message
+                        forwarding_socket.sendto(serialize_msg('LIVE_LOCATIONS', live_locations),
+                                                (subscriberIP, data['locationPort']))
+                        print(f"Forwarded to {subscriberIP}:{data['locationPort']}")
+                else:
+                    yellow('Empty subscriber_list. No forwarding of live locations. \n')
+            except Exception as e:
+                red(f"Error handling incoming Live Location: {e}. \n")
+                continue
 
     def format_live_locations_list(self):
         live_locations = messenger_pb2.LiveLocations()
