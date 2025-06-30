@@ -38,6 +38,7 @@ message ConnectionResponse {
         IS_ALREADY_CONNECTED_ERROR = 2;
     }
     Result result = 1;
+    int32 udpPort = 2;
 }
 
 message HangUp {
@@ -55,6 +56,10 @@ message Ping {
 }
 
 message Pong {
+}
+
+message UnsupportedMessage {
+    string message_name = 1;
 }
 
 

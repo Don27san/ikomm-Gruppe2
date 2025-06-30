@@ -16,7 +16,8 @@ message_classes = {
     'LIVE_LOCATIONS': messenger_pb2.LiveLocations,
     'CHAT_MESSAGE': messenger_pb2.ChatMessage,
     'PING': messenger_pb2.Ping,
-    'PONG': messenger_pb2.Pong
+    'PONG': messenger_pb2.Pong,
+    'UNSUPPORTED_MESSAGE': messenger_pb2.UnsupportedMessage,
 }
 
 
