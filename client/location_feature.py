@@ -20,14 +20,22 @@ class LocationFeature(FeatureBase):
         self.last_location_sent = 0
         self.expiry_at = 0   # expiry date for location sharing
 
-        self._running_sharing = True
+        self._running_sharing = False
 
     def start_location_sharing(self):
-        self._running = True
+        self._running_sharing = True
         self.expiry_at = time.time() + 60 * config['location_feature']['client_expiry_time']
 
-        server_addr = config['address']
-        server_forwarding_port = config['location_feature']['server_forwarding_port']
+        # Wait until udp_server_port is assigned
+        error_printed = False
+        while self.udp_server_port is None and self._running_sharing and self._running:
+            if not error_printed:
+                red(f"Location cannot be shared. No server_forwarding_port received.\n")
+                error_printed = True
+            time.sleep(0.1)  # wait 100ms to reduce CPU load
+
+        server_addr = self.server_address
+        server_forwarding_port = self.udp_server_port
 
         while time.time() < self.expiry_at and self._running and self._running_sharing:
             now = time.time()

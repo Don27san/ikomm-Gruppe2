@@ -17,7 +17,8 @@ message_classes = {
     'CHAT_MESSAGE': messenger_pb2.ChatMessage,
     'CHAT_MESSAGE_RESPONSE': messenger_pb2.ChatMessageResponse,
     'PING': messenger_pb2.Ping,
-    'PONG': messenger_pb2.Pong
+    'PONG': messenger_pb2.Pong,
+    'UNSUPPORTED_MESSAGE': messenger_pb2.UnsupportedMessage,
 }
 
 

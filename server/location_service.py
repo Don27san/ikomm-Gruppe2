@@ -14,7 +14,8 @@ class LocationService(ServiceBase):
     """
 
     def __init__(self):
-        super().__init__('LIVE_LOCATION', bind_port=config['location_feature']['server_connection_port'])
+        super().__init__('LIVE_LOCATION', bind_port=config['location_feature']['server_connection_port'],
+                         forwarding_port=config['location_feature']['server_forwarding_port'])
         self.location_events_list = [] #List to bundle location activities. No filtering, this is client's task!
 
 

@@ -13,7 +13,8 @@ class TypingService(ServiceBase):
     """
 
     def __init__(self):
-        super().__init__('TYPING_INDICATOR', bind_port=config['typing_feature']['server_connection_port'])
+        super().__init__('TYPING_INDICATOR', bind_port=config['typing_feature']['server_connection_port'],
+                         forwarding_port=config['typing_feature']['server_forwarding_port'])
         self.typing_events_list = [] #List to bundle typing activities. No filtering, this is client's task!
 
             

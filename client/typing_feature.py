@@ -1,6 +1,6 @@
 import socket
 import time
-from utils import typing_event, blue, green, parse_msg, serialize_msg
+from utils import typing_event, blue, green, red, parse_msg, serialize_msg
 from pynput import keyboard
 from config import config
 from .feature_base import FeatureBase
@@ -25,21 +25,29 @@ class TypingFeature(FeatureBase):
 
     # public send_typing_event methode：
     def send_typing_event(self):
-        server_addr = config['address']
-        server_forwarding_port = config['typing_feature']['server_forwarding_port']
-        typing_event.timestamp = time.time()
-        self.socket.sendto(serialize_msg('TYPING_EVENT', typing_event), (server_addr, server_forwarding_port))
+        # Wait until udp_server_port is assigned
+        if self.udp_server_port is not None:
+            server_addr = self.server_address
+            server_forwarding_port = self.udp_server_port
+
+            typing_event.timestamp = time.time()
+            self.socket.sendto(serialize_msg('TYPING_EVENT', typing_event), (server_addr, server_forwarding_port))
 
     # Listens for keystrokes and sends typing event to server
     def handle_typing(self):
 
         def send_typing_event():
-            server_addr = config['address']
-            server_forwarding_port = config['typing_feature']['server_forwarding_port']
-            typing_event.timestamp = time.time() #Todo: This is not timezone-proof. Need to deliver "timestamptz" variant.
+            # Wait until udp_server_port is assigned
+            if self.udp_server_port is not None:
+                server_addr = self.server_address
+                server_forwarding_port = self.udp_server_port
 
-            self.socket.sendto(serialize_msg('TYPING_EVENT', typing_event), (server_addr, server_forwarding_port))
-            print(f'\nTyping Event sent to {server_addr}:{server_forwarding_port}')
+                typing_event.timestamp = time.time() #Todo: This is not timezone-proof. Need to deliver "timestamptz" variant.
+
+                self.socket.sendto(serialize_msg('TYPING_EVENT', typing_event), (server_addr, server_forwarding_port))
+                print(f'Typing Event sent to {server_addr}:{server_forwarding_port}. \n')
+            else:
+                red(f"Typing Event could not be sent to Server. No server_forwarding_port received. \n")
 
         # Reduces the frequency of typing events sent to the server
         def debounce(fn, debounce_time=1):

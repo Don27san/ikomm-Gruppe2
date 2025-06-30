@@ -16,6 +16,7 @@ MessageName = Literal[
     'CHAT_MESSAGE_RESPONSE',
     'PING',
     'PONG',
+    'UNSUPPORTED_MESSAGE',
 ]
 
 def serialize_msg(message_name: MessageName, payload: Optional[Message] = None) -> bytes:
