@@ -28,6 +28,7 @@ class LocationFeature(FeatureBase):
 
         # Wait until udp_server_port is assigned
         error_printed = False
+        time.sleep(0.1)
         while self.udp_server_port is None and self._running_sharing and self._running:
             if not error_printed:
                 red(f"Location cannot be shared. No server_forwarding_port received.\n")
@@ -43,14 +44,20 @@ class LocationFeature(FeatureBase):
                 live_location.timestamp = now
                 live_location.expiry_at = self.expiry_at
 
-                g = geocoder.ip('me')
-                if g.ok:
-                    live_location.location.latitude = g.latlng[0]
-                    live_location.location.longitude = g.latlng[1]
-                    self.socket.sendto(serialize_msg('LIVE_LOCATION', live_location), (server_addr, server_forwarding_port))
-                    print(f'\nLive Location sent to {server_addr}:{server_forwarding_port}')
-                else:
-                    red("Could not determine location.")
+                try:
+                    g = geocoder.ip('me')
+                    if g.ok:
+                        live_location.location.latitude = g.latlng[0]
+                        live_location.location.longitude = g.latlng[1]
+                        try:
+                            self.socket.sendto(serialize_msg('LIVE_LOCATION', live_location), (server_addr, server_forwarding_port))
+                            print(f'\nLive Location sent to {server_addr}:{server_forwarding_port}')
+                        except Exception as e:
+                            red(f"Error while sending live location: {e}")
+                    else:
+                        red("Could not determine location.")
+                except Exception as e:
+                    red(f"Error while sending live location: {e}")
                 self.last_location_sent = now
 
     def stop_location_sharing(self):
@@ -58,8 +65,11 @@ class LocationFeature(FeatureBase):
 
     def handle_listening(self):
         while self._running:
-            res, addr = self.socket.recvfrom(1024)
-            data = parse_msg(res)[2]
-            self.last_msg_received_time = time.time()
-            green(f'Received live_locations from {addr[0]}:{addr[1]}')
-            self.location_list = data # Update the event list with the received location events
+            try:
+                res, addr = self.socket.recvfrom(1024)
+                data = parse_msg(res)[2]
+                self.last_msg_received_time = time.time()
+                green(f'Received live_locations from {addr[0]}:{addr[1]}')
+                self.location_list = data # Update the event list with the received location events
+            except Exception as e:
+                red(f"Error receiving or processing data: {e}")
