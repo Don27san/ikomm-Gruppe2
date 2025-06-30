@@ -27,6 +27,8 @@ class FeatureBase:
     def __init__(self, feature_name: FeatureName):
         self.feature_name = feature_name
         self._running = True
+        self.udp_server_port = None
+        self.server_address = None
 
         # Check: server still active?
         self.last_msg_received_time = None
@@ -49,7 +51,7 @@ class FeatureBase:
             while self._running:
                 # Check: server still active?
                 try:
-                    msg = client.recv_msg()[0]
+                    msg, addr, _ = client.recv_msg()
                     message_name, _, payload = parse_msg(msg)
                     self.last_msg_received_time = time.time()
                     self.ping_sent = False
@@ -78,6 +80,9 @@ class FeatureBase:
                         green(f"Connected to {self.feature_name} on {feature_ip}:{feature_port} \n")
                     else:
                         red(f"Unknown connection response for {self.feature_name} from {feature_ip}:{feature_port} \n")
+                    if 'udpPort' in payload:
+                        self.server_address = addr[0]
+                        self.udp_server_port = payload['udpPort']
                 elif message_name == 'PONG':
                     green(f"Pong received for {self.feature_name} from {feature_ip}:{feature_port} \n")
                 elif message_name == 'PING':
@@ -87,7 +92,13 @@ class FeatureBase:
                     client.close()
                     self._running = False
                     red(f"Server closes. {self.feature_name} connection closed to {feature_ip}:{feature_port}. \n")
-                # TODO: unsupported messages
+                elif message_name == 'UNSUPPORTED_MESSAGE':
+                    yellow(f"Server {feature_ip}:{feature_port} does not support {payload['messageName']}. \n")
+                else:
+                    unsupported_message = messenger_pb2.UnsupportedMessage()
+                    unsupported_message.message_name = message_name
+                    client.send_msg(serialize_msg('UNSUPPORTED_MESSAGE', unsupported_message))
+                    yellow(f"Received {message_name} is not supported. Error message sent to {feature_ip}:{feature_port}. \n")
 
         except Exception as e:
             red(f"Failed to connect to {self.feature_name} on {feature_ip}:{feature_port}. Error: {e} \n")

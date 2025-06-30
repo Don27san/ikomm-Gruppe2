@@ -34,15 +34,17 @@ class ConnectClient(_message.Message):
     def __init__(self, user: Optional[Union[User, Mapping]] = ..., typingPort: Optional[int] = ..., location_port: Optional[int] = ...) -> None: ...
 
 class ConnectionResponse(_message.Message):
-    __slots__ = ["result"]
+    __slots__ = ["result", "udpPort"]
     class Result(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
     CONNECTED: ConnectionResponse.Result
     IS_ALREADY_CONNECTED_ERROR: ConnectionResponse.Result
     RESULT_FIELD_NUMBER: ClassVar[int]
+    UDPPORT_FIELD_NUMBER: ClassVar[int]
     UNKNOWN_ERROR: ConnectionResponse.Result
     result: ConnectionResponse.Result
-    def __init__(self, result: Optional[Union[ConnectionResponse.Result, str]] = ...) -> None: ...
+    udpPort: int
+    def __init__(self, result: Optional[Union[ConnectionResponse.Result, str]] = ..., udpPort: Optional[int] = ...) -> None: ...
 
 class DiscoverServer(_message.Message):
     __slots__ = []
@@ -129,6 +131,12 @@ class TypingEvents(_message.Message):
     TYPING_EVENTS_FIELD_NUMBER: ClassVar[int]
     typing_events: _containers.RepeatedCompositeFieldContainer[TypingEvent]
     def __init__(self, typing_events: Optional[Iterable[Union[TypingEvent, Mapping]]] = ...) -> None: ...
+
+class UnsupportedMessage(_message.Message):
+    __slots__ = ["message_name"]
+    MESSAGE_NAME_FIELD_NUMBER: ClassVar[int]
+    message_name: str
+    def __init__(self, message_name: Optional[str] = ...) -> None: ...
 
 class User(_message.Message):
     __slots__ = ["serverId", "userId"]

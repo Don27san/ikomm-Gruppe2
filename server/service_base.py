@@ -8,11 +8,12 @@ from protobuf import messenger_pb2
 FeatureName = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'CHAT_MESSAGE']
 
 class ServiceBase:
-    def __init__(self, feature_name : FeatureName, bind_port):
+    def __init__(self, feature_name : FeatureName, bind_port, forwarding_port=None):
         self.feature_name = feature_name
         self.subscriber_dict = {}   # dict to store feature subscribers
         self.bind_ip = config['address']
         self.bind_port = bind_port
+        self.forwarding_port = forwarding_port
 
         # Check: client still active?
         self.ping_timeout = config["conn_mgmt"]["ping_timeout"]
@@ -62,6 +63,7 @@ class ServiceBase:
                 if message_name == 'CONNECT_CLIENT':
                     response = messenger_pb2.ConnectionResponse()
                     response.result = messenger_pb2.ConnectionResponse.Result.IS_ALREADY_CONNECTED_ERROR
+                    response.udpPort = self.forwarding_port
                     conn.send(serialize_msg('CONNECTION_RESPONSE', response))
                     yellow(f"{self.feature_name}: {addr} already subscribed. \n")
                 elif message_name == 'PING':
@@ -73,9 +75,13 @@ class ServiceBase:
                     del self.subscriber_dict[subscriberIP]
                     conn.close()
                     red(f"{self.feature_name}: Hangup received from {addr}. Connection closed. \n")
+                elif message_name == 'UNSUPPORTED_MESSAGE':
+                    yellow(f"{self.feature_name}: Client {addr} did not support {data['messageName']}. \n")
                 else:
-                    # TODO: error message
-                    pass
+                    unsupported_message = messenger_pb2.UnsupportedMessage()
+                    unsupported_message.message_name = message_name
+                    conn.send(serialize_msg('UNSUPPORTED_MESSAGE', unsupported_message))
+                    yellow(f"{self.feature_name}: {message_name} is not supported. Error message sent to known client {addr}. \n")
 
             # Unknown client handling
             else:
@@ -88,8 +94,11 @@ class ServiceBase:
                     self.subscriber_dict[subscriberIP] = data
                     response = messenger_pb2.ConnectionResponse()
                     response.result = messenger_pb2.ConnectionResponse.Result.CONNECTED
+                    response.udpPort = self.forwarding_port
                     conn.send(serialize_msg('CONNECTION_RESPONSE', response))
                     green(f"{self.feature_name}: Connected with {data}. \n")
                 else:
-                    # TODO: error message in else statement
-                    pass
+                    unsupported_message = messenger_pb2.UnsupportedMessage()
+                    unsupported_message.message_name = message_name
+                    conn.send(serialize_msg('UNSUPPORTED_MESSAGE', unsupported_message))
+                    yellow(f"{self.feature_name}: {message_name} is not supported. Error message sent to unknown client {addr}. \n")
