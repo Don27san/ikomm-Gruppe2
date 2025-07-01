@@ -115,9 +115,12 @@ class ChatListenerThread(QThread):
 
 
 class ChatWindow(QMainWindow):
-    def __init__(self, typing_feature, location_feature, chat_client):
+    def __init__(self, typing_feature, location_feature, chat_client, default_recipient="other_user"):
         super().__init__()
         uic.loadUi(os.path.join(os.path.dirname(__file__), "chatwindow.ui"), self)
+
+        # Store default recipient
+        self.default_recipient = default_recipient
 
         # Initialize TypingFeature instance
         self.typing_feature = typing_feature
@@ -147,8 +150,8 @@ class ChatWindow(QMainWindow):
             self.chatListener = None
             self.chatDisplay.append("[System] Chat client not connected to server.")
 
-        # Initialize current recipient (fixed values for simplicity)
-        self.current_recipient_user = "friend_user"  # Fixed recipient
+        # Initialize current recipient (use default recipient parameter)
+        self.current_recipient_user = self.default_recipient  # Use configurable recipient
         self.current_recipient_server = "homeserver1"  # Fixed server
 
         self.typingTimer = QTimer(self)
@@ -165,6 +168,9 @@ class ChatWindow(QMainWindow):
         # Simple initialization message
         self.updateConnectionStatus()
         self.chatDisplay.append(f"[System] Sending messages to: {self.current_recipient_user}@{self.current_recipient_server}")
+        
+        # Set window title with user and recipient information
+        self.updateWindowTitle()
 
     def updateConnectionStatus(self):
         """Update the chat display with current connection status"""
@@ -172,6 +178,20 @@ class ChatWindow(QMainWindow):
             self.chatDisplay.append(f"[System] ✅ Connected as {self.chat_client.user_id}@{self.chat_client.server_id}")
         else:
             self.chatDisplay.append("[System] ❌ Not connected to chat server")
+        
+        # Update window title when connection status changes
+        self.updateWindowTitle()
+
+    def updateWindowTitle(self):
+        """Set window title with user and recipient information"""
+        if self.chat_client and self.chat_client.is_connected:
+            user_info = f"{self.chat_client.user_id}@{self.chat_client.server_id}"
+            recipient_info = f"{self.current_recipient_user}@{self.current_recipient_server}"
+            title = f"Chat - {user_info} → {recipient_info}"
+        else:
+            title = f"Chat - Not Connected → {self.current_recipient_user}@{self.current_recipient_server}"
+        
+        self.setWindowTitle(title)
 
     def sendTypingEvent(self):
         self.typing_feature.send_typing_event()
@@ -220,7 +240,7 @@ class ChatWindow(QMainWindow):
         g = geocoder.ip('me')
         if g.ok:
             lat, lon = g.latlng
-            link = f"https://www.google.com/maps?q={lat},{lon}"
+            link = f"https://www.openstreetmap.org/?mlat={lat}&mlon={lon}&zoom=15"
             html = f'<a href="{link}">Click to check the location</a>'
             self.chatDisplay.append(f"[You] live location: {html}")
 

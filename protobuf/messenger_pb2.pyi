@@ -15,7 +15,6 @@ class User(_message.Message):
     serverId: str
     def __init__(self, userId: _Optional[str] = ..., serverId: _Optional[str] = ...) -> None: ...
 
-<<<<<<< HEAD
 class Group(_message.Message):
     __slots__ = ("groupId", "serverId")
     GROUPID_FIELD_NUMBER: _ClassVar[int]
@@ -23,30 +22,6 @@ class Group(_message.Message):
     groupId: str
     serverId: str
     def __init__(self, groupId: _Optional[str] = ..., serverId: _Optional[str] = ...) -> None: ...
-=======
-class ConnectClient(_message.Message):
-    __slots__ = ["location_port", "typingPort", "user"]
-    LOCATION_PORT_FIELD_NUMBER: ClassVar[int]
-    TYPINGPORT_FIELD_NUMBER: ClassVar[int]
-    USER_FIELD_NUMBER: ClassVar[int]
-    location_port: int
-    typingPort: int
-    user: User
-    def __init__(self, user: Optional[Union[User, Mapping]] = ..., typingPort: Optional[int] = ..., location_port: Optional[int] = ...) -> None: ...
-
-class ConnectionResponse(_message.Message):
-    __slots__ = ["result", "udpPort"]
-    class Result(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-        __slots__ = []
-    CONNECTED: ConnectionResponse.Result
-    IS_ALREADY_CONNECTED_ERROR: ConnectionResponse.Result
-    RESULT_FIELD_NUMBER: ClassVar[int]
-    UDPPORT_FIELD_NUMBER: ClassVar[int]
-    UNKNOWN_ERROR: ConnectionResponse.Result
-    result: ConnectionResponse.Result
-    udpPort: int
-    def __init__(self, result: Optional[Union[ConnectionResponse.Result, str]] = ..., udpPort: Optional[int] = ...) -> None: ...
->>>>>>> d6411f4 (Finished Service and Feature Base)
 
 class DiscoverServer(_message.Message):
     __slots__ = ()
@@ -78,7 +53,7 @@ class ConnectClient(_message.Message):
     def __init__(self, user: _Optional[_Union[User, _Mapping]] = ..., typingPort: _Optional[int] = ..., location_port: _Optional[int] = ...) -> None: ...
 
 class ConnectionResponse(_message.Message):
-    __slots__ = ("result",)
+    __slots__ = ("result", "udpPort")
     class Result(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = ()
         UNKNOWN_ERROR: _ClassVar[ConnectionResponse.Result]
@@ -88,8 +63,10 @@ class ConnectionResponse(_message.Message):
     CONNECTED: ConnectionResponse.Result
     IS_ALREADY_CONNECTED_ERROR: ConnectionResponse.Result
     RESULT_FIELD_NUMBER: _ClassVar[int]
+    UDPPORT_FIELD_NUMBER: _ClassVar[int]
     result: ConnectionResponse.Result
-    def __init__(self, result: _Optional[_Union[ConnectionResponse.Result, str]] = ...) -> None: ...
+    udpPort: int
+    def __init__(self, result: _Optional[_Union[ConnectionResponse.Result, str]] = ..., udpPort: _Optional[int] = ...) -> None: ...
 
 class HangUp(_message.Message):
     __slots__ = ("reason",)
@@ -116,6 +93,12 @@ class Ping(_message.Message):
 class Pong(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
+
+class UnsupportedMessage(_message.Message):
+    __slots__ = ("message_name",)
+    MESSAGE_NAME_FIELD_NUMBER: _ClassVar[int]
+    message_name: str
+    def __init__(self, message_name: _Optional[str] = ...) -> None: ...
 
 class ChatMessage(_message.Message):
     __slots__ = ("messageSnowflake", "author", "user", "group", "userOfGroup", "textContent", "live_location")
@@ -189,7 +172,6 @@ class TypingEvents(_message.Message):
     typing_events: _containers.RepeatedCompositeFieldContainer[TypingEvent]
     def __init__(self, typing_events: _Optional[_Iterable[_Union[TypingEvent, _Mapping]]] = ...) -> None: ...
 
-<<<<<<< HEAD
 class LiveLocation(_message.Message):
     __slots__ = ("user", "timestamp", "expiry_at", "location")
     class Location(_message.Message):
@@ -221,18 +203,3 @@ class LiveLocations(_message.Message):
     EXTENDED_LIVE_LOCATIONS_FIELD_NUMBER: _ClassVar[int]
     extended_live_locations: _containers.RepeatedCompositeFieldContainer[LiveLocations.ExtendedLiveLocation]
     def __init__(self, extended_live_locations: _Optional[_Iterable[_Union[LiveLocations.ExtendedLiveLocation, _Mapping]]] = ...) -> None: ...
-=======
-class UnsupportedMessage(_message.Message):
-    __slots__ = ["message_name"]
-    MESSAGE_NAME_FIELD_NUMBER: ClassVar[int]
-    message_name: str
-    def __init__(self, message_name: Optional[str] = ...) -> None: ...
-
-class User(_message.Message):
-    __slots__ = ["serverId", "userId"]
-    SERVERID_FIELD_NUMBER: ClassVar[int]
-    USERID_FIELD_NUMBER: ClassVar[int]
-    serverId: str
-    userId: str
-    def __init__(self, userId: Optional[str] = ..., serverId: Optional[str] = ...) -> None: ...
->>>>>>> d6411f4 (Finished Service and Feature Base)

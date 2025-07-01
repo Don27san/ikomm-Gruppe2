@@ -4,47 +4,59 @@ import time
 from protobuf import messenger_pb2
 from config import config
 from utils import serialize_msg, parse_msg, ConnectionHandler
+from .feature_base import FeatureBase
 
 # Placeholder for server details, ideally discovered or configured
 DEFAULT_SERVER_HOST = 'localhost'
 DEFAULT_SERVER_PORT = config['chat_feature']['server_port']  # Use config port
 
-class ChatClient:
+class ChatClient(FeatureBase):
     def __init__(self, user_id, server_id, server_host=DEFAULT_SERVER_HOST, server_port=DEFAULT_SERVER_PORT):
+        super().__init__('CHAT_MESSAGE')
         self.user_id = user_id
         self.server_id = server_id  # User's homeserver
         self.server_host = server_host
         self.server_port = server_port
-        self.sock = None
         self.is_connected = False
         self._message_counter = 0
         
         # Generate simple user hash for snowflake (16 bits = 0-65535)
         self._user_hash = hash(user_id) & 0xFFFF
         
-        self._connect()
+        # Use ConnectionHandler for proper connection management
+        self.connection_handler = None
+        
+        # Try direct connection first (for backward compatibility)
+        self._connect_direct()
 
-    def _connect(self):
+    def _connect_direct(self):
+        """Direct connection to chat server for backward compatibility"""
         try:
-            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.connect((self.server_host, self.server_port))
+            self.connection_handler = ConnectionHandler()
+            self.connection_handler.start_client(self.server_host, self.server_port)
             self.is_connected = True
             print(f"ChatClient: Connected to server {self.server_host}:{self.server_port}")
             # Start a thread to listen for incoming messages
             threading.Thread(target=self._listen_for_messages, daemon=True).start()
         except ConnectionRefusedError:
             print(f"ChatClient: Connection refused by server {self.server_host}:{self.server_port}")
-            self.sock = None
+            self.connection_handler = None
             self.is_connected = False
         except Exception as e:
             print(f"ChatClient: Error connecting to server: {e}")
-            self.sock = None
+            self.connection_handler = None
             self.is_connected = False
 
+    def handle_connection(self, server_list):
+        """Handle connection using FeatureBase pattern when server list is available"""
+        # If direct connection failed, try using the feature base connection
+        if not self.is_connected:
+            super().handle_connection(server_list)
+
     def _ensure_connection(self):
-        if not self.is_connected or self.sock is None:
+        if not self.is_connected or self.connection_handler is None:
             print("ChatClient: Not connected. Attempting to reconnect...")
-            self._connect()
+            self._connect_direct()
         return self.is_connected
 
     def _generate_snowflake(self):
@@ -123,7 +135,7 @@ class ChatClient:
         try:
             # Use serialize_msg to create the proper format
             msg = serialize_msg('CHAT_MESSAGE', chat_msg)
-            self.sock.sendall(msg)
+            self.connection_handler.send_msg(msg)
             
             content_desc = text_content if text_content else "live location"
             recipient_desc = recipient_user_id or recipient_group_id
@@ -132,101 +144,40 @@ class ChatClient:
         except Exception as e:
             print(f"ChatClient: Error sending message: {e}")
             self.is_connected = False
-            self.sock.close()
-            self.sock = None
+            if self.connection_handler:
+                self.connection_handler.close()
+            self.connection_handler = None
             return False
 
     def _listen_for_messages(self):
         """Listen for incoming messages and responses"""
-        buffer = b''
+        import queue
         
-        while self.is_connected and self.sock:
+        while self.is_connected and self.connection_handler:
             try:
-                # Check if socket is still valid before attempting to read
-                if not self.sock:
-                    break
-                    
-                # Read data into buffer
-                data = self.sock.recv(1024)
-                if not data:
-                    if self.is_connected:  # Only print if unexpected disconnection
-                        print("ChatClient: Server closed connection.")
-                    self.is_connected = False
-                    break
+                # Use ConnectionHandler's recv_msg method
+                msg, addr, conn = self.connection_handler.recv_msg()
                 
-                buffer += data
-                
-                # Process complete messages from buffer
-                while True:
-                    # Check if we have at least 2 spaces for header parsing
-                    if buffer.count(b' ') < 2:
-                        break  # Need more data
+                # Parse the message using standard format
+                try:
+                    msg_name, size, payload = parse_msg(msg)
                     
-                    try:
-                        # Find header boundaries (message_name and size)
-                        first_space = buffer.find(b' ')
-                        second_space = buffer.find(b' ', first_space + 1)
-                        
-                        if first_space == -1 or second_space == -1:
-                            break  # Need more data
-                        
-                        # Extract payload size
-                        size_str = buffer[first_space + 1:second_space].decode('ascii')
-                        payload_size = int(size_str)
-                        
-                        # Calculate total message size (header + payload + newline)
-                        payload_start = second_space + 1
-                        total_message_size = payload_start + payload_size + 1  # +1 for \n
-                        
-                        # Check if we have the complete message
-                        if len(buffer) < total_message_size:
-                            break  # Need more data
-                        
-                        # Validate message ends with newline
-                        if buffer[total_message_size - 1] != ord('\n'):
-                            print("ChatClient: Message doesn't end with newline, skipping")
-                            buffer = buffer[1:]  # Skip one byte and try again
-                            continue
-                        
-                        # Extract complete message
-                        complete_msg = buffer[:total_message_size]
-                        buffer = buffer[total_message_size:]  # Remove from buffer
-                        
-                        # Parse the message using standard format
-                        try:
-                            msg_name, size, payload = parse_msg(complete_msg)
-                            
-                            if msg_name == 'CHAT_MESSAGE':
-                                # Convert payload dict to ChatMessage
-                                chat_msg = self._dict_to_chat_message(payload)
-                                self._handle_incoming_message(chat_msg)
-                            elif msg_name == 'CHAT_MESSAGE_RESPONSE':
-                                # Convert payload dict to ChatMessageResponse
-                                response = self._dict_to_chat_response(payload)
-                                self._handle_message_response(response)
-                            else:
-                                print(f"ChatClient: Received unrecognized message type: {msg_name}")
-                        except Exception as e:
-                            print(f"ChatClient: Error parsing message: {e}")
-                            
-                    except (ValueError, UnicodeDecodeError) as e:
-                        print(f"ChatClient: Error processing message header: {e}")
-                        # Skip one byte and try to recover
-                        buffer = buffer[1:]
-
-            except OSError as e:
-                # Handle specific socket errors gracefully
-                if e.errno == 9:  # Bad file descriptor
-                    # This happens when socket is closed while we're reading
-                    if self.is_connected:
-                        print("ChatClient: Connection was closed during read operation.")
-                    break
-                else:
-                    # Other socket errors
-                    if self.is_connected:
-                        print(f"ChatClient: Socket error: {e}")
-                    self.is_connected = False
-                    break
+                    if msg_name == 'CHAT_MESSAGE':
+                        # Convert payload dict to ChatMessage
+                        chat_msg = self._dict_to_chat_message(payload)
+                        self._handle_incoming_message(chat_msg)
+                    elif msg_name == 'CHAT_MESSAGE_RESPONSE':
+                        # Convert payload dict to ChatMessageResponse
+                        response = self._dict_to_chat_response(payload)
+                        self._handle_message_response(response)
+                    else:
+                        print(f"ChatClient: Received unrecognized message type: {msg_name}")
+                except Exception as e:
+                    print(f"ChatClient: Error parsing message: {e}")
+                    
+            except queue.Empty:
+                # No message received, continue loop
+                continue
             except Exception as e:
                 # Only log error if we're still supposed to be connected
                 if self.is_connected:
@@ -234,9 +185,9 @@ class ChatClient:
                 self.is_connected = False
                 break
         
-        if self.sock:
-            self.sock.close()
-        self.sock = None
+        if self.connection_handler:
+            self.connection_handler.close()
+        self.connection_handler = None
         self.is_connected = False
         print("ChatClient: Listener stopped.")
 
@@ -329,19 +280,15 @@ class ChatClient:
         
         # First, signal that we're disconnecting
         self.is_connected = False
+        self._running = False  # From FeatureBase
         
         # Give the listener thread a moment to notice the flag change
         time.sleep(0.1)
         
-        # Then close the socket
-        if self.sock:
-            try:
-                self.sock.shutdown(socket.SHUT_RDWR)  # Shutdown both directions
-            except (OSError, socket.error):
-                pass  # Socket might already be closed
-            
-            self.sock.close()
-            self.sock = None
+        # Then close the connection handler
+        if self.connection_handler:
+            self.connection_handler.close()
+            self.connection_handler = None
         
         print("ChatClient: Connection closed.")
 

@@ -1,12 +1,13 @@
 # client/main.py
 
 import threading
+import time
 from .discovery_service import DiscoveryService
 from .typing_feature import TypingFeature
 from .location_feature import LocationFeature
 from .chat import ChatClient
 
-def run_client_logic():
+def run_client_logic(user_id="main_client_user"):
     discovery = DiscoveryService()
     server_list = discovery.discover_servers()
 
@@ -22,14 +23,20 @@ def run_client_logic():
     threading.Thread(target=live_location.handle_listening, daemon=True).start()
 
     # chat feature
-    chat_client = ChatClient(user_id="main_client_user", server_id="homeserver1")
+    chat_client = ChatClient(user_id=user_id, server_id="homeserver1")
+    # Start chat client connection handling in a separate thread
+    threading.Thread(target=chat_client.handle_connection, args=(server_list,), daemon=True).start()
 
     return typing_event, live_location, chat_client # for GUI
 
 
 # main can still be kept for standalone testing of the client logic
 def main():
-    typing_event, live_location, chat_client = run_client_logic()
+    import os
+    user_id = os.getenv('CHAT_USER_ID', 'main_client_user')
+    recipient_id = os.getenv('CHAT_RECIPIENT_ID', 'other_user')
+    
+    typing_event, live_location, chat_client = run_client_logic(user_id=user_id)
     
     # Keep the main thread alive and provide a simple chat interface
     try:
