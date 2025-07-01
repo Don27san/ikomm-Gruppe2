@@ -12,8 +12,6 @@ pb-compile = "protoc --python_out=. --pyi_out=. ./protobuf/messenger.proto"
 update-requirements = "pip freeze > requirements.txt"
 count-lines = "find client server GUI -type f -name '*.py' ! -path '*/__pycache__/*' ! -name '*_pb2.py' | xargs wc -l"
 gui = "python -m GUI.main"
-gui-user1 = "env CHAT_USER_ID=user1 CHAT_RECIPIENT_ID=user2 python main.py"
-gui-user2 = "env CHAT_USER_ID=user2 CHAT_RECIPIENT_ID=user1 python main.py"
 
 [packages]
 beautifulsoup4 = "==4.13.4"

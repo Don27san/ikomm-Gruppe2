@@ -2,7 +2,6 @@ import threading
 from .announcement_service import AnnouncementService
 from .typing_service import TypingService
 from .location_service import LocationService
-from .chat_server import start_server as start_chat_server
 
 
 def main():
@@ -10,11 +9,8 @@ def main():
     announcer = AnnouncementService()
     threading.Thread(target=announcer.announce_server, daemon=True).start()
 
-    # Chat Service (main messaging functionality)
-    threading.Thread(target=start_chat_server, daemon=True).start()
-
     # Typing Indicator Feature
-    typing_service = TypingService()
+    typing_service= TypingService()
     threading.Thread(target=typing_service.handle_connections, daemon=True).start()
     threading.Thread(target=typing_service.handle_forwarding, daemon=True).start()
 
@@ -23,12 +19,13 @@ def main():
     threading.Thread(target=location_service.handle_connections, daemon=True).start()
     threading.Thread(target=location_service.handle_forwarding, daemon=True).start()
 
+
     # Keep the main thread alive.
-    try:
-        while True:
-            pass
-    except KeyboardInterrupt:
-        print("\nShutting down server...")
+    while True:
+        pass
+    
+
+
 
 
 if __name__ == "__main__":

@@ -10,11 +10,6 @@ message User {
     string serverId = 2;
 }
 
-message Group {
-    string groupId = 1;
-    string serverId = 2;
-}
-
 message DiscoverServer {
   // Empty by design. Need this for correct parsing. Do not delete!
 }
@@ -74,45 +69,20 @@ message UnsupportedMessage {
 // ALL FEATURE Structures
 // Chat Message
 message ChatMessage {
-    uint64 messageSnowflake = 1;
+    string messageId = 1;
+    google.protobuf.Timestamp timestamp = 2;
 
-    User author = 2;
+    User author = 3;
 
-    message UserOfGroup {
-        User user = 1; 
-        Group group = 2;
-    }
     oneof recipient {
-        User user = 3;
-        Group group = 4;
-        UserOfGroup userOfGroup = 5;
+        User user = 4;
     };
-    reserved 6 to 10;
 
     oneof content {
-        string textContent = 11;
+        string text = 11;
         LiveLocation live_location = 12;
-        // stickers, documents, etc...
+       // stickers , etc...
     }
-}
-
-message ChatMessageResponse {
-    uint64 messageSnowflake = 1;
-    enum Status {
-        UNKNOWN_STATUS = 0;
-        DELIVERED = 1;
-        OTHER_ERROR = 2;
-        USER_AWAY = 3;
-        USER_NOT_FOUND = 4;
-        OTHER_SERVER_TIMEOUT = 5;
-        OTHER_SERVER_NOT_FOUND = 6;
-        USER_BLOCKED = 7;
-    }
-    message DeliveryStatus {
-        User user = 1;
-        Status status = 2;
-    }
-    repeated DeliveryStatus statuses = 2;
 }
 
 
@@ -126,6 +96,7 @@ message TypingEvent {
 message TypingEvents {
     repeated TypingEvent typing_events = 1;
 }
+
 
 //Live Location Structure
 message LiveLocation {
