@@ -13,7 +13,6 @@ MessageName = Literal[
     'LIVE_LOCATION',
     'LIVE_LOCATIONS',
     'CHAT_MESSAGE',
-    'CHAT_MESSAGE_RESPONSE',
     'PING',
     'PONG',
     'UNSUPPORTED_MESSAGE',

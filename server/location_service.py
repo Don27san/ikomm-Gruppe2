@@ -24,10 +24,10 @@ class LocationService(ServiceBase):
 
         def send_chatmessage(data):
             chatmessage = messenger_pb2.ChatMessage()
-            chatmessage.messageSnowflake = 123456789  # Use a numeric snowflake ID
+            chatmessage.messageId = "chatmessage123"
             chatmessage.live_location.CopyFrom(format_live_location(data))
             print("Initial LiveLocation Chatmessage sent to all clients.")
-            return str(chatmessage.messageSnowflake)
+            return chatmessage.messageId
 
         addr = config['address']
         port = config['location_feature']['server_forwarding_port']
