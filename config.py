@@ -58,9 +58,9 @@ config : Config = {
     'address': ni.ifaddresses('en0')[ni.AF_INET][0]['addr'] if os.getenv('APP_ENV') == 'prod' else '127.0.0.1',
     'feature_support': ['TYPING_INDICATOR', 'LIVE_LOCATION'],  # Features our client wants to support
 
-    # Features and Ports (with user-specific offsets)
+    # Features and Ports (with user-specific offsets for client ports only)
     'conn_mgmt': {
-        'discovery_port': 9999 + get_port_offset(),
+        'discovery_port': 9999,  # Keep discovery port the same for all users
         'ping_timeout': 300,
     },
 
@@ -69,15 +69,15 @@ config : Config = {
     },
 
     'typing_feature': {
-        'server_connection_port': 7777 + get_port_offset(), #Server handles client connection
-        'server_forwarding_port': 7778 + get_port_offset(), #Server handles event forwarding
-        'client_typing_port': 7779 + get_port_offset(), #Client sends events and listens to forwardings
+        'server_connection_port': 7777, #Server handles client connection (no offset - shared)
+        'server_forwarding_port': 7778, #Server handles event forwarding (no offset - shared)
+        'client_typing_port': 7779 + get_port_offset(), #Client sends events and listens to forwardings (offset for each user)
     },
 
     'location_feature': {
-        'server_connection_port': 8887 + get_port_offset(), #Server handles client connection
-        'server_forwarding_port': 8888 + get_port_offset(), #Server handles location forwarding
-        'client_location_port': 8889 + get_port_offset(), #Client sends locations and listens to forwardings
+        'server_connection_port': 8887, #Server handles client connection (no offset - shared)
+        'server_forwarding_port': 8888, #Server handles location forwarding (no offset - shared)
+        'client_location_port': 8889 + get_port_offset(), #Client sends locations and listens to forwardings (offset for each user)
         'client_expiry_time': 5, #in min
         'client_sending_interval': 30, # in s
     },
