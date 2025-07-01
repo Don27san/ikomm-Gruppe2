@@ -4,6 +4,7 @@ from config import config
 # Server_Announce Payload
 server_announce = messenger_pb2.ServerAnnounce()
 server_announce.serverId="2"
+server_announce.feature.add(featureName="CHAT", port=config['chat_feature']['server_port'])
 server_announce.feature.add(featureName="TYPING_INDICATOR", port=config['typing_feature']['server_connection_port'])
 server_announce.feature.add(featureName="LIVE_LOCATION", port=config['location_feature']['server_connection_port'])
 
