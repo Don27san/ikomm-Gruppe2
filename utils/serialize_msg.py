@@ -6,14 +6,17 @@ MessageName = Literal[
     'DISCOVER_SERVER',
     'SERVER_ANNOUNCE',
     'CONNECT_CLIENT',
-    'CONNECTION_RESPONSE',
+    'CONNECTED',
     'HANGUP',
     'TYPING_EVENT',
     'TYPING_EVENTS',
     'LIVE_LOCATION',
     'LIVE_LOCATIONS',
     'CHAT_MESSAGE',
-]  # add all valid names here
+    'PING',
+    'PONG',
+    'UNSUPPORTED_MESSAGE',
+]
 
 def serialize_msg(message_name: MessageName, payload: Optional[Message] = None) -> bytes:
     """

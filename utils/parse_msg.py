@@ -8,13 +8,16 @@ message_classes = {
     'DISCOVER_SERVER': messenger_pb2.DiscoverServer,
     'SERVER_ANNOUNCE': messenger_pb2.ServerAnnounce,
     'CONNECT_CLIENT': messenger_pb2.ConnectClient,
-    'CONNECTION_RESPONSE': messenger_pb2.ConnectionResponse,
+    'CONNECTED': messenger_pb2.ConnectResponse,
     'HANGUP': messenger_pb2.HangUp,
     'TYPING_EVENT': messenger_pb2.TypingEvent,
     'TYPING_EVENTS': messenger_pb2.TypingEvents,
     'LIVE_LOCATION': messenger_pb2.LiveLocation,
     'LIVE_LOCATIONS': messenger_pb2.LiveLocations,
     'CHAT_MESSAGE': messenger_pb2.ChatMessage,
+    'PING': messenger_pb2.Ping,
+    'PONG': messenger_pb2.Pong,
+    'UNSUPPORTED_MESSAGE': messenger_pb2.UnsupportedMessage,
 }
 
 

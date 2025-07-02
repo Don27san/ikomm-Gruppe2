@@ -2,6 +2,7 @@ import socket
 from utils import red, blue, parse_msg, serialize_msg
 from config import config
 import os
+import netifaces as ni
 
 class DiscoveryService:
     """
@@ -19,9 +20,11 @@ class DiscoveryService:
     
 
     def discover_servers(self, timeout=2):
-        blue(f'Discovering servers at port {config['conn_mgmt']['discovery_port']} for {timeout}s ...')
+        blue(f"Discovering servers at port {config['conn_mgmt']['discovery_port']} for {timeout}s ...")
         # Broadcast discovery request to entire local network.
         addr = '<broadcast>' if os.getenv('APP_ENV') == 'prod' else '127.0.0.1' #We only broadcast when in prod. Otherwise we push via localhost for testing.
+        #addr = get_broadcast_ip() if os.getenv('APP_ENV') == 'prod' else '127.0.0.1'   # ALTERNATIVE: Replaces <broadcast> with the actual broadcast address of your active network interface using netiface
+
         self.discovery_socket.sendto(serialize_msg('DISCOVER_SERVER'), (addr, config['conn_mgmt']['discovery_port']))
 
         self.discovery_socket.settimeout(timeout)
@@ -42,3 +45,14 @@ class DiscoveryService:
             blue("Discovery finished.\n")
         
         return self.server_list
+
+
+def get_broadcast_ip(interface='en0'):
+    """
+    Replaces <broadcast> with the actual broadcast address of your active network interface using netiface
+    """
+    try:
+        return ni.ifaddresses(interface)[ni.AF_INET][0]['broadcast']
+    except Exception as e:
+        red(f"Could not determine broadcast address: {e}")
+        return None
