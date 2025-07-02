@@ -37,7 +37,8 @@ class FeatureBase:
 
     def handle_connection(self, server_list):
 
-        feature_ip, feature_port = self._get_server_for_feature(server_list)
+        feature_ip, feature_port, self.udp_server_port = self._get_server_for_feature(server_list)
+        self.server_address = feature_ip
 
         if feature_ip is None or feature_port is None:
             return
@@ -45,6 +46,11 @@ class FeatureBase:
         try:
             client = ConnectionHandler(timeout=self.ping_timeout)
             client.start_client(feature_ip, feature_port)
+
+            if self.feature_name == 'TYPING_INDICATOR':
+                connect_client.udpPort = config['typing_feature']['client_udp_port']
+            elif self.feature_name == 'LIVE_LOCATION':
+                connect_client.udpPort = config['location_feature']['client_udp_port']
 
             client.send_msg(serialize_msg('CONNECT_CLIENT', connect_client))
             blue(f'Trying to connect to feature: {self.feature_name}...')
@@ -73,16 +79,13 @@ class FeatureBase:
                     else:
                         continue
 
-                if message_name == 'CONNECTION_RESPONSE':
+                if message_name == 'CONNECTED':
                     if payload['result'] == 'IS_ALREADY_CONNECTED_ERROR':
                         yellow(f"Already connected to {self.feature_name} on {feature_ip}:{feature_port} \n")
                     elif payload['result'] == 'CONNECTED':
                         green(f"Connected to {self.feature_name} on {feature_ip}:{feature_port} \n")
                     else:
                         red(f"Unknown connection response for {self.feature_name} from {feature_ip}:{feature_port} \n")
-                    if 'udpPort' in payload:
-                        self.server_address = addr[0]
-                        self.udp_server_port = payload['udpPort']
                 elif message_name == 'PONG':
                     green(f"Pong received for {self.feature_name} from {feature_ip}:{feature_port} \n")
                 elif message_name == 'PING':
@@ -109,7 +112,7 @@ class FeatureBase:
         for feature_server in server_list:
             for features in feature_server['feature']:
                 if features['featureName'] == self.feature_name:
-                    return feature_server['server_ip'], features['port']
+                    return feature_server['server_ip'], features['port'], features.get('udpPort')
 
         red(f'Could not find server in server_list: {server_list} hosting feature {self.feature_name}')
         return None, None

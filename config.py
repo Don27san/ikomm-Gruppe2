@@ -15,12 +15,12 @@ class MessagingFeatureConfig(TypedDict):
 class TypingFeatureConfig(TypedDict):
     server_connection_port: int
     server_forwarding_port: int
-    client_typing_port: int
+    client_udp_port: int
 
 class LocationFeatureConfig(TypedDict):
     server_connection_port: int
     server_forwarding_port: int
-    client_location_port: int
+    client_udp_port: int
     client_expiry_time: int  # in minutes
     client_sending_interval: int  # in seconds
 
@@ -53,13 +53,13 @@ config : Config = {
     'typing_feature': {
         'server_connection_port': 7777, #Server handles client connection
         'server_forwarding_port': 7778, #Server handles event forwarding
-        'client_typing_port': 7779, #Client sends events and listens to forwardings
+        'client_udp_port': 7779, #Client sends events and listens to forwardings
     },
 
     'location_feature': {
         'server_connection_port': 8887, #Server handles client connection
         'server_forwarding_port': 8888, #Server handles location forwarding
-        'client_location_port': 8889, #Client sends locations and listens to forwardings
+        'client_udp_port': 8889, #Client sends locations and listens to forwardings
         'client_expiry_time': 5, #in min
         'client_sending_interval': 30, # in s
     }

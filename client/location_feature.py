@@ -13,7 +13,7 @@ class LocationFeature(FeatureBase):
     def __init__(self):
         super().__init__('LIVE_LOCATION')
         self.src_addr = config['address']
-        self.src_port = config['location_feature']['client_location_port']
+        self.src_port = config['location_feature']['client_udp_port']
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind((self.src_addr, self.src_port))
         self.location_list = []  # List to store location events with timestamps
@@ -28,7 +28,6 @@ class LocationFeature(FeatureBase):
 
         # Wait until udp_server_port is assigned
         error_printed = False
-        time.sleep(0.1)
         while self.udp_server_port is None and self._running_sharing and self._running:
             if not error_printed:
                 red(f"Location cannot be shared. No server_forwarding_port received.\n")
