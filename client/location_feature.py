@@ -51,7 +51,6 @@ class LocationFeature(FeatureBase):
                         synthetic_lat, synthetic_lon = synthetic_location(g.latlng[0], g.latlng[1])
                         live_location.location.latitude = synthetic_lat
                         live_location.location.longitude = synthetic_lon
-                        print(f"current location: {live_location.location}")
                         try:
                             self.socket.sendto(serialize_msg('LIVE_LOCATION', live_location), (server_addr, server_forwarding_port))
                             print(f'\nLive Location sent to {server_addr}:{server_forwarding_port}')
