@@ -25,7 +25,7 @@ class TypingService(ServiceBase):
         forwarding_socket.bind((addr, port))
 
         #Listen to incoming typing_event
-        while True:
+        while self._running:
             res, addr = forwarding_socket.recvfrom(1024)
             data = parse_msg(res)[2]
             data['userIP'] = addr[0]

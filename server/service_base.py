@@ -10,6 +10,9 @@ FeatureName = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'CHAT_MESSAGE']
 class ServiceBase:
     def __init__(self, feature_name : FeatureName, bind_port, forwarding_port=None):
         self.feature_name = feature_name
+
+        self.server = None
+        self._running = True
         self.subscriber_dict = {}   # dict to store feature subscribers
         self.bind_ip = config['address']
         self.bind_port = bind_port
@@ -19,12 +22,12 @@ class ServiceBase:
         self.ping_timeout = config["conn_mgmt"]["ping_timeout"]
 
     def handle_connections(self):
-        server = ConnectionHandler(timeout=self.ping_timeout)
-        server.start_server(self.bind_ip, self.bind_port)
+        self.server = ConnectionHandler(timeout=self.ping_timeout)
+        self.server.start_server(self.bind_ip, self.bind_port)
 
         blue(f"Listening for {self.feature_name.upper()} connections on {self.bind_ip}:{self.bind_port}...")
 
-        while True:
+        while self._running:
             # Check: client still active
             def are_clients_active():
                 if len(self.subscriber_dict) == 0:
@@ -45,7 +48,7 @@ class ServiceBase:
                         del self.subscriber_dict[subscriberIP]
 
             try:
-                msg, addr, conn = server.recv_msg()
+                msg, addr, conn = self.server.recv_msg()
 
                 message_name, _, data = parse_msg(msg)
                 subscriberIP = addr[0]
@@ -100,3 +103,19 @@ class ServiceBase:
                     unsupported_message.message_name = message_name
                     conn.send(serialize_msg('UNSUPPORTED_MESSAGE', unsupported_message))
                     yellow(f"{self.feature_name}: {message_name} is not supported. Error message sent to unknown client {addr}. \n")
+
+    def stop(self):
+        """Gracefully stop the feature process when client UI is closed."""
+        self._running = False
+
+        client_list_text = ""
+        for subscriberIP, data in list(self.subscriber_dict.items()):
+            hangup = messenger_pb2.HangUp()
+            hangup.reason = messenger_pb2.HangUp.Reason.EXIT
+            conn = data['conn']
+            conn.send(serialize_msg('HANGUP', hangup))
+            conn.close()
+            client_list_text += " {data['addr']}"
+        red(f"{self.feature_name}: Server is closing. Connection closed to clients{client_list_text}. \n")
+
+        self.server.close()

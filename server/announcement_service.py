@@ -1,5 +1,5 @@
 import socket
-from utils import server_announce, blue, green, parse_msg, serialize_msg
+from utils import server_announce, blue, green, red, parse_msg, serialize_msg
 from config import config
 
 
@@ -14,18 +14,24 @@ class AnnouncementService:
         self.server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         # self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server.bind((self.src_addr, self.src_port))
+        self._running = True
 
 
     def announce_server(self):
         blue(f'Listening for discovery requests at {self.src_addr}:{self.src_port}...\n')
 
-        while True: #Exception handling missing
+        while self._running: #Exception handling missing
             res, addr = self.server.recvfrom(1024)
             message_name = parse_msg(res)[0]
             if message_name == 'DISCOVER_SERVER':
                 green(f"\nReceived discovery request from {addr[0]}:{addr[1]}")
                 self.server.sendto(serialize_msg('SERVER_ANNOUNCE', server_announce), addr)
                 print(f"Announced server features back to {addr[0]}:{addr[1]}")
+
+    def stop(self):
+        self._running = False
+        red("Server is closing. Announcement Service is stopped.")
+
                 
 
 

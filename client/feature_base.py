@@ -44,20 +44,20 @@ class FeatureBase:
             return
 
         try:
-            client = ConnectionHandler(timeout=self.ping_timeout)
-            client.start_client(feature_ip, feature_port)
+            self.client = ConnectionHandler(timeout=self.ping_timeout)
+            self.client.start_client(feature_ip, feature_port)
 
             if self.feature_name == 'TYPING_INDICATOR':
                 connect_client.udpPort = config['typing_feature']['client_udp_port']
             elif self.feature_name == 'LIVE_LOCATION':
                 connect_client.udpPort = config['location_feature']['client_udp_port']
 
-            client.send_msg(serialize_msg('CONNECT_CLIENT', connect_client))
+            self.client.send_msg(serialize_msg('CONNECT_CLIENT', connect_client))
             blue(f'Trying to connect to feature: {self.feature_name}...')
             while self._running:
                 # Check: server still active?
                 try:
-                    msg, addr, _ = client.recv_msg()
+                    msg, addr, _ = self.client.recv_msg()
                     message_name, _, payload = parse_msg(msg)
                     self.last_msg_received_time = time.time()
                     self.ping_sent = False
@@ -66,13 +66,13 @@ class FeatureBase:
                     if self.ping_sent:
                         hangup = messenger_pb2.HangUp()
                         hangup.reason = messenger_pb2.HangUp.Reason.TIMEOUT
-                        client.send_msg(serialize_msg('HANGUP', hangup))
-                        client.close()
+                        self.client.send_msg(serialize_msg('HANGUP', hangup))
+                        self.client.close()
                         self._running = False
                         red(f"Server not active anymore. {self.feature_name} connection closed to {feature_ip}:{feature_port} \n")
                         break
                     elif time.time() - self.last_msg_received_time > self.ping_timeout:
-                        client.send_msg(serialize_msg('PING', ping))
+                        self.client.send_msg(serialize_msg('PING', ping))
                         self.ping_sent = True
                         yellow(f"Server not responding. Ping sent for {self.feature_name} to {feature_ip}:{feature_port}. \n")
                         continue
@@ -89,10 +89,10 @@ class FeatureBase:
                 elif message_name == 'PONG':
                     green(f"Pong received for {self.feature_name} from {feature_ip}:{feature_port} \n")
                 elif message_name == 'PING':
-                    client.send_msg(serialize_msg('PONG', pong))
+                    self.client.send_msg(serialize_msg('PONG', pong))
                     green(f"Answered PONG for {self.feature_name} to {feature_ip}:{feature_port} \n")
                 elif message_name == 'HANGUP':
-                    client.close()
+                    self.client.close()
                     self._running = False
                     red(f"Server closes. {self.feature_name} connection closed to {feature_ip}:{feature_port}. \n")
                 elif message_name == 'UNSUPPORTED_MESSAGE':
@@ -100,12 +100,12 @@ class FeatureBase:
                 else:
                     unsupported_message = messenger_pb2.UnsupportedMessage()
                     unsupported_message.message_name = message_name
-                    client.send_msg(serialize_msg('UNSUPPORTED_MESSAGE', unsupported_message))
+                    self.client.send_msg(serialize_msg('UNSUPPORTED_MESSAGE', unsupported_message))
                     yellow(f"Received {message_name} is not supported. Error message sent to {feature_ip}:{feature_port}. \n")
 
         except Exception as e:
             red(f"Failed to connect to {self.feature_name} on {feature_ip}:{feature_port}. Error: {e} \n")
-            client.close()
+            self.client.close()
             self._running = False
 
     def _get_server_for_feature(self, server_list):
@@ -116,3 +116,12 @@ class FeatureBase:
 
         red(f'Could not find server in server_list: {server_list} hosting feature {self.feature_name}')
         return None, None
+
+    def stop(self):
+        """Gracefully stop the feature process when client UI is closed."""
+        self._running = False
+        hangup = messenger_pb2.HangUp()
+        hangup.reason = messenger_pb2.HangUp.Reason.EXIT
+        self.client.send_msg(serialize_msg('HANGUP', hangup))
+        self.client.close()
+        red(f"Client is closing. {self.feature_name} connection is closed and the server notified. \n")
