@@ -1,6 +1,8 @@
 import socket
 import time
 import geocoder
+import random
+import math
 from utils import green, red, serialize_msg, parse_msg, live_location
 from config import config
 from .feature_base import FeatureBase
@@ -46,8 +48,9 @@ class LocationFeature(FeatureBase):
                 try:
                     g = geocoder.ip('me')
                     if g.ok:
-                        live_location.location.latitude = g.latlng[0]
-                        live_location.location.longitude = g.latlng[1]
+                        synthetic_lat, synthetic_lon = synthetic_location(g.latlng[0], g.latlng[1])
+                        live_location.location.latitude = synthetic_lat
+                        live_location.location.longitude = synthetic_lon
                         try:
                             self.socket.sendto(serialize_msg('LIVE_LOCATION', live_location), (server_addr, server_forwarding_port))
                             print(f'\nLive Location sent to {server_addr}:{server_forwarding_port}')
@@ -72,3 +75,9 @@ class LocationFeature(FeatureBase):
                 self.location_list = data # Update the event list with the received location events
             except Exception as e:
                 red(f"Error receiving or processing data: {e}")
+
+
+def synthetic_location(base_lat, base_lon, max_meters=20):
+    delta_lat = random.uniform(-1, 1) * max_meters / 111_320
+    delta_lon = random.uniform(-1, 1) * max_meters / (40075000 * abs(math.cos(math.radians(base_lat))) / 360)
+    return base_lat + delta_lat, base_lon + delta_lon
