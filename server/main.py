@@ -1,10 +1,26 @@
 import threading
+import signal
+import sys
+import time
+
 from .announcement_service import AnnouncementService
 from .typing_service import TypingService
 from .location_service import LocationService
+from utils import red
 
 
 def main():
+    def shutdown_handler(signum, frame):
+        red("\nGracefully shutting down...")
+        typing_service.stop()
+        location_service.stop()
+        announcer.stop()
+        sys.exit(0)
+
+    # Graceful shutdown
+    signal.signal(signal.SIGINT, shutdown_handler)
+    signal.signal(signal.SIGTERM, shutdown_handler)
+
     # Listen for discovery calls and announce server
     announcer = AnnouncementService()
     threading.Thread(target=announcer.announce_server, daemon=True).start()
