@@ -35,7 +35,7 @@ class LocationService(ServiceBase):
         forwarding_socket.bind((addr, port))
 
         # Listen to incoming LiveLocation
-        while True:
+        while self._running:
             try:
                 res, addr = forwarding_socket.recvfrom(1024)
                 data = parse_msg(res)[2]
