@@ -17,7 +17,7 @@ class TypingFeature(FeatureBase):
     def __init__(self):
         super().__init__('TYPING_INDICATOR')  #Takes care of connection
         self.src_addr = config['address']
-        self.src_port = config['typing_feature']['client_typing_port']
+        self.src_port = config['typing_feature']['client_udp_port']
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.bind((self.src_addr, self.src_port))
         self.event_list = []  # List to store typing events with timestamps

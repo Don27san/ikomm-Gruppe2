@@ -61,10 +61,9 @@ class ServiceBase:
                 self.subscriber_dict[subscriberIP]['ping_sent'] = False
                 # handle received message
                 if message_name == 'CONNECT_CLIENT':
-                    response = messenger_pb2.ConnectionResponse()
-                    response.result = messenger_pb2.ConnectionResponse.Result.IS_ALREADY_CONNECTED_ERROR
-                    response.udpPort = self.forwarding_port
-                    conn.send(serialize_msg('CONNECTION_RESPONSE', response))
+                    response = messenger_pb2.ConnectResponse()
+                    response.result = messenger_pb2.ConnectResponse.Result.IS_ALREADY_CONNECTED_ERROR
+                    conn.send(serialize_msg('CONNECTED', response))
                     yellow(f"{self.feature_name}: {addr} already subscribed. \n")
                 elif message_name == 'PING':
                     conn.send(serialize_msg('PONG', pong))
@@ -92,10 +91,9 @@ class ServiceBase:
                     data['lastActive'] = time.time()
                     data['ping_sent'] = False
                     self.subscriber_dict[subscriberIP] = data
-                    response = messenger_pb2.ConnectionResponse()
-                    response.result = messenger_pb2.ConnectionResponse.Result.CONNECTED
-                    response.udpPort = self.forwarding_port
-                    conn.send(serialize_msg('CONNECTION_RESPONSE', response))
+                    response = messenger_pb2.ConnectResponse()
+                    response.result = messenger_pb2.ConnectResponse.Result.CONNECTED
+                    conn.send(serialize_msg('CONNECTED', response))
                     green(f"{self.feature_name}: Connected with {data}. \n")
                 else:
                     unsupported_message = messenger_pb2.UnsupportedMessage()

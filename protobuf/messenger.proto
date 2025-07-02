@@ -20,6 +20,7 @@ message ServerAnnounce {
     message Feature {
         string featureName = 1;
         uint32 port = 2;
+        uint32 udpPort = 23;
     }
     repeated Feature feature = 2;
 }
@@ -27,18 +28,16 @@ message ServerAnnounce {
 
 message ConnectClient { 
     User user = 1;
-    int32 typingPort = 3; 
-    int32 location_port = 2; //We'll must likely send a port info for location feature as well.
+    int32 udpPort = 22;
 }
 
-message ConnectionResponse {
+message ConnectResponse {
     enum Result {
         UNKNOWN_ERROR = 0;
         CONNECTED = 1;
         IS_ALREADY_CONNECTED_ERROR = 2;
     }
     Result result = 1;
-    int32 udpPort = 2;
 }
 
 message HangUp {
@@ -80,7 +79,7 @@ message ChatMessage {
 
     oneof content {
         string text = 11;
-        LiveLocation live_location = 12;
+        LiveLocation live_location = 22;
        // stickers , etc...
     }
 }

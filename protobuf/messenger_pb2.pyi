@@ -24,27 +24,23 @@ class ChatMessage(_message.Message):
     def __init__(self, messageId: Optional[str] = ..., timestamp: Optional[Union[_timestamp_pb2.Timestamp, Mapping]] = ..., author: Optional[Union[User, Mapping]] = ..., user: Optional[Union[User, Mapping]] = ..., text: Optional[str] = ..., live_location: Optional[Union[LiveLocation, Mapping]] = ...) -> None: ...
 
 class ConnectClient(_message.Message):
-    __slots__ = ["location_port", "typingPort", "user"]
-    LOCATION_PORT_FIELD_NUMBER: ClassVar[int]
-    TYPINGPORT_FIELD_NUMBER: ClassVar[int]
+    __slots__ = ["udpPort", "user"]
+    UDPPORT_FIELD_NUMBER: ClassVar[int]
     USER_FIELD_NUMBER: ClassVar[int]
-    location_port: int
-    typingPort: int
+    udpPort: int
     user: User
-    def __init__(self, user: Optional[Union[User, Mapping]] = ..., typingPort: Optional[int] = ..., location_port: Optional[int] = ...) -> None: ...
+    def __init__(self, user: Optional[Union[User, Mapping]] = ..., udpPort: Optional[int] = ...) -> None: ...
 
-class ConnectionResponse(_message.Message):
-    __slots__ = ["result", "udpPort"]
+class ConnectResponse(_message.Message):
+    __slots__ = ["result"]
     class Result(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
         __slots__ = []
-    CONNECTED: ConnectionResponse.Result
-    IS_ALREADY_CONNECTED_ERROR: ConnectionResponse.Result
+    CONNECTED: ConnectResponse.Result
+    IS_ALREADY_CONNECTED_ERROR: ConnectResponse.Result
     RESULT_FIELD_NUMBER: ClassVar[int]
-    UDPPORT_FIELD_NUMBER: ClassVar[int]
-    UNKNOWN_ERROR: ConnectionResponse.Result
-    result: ConnectionResponse.Result
-    udpPort: int
-    def __init__(self, result: Optional[Union[ConnectionResponse.Result, str]] = ..., udpPort: Optional[int] = ...) -> None: ...
+    UNKNOWN_ERROR: ConnectResponse.Result
+    result: ConnectResponse.Result
+    def __init__(self, result: Optional[Union[ConnectResponse.Result, str]] = ...) -> None: ...
 
 class DiscoverServer(_message.Message):
     __slots__ = []
@@ -106,12 +102,14 @@ class Pong(_message.Message):
 class ServerAnnounce(_message.Message):
     __slots__ = ["feature", "serverId"]
     class Feature(_message.Message):
-        __slots__ = ["featureName", "port"]
+        __slots__ = ["featureName", "port", "udpPort"]
         FEATURENAME_FIELD_NUMBER: ClassVar[int]
         PORT_FIELD_NUMBER: ClassVar[int]
+        UDPPORT_FIELD_NUMBER: ClassVar[int]
         featureName: str
         port: int
-        def __init__(self, featureName: Optional[str] = ..., port: Optional[int] = ...) -> None: ...
+        udpPort: int
+        def __init__(self, featureName: Optional[str] = ..., port: Optional[int] = ..., udpPort: Optional[int] = ...) -> None: ...
     FEATURE_FIELD_NUMBER: ClassVar[int]
     SERVERID_FIELD_NUMBER: ClassVar[int]
     feature: _containers.RepeatedCompositeFieldContainer[ServerAnnounce.Feature]
