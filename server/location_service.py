@@ -76,8 +76,8 @@ class LocationService(ServiceBase):
                     for subscriberIP, data in self.subscriber_dict.items():
                         # Forward message
                         forwarding_socket.sendto(serialize_msg('LIVE_LOCATIONS', live_locations),
-                                                (subscriberIP, data['locationPort']))
-                        print(f"Forwarded to {subscriberIP}:{data['locationPort']}")
+                                                (subscriberIP, data['udpPort']))
+                        print(f"Forwarded to {subscriberIP}:{data['udpPort']}")
                 else:
                     yellow('Empty subscriber_list. No forwarding of live locations. \n')
             except Exception as e:
