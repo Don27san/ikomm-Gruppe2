@@ -4,12 +4,38 @@ from typing import Tuple
 import queue
 
 
-class ConnectionHandler:      
-    def __init__(self):
+class ConnectionHandler:
+    """
+    ConnectionHandler provides a high-level interface for managing TCP connections, supporting both client and server modes. 
+    It abstracts away the complexities of socket handling, message delimitation, and concurrent connection management.
+    Features:
+    - Can operate as a TCP client or server.
+    - Handles incoming and outgoing data streams, ensuring messages are properly delimited and queued.
+    - Uses a background thread to listen for new connections (server mode) and to process incoming messages.
+    - Maintains an internal queue of received messages, each associated with the sender's address and socket.
+    - Supports configurable timeout for message retrieval from the queue.
+    - Provides methods to send messages and to close the underlying socket. 
+    Args:
+        timeout (int, optional): Timeout in seconds for retrieving messages from the internal queue. If None, waits indefinitely.
+    Raises:
+        Exception: On malformed message headers or connection errors during message extraction.
+    Usage:
+        handler = ConnectionHandler(timeout=5)
+        handler.start_server('127.0.0.1', 8080)
+        # or
+        handler.start_client('127.0.0.1', 8080)
+        ...
+        msg, addr, sock = handler.recv_msg()
+        handler.send_msg(b"response")
+        handler.close()
+
+    """      
+    def __init__(self, timeout: int=None):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
         self.msg_queue = queue.Queue()
+        self.msg_queue_timeout = timeout
 
-    def start_client(self, conn_ip, conn_port) -> socket.socket:
+    def start_client(self, conn_ip, conn_port):
         self.socket.connect((conn_ip, conn_port))
         Thread(target=self._handle_new_connection, args=(self.socket, self.socket.getpeername()), daemon=True).start()
     
@@ -98,7 +124,10 @@ class ConnectionHandler:
                 - addr (Tuple[str, int]): The client's address as a (host, port) tuple.
                 - connection_socket (socket.socket): The socket object representing the client connection. Use this to send your respond to client of this exact connection. This is only relevant for the server to differentiate between connections. 
         """
-        return self.msg_queue.get()  # (msg, addr, connection_socket)
+        if self.msg_queue_timeout is not None:
+            return self.msg_queue.get(timeout=self.msg_queue_timeout)
+        else:
+            return self.msg_queue.get()
 
     def close(self) -> None:
         self.socket.close()
