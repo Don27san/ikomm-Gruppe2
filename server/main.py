@@ -23,12 +23,6 @@ def main():
     threading.Thread(target=location_service.handle_connections, daemon=True).start()
     threading.Thread(target=location_service.handle_forwarding, daemon=True).start()
 
-    print("Server started with all services running...")
-    print("Chat Service: TCP port 6001")
-    print("Discovery Service: UDP port 9999")
-    print("Typing Service: Check typing_service configuration")
-    print("Location Service: Check location_service configuration")
-
     # Keep the main thread alive.
     try:
         while True:
