@@ -4,6 +4,7 @@ import threading
 from .discovery_service import DiscoveryService
 from .typing_feature import TypingFeature
 from .location_feature import LocationFeature
+from .chat_feature import ChatFeature
 
 def run_client_logic():
     discovery = DiscoveryService()
@@ -20,7 +21,12 @@ def run_client_logic():
     threading.Thread(target=live_location.start_location_sharing, daemon=True).start()
     threading.Thread(target=live_location.handle_listening, daemon=True).start()
 
-    return typing_event, live_location # for GUI
+    # chat feature
+    chat_feature = ChatFeature()
+    threading.Thread(target=chat_feature.handle_connection, args=(server_list,), daemon=True).start()
+    threading.Thread(target=chat_feature.handle_listening, daemon=True).start()
+
+    return typing_event, live_location, chat_feature # for GUI
 
 
 # main can still be kept for standalone testing of the client logic

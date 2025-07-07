@@ -3,7 +3,7 @@ import netifaces as ni
 from typing import Literal, List, TypedDict
 
 # Config Types
-Feature = Literal['TYPING_INDICATOR', 'LIVE_LOCATION']
+Feature = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'CHAT_MESSAGE']
 
 class ConnMgmtConfig(TypedDict):
     discovery_port: int
@@ -11,6 +11,9 @@ class ConnMgmtConfig(TypedDict):
 
 class MessagingFeatureConfig(TypedDict):
     connection_port: int
+
+class ChatFeatureConfig(TypedDict):
+    server_connection_port: int
 
 class TypingFeatureConfig(TypedDict):
     server_connection_port: int
@@ -29,6 +32,7 @@ class Config(TypedDict):
     feature_support: List[Feature]
     conn_mgmt: ConnMgmtConfig
     messaging_feature: MessagingFeatureConfig
+    chat_feature: ChatFeatureConfig
     typing_feature: TypingFeatureConfig
     location_feature: LocationFeatureConfig
     
@@ -38,7 +42,7 @@ class Config(TypedDict):
 config : Config = {
     # Address based on env set in pipenv script
     'address': ni.ifaddresses('en0')[ni.AF_INET][0]['addr'] if os.getenv('APP_ENV') == 'prod' else '127.0.0.1',
-    'feature_support': ['TYPING_INDICATOR', 'LIVE_LOCATION'],  # Features our client wants to support
+    'feature_support': ['TYPING_INDICATOR', 'LIVE_LOCATION', 'CHAT_MESSAGE'],  # Features our client wants to support
 
     # Features and Ports
     'conn_mgmt': {
@@ -48,6 +52,10 @@ config : Config = {
 
     'messaging_feature':{
         'connection_port': 6666,
+    },
+
+    'chat_feature': {
+        'server_connection_port': 6667, #Server handles client connection
     },
 
     'typing_feature': {

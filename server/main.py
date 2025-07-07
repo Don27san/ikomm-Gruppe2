@@ -6,6 +6,7 @@ import time
 from .announcement_service import AnnouncementService
 from .typing_service import TypingService
 from .location_service import LocationService
+from .chat_service import ChatService
 from utils import red
 
 
@@ -14,6 +15,7 @@ def main():
         red("\nGracefully shutting down...")
         typing_service.stop()
         location_service.stop()
+        chat_service.stop()
         announcer.stop()
         sys.exit(0)
 
@@ -35,6 +37,9 @@ def main():
     threading.Thread(target=location_service.handle_connections, daemon=True).start()
     threading.Thread(target=location_service.handle_forwarding, daemon=True).start()
 
+    # Chat Service
+    chat_service = ChatService()
+    threading.Thread(target=chat_service.handle_connections, daemon=True).start()
 
     # Keep the main thread alive.
     while True:

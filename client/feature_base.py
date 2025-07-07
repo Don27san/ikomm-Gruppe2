@@ -51,6 +51,8 @@ class FeatureBase:
                 connect_client.udpPort = config['typing_feature']['client_udp_port']
             elif self.feature_name == 'LIVE_LOCATION':
                 connect_client.udpPort = config['location_feature']['client_udp_port']
+            elif self.feature_name == 'CHAT_MESSAGE':
+                connect_client.udpPort = 0  # Chat uses TCP only, no UDP needed
 
             self.client.send_msg(serialize_msg('CONNECT_CLIENT', connect_client))
             blue(f'Trying to connect to feature: {self.feature_name}...')

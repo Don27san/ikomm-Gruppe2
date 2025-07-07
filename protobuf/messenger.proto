@@ -65,22 +65,63 @@ message UnsupportedMessage {
 
 
 // ALL FEATURE Structures
+// Group Structure
+message Group {
+    string groupId = 1;
+    string serverId = 2;
+}
+
+// Document Structure
+message Document {
+    string documentId = 1;
+    string filename = 2;
+    string mimeType = 3;
+    bytes data = 4;
+}
+
 // Chat Message
 message ChatMessage {
-    string messageId = 1;
-    google.protobuf.Timestamp timestamp = 2;
+    uint64 messageSnowflake = 1;
 
-    User author = 3;
+    User author = 2;
 
+    message UserOfGroup {
+        User user = 1; 
+        Group group = 2;
+    }
     oneof recipient {
-        User user = 4;
+        User user = 3;
+        Group group = 4;
+        UserOfGroup userOfGroup = 5;
     };
+    reserved 6 to 10;
 
     oneof content {
-        string text = 11;
+        string textContent = 11;
+        Document document = 12;
         LiveLocation live_location = 22;
-       // stickers , etc...
+       // stickers, etc...
     }
+}
+
+// Chat Message Response
+message ChatMessageResponse {
+    uint64 messageSnowflake = 1;
+    enum Status {
+        UNKNOWN_STATUS = 0;
+        DELIVERED = 1;
+        OTHER_ERROR = 2;
+        USER_AWAY = 3;
+        USER_NOT_FOUND = 4;
+        OTHER_SERVER_TIMEOUT = 5;
+        OTHER_SERVER_NOT_FOUND = 6;
+        USER_BLOCKED = 7;
+    }
+    message DeliveryStatus {
+        User user = 1;
+        Status status = 2;
+    }
+    repeated DeliveryStatus statuses = 2;
 }
 
 
