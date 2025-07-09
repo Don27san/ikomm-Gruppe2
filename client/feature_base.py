@@ -53,7 +53,7 @@ class FeatureBase:
             self.client = ConnectionHandler(timeout=self.ping_timeout)
             self.client.start_client(self.feature_ip, self.feature_port)
 
-            self.send_connection_request()
+            self._send_connection_request()
             
             while self._running:
                 # Check: server still active?
@@ -80,10 +80,10 @@ class FeatureBase:
                     else:
                         continue
 
-                self.handle_connection_response(message_name, payload)
-                self.handle_ping_pong(message_name)
-                self.handle_hangup(message_name, payload)
-                self.handle_unsupported_message(message_name, payload)
+                self._handle_connection_response(message_name, payload)
+                self._handle_ping_pong(message_name)
+                self._handle_hangup(message_name, payload)
+                self._handle_unsupported_message(message_name, payload)
                 
 
         except Exception as e:
@@ -91,7 +91,7 @@ class FeatureBase:
             self.client.close()
             self._running = False
     
-    def send_connection_request(self):
+    def _send_connection_request(self):
         if self.feature_name == 'TYPING_INDICATOR':
             connect_client.udpPort = config['typing_feature']['client_udp_port']
         elif self.feature_name == 'LIVE_LOCATION':
@@ -99,7 +99,7 @@ class FeatureBase:
 
         self.client.send_msg(serialize_msg('CONNECT_CLIENT', connect_client))
 
-    def handle_ping_pong(self, message_name=None):
+    def _handle_ping_pong(self, message_name=None):
 
         if message_name == 'PING':
             print(f"Received PING for {self.feature_name} from {self.feature_ip}:{self.feature_port}")
@@ -110,7 +110,7 @@ class FeatureBase:
             green(f"Pong received for {self.feature_name} from {self.feature_ip}:{self.feature_port} \n")
 
 
-    def handle_connection_response(self, message_name=None, payload=None):
+    def _handle_connection_response(self, message_name=None, payload=None):
         if message_name == 'CONNECTED':
             if payload['result'] == 'IS_ALREADY_CONNECTED_ERROR':
                         yellow(f"Already subscribed to {self.feature_name} on {self.feature_ip}:{self.feature_port} \n")
@@ -119,7 +119,7 @@ class FeatureBase:
             else:
                 red(f"Unknown connection response for {self.feature_name} from {self.feature_ip}:{self.feature_port}. Check the payload of the connection response. \n")
                 
-    def handle_hangup(self, message_name=None, payload=None):
+    def _handle_hangup(self, message_name=None, payload=None):
         if message_name == 'HANGUP':
             self.client.close()
             self._running = False
@@ -128,7 +128,7 @@ class FeatureBase:
             yellow(f"Server {self.feature_ip}:{self.feature_port} does not support {payload['messageName']}. \n")
 
 
-    def handle_unsupported_message(self, message_name=None, payload=None):
+    def _handle_unsupported_message(self, message_name=None, payload=None):
 
         # When we have sent an unsupported message
         if message_name == 'UNSUPPORTED_MESSAGE':

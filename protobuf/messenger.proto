@@ -1,6 +1,5 @@
 syntax = "proto3";
 package typing_indicator;
-import "google/protobuf/timestamp.proto";
 
 
 
@@ -66,22 +65,56 @@ message UnsupportedMessage {
 
 // ALL FEATURE Structures
 // Chat Message
+// Chat Message
+message Group {
+    string groupId = 1;
+    string serverId = 2;
+}
+
+// Document Structure
+message Document {
+    string documentId = 1;
+    string filename = 2;
+    string mimeType = 3;
+    bytes data = 4;
+}
+
+// Translation Structure
+message Translation {
+    enum Language{
+        DE = 0;
+        EN = 1;
+        ZH = 2;
+    }
+    string original_message = 1;
+    Language target_language = 2;
+}
+
 message ChatMessage {
-    string messageId = 1;
-    google.protobuf.Timestamp timestamp = 2;
+    uint64 messageSnowflake = 1;
 
-    User author = 3;
+    User author = 2;
 
+    message UserOfGroup {
+        User user = 1; 
+        Group group = 2;
+    }
     oneof recipient {
-        User user = 4;
+        User user = 3;
+        Group group = 4;
+        UserOfGroup userOfGroup = 5;
     };
+    reserved 6 to 10;
 
     oneof content {
-        string text = 11;
+        string textContent = 11;
+        Document document = 12;
         LiveLocation live_location = 22;
-       // stickers , etc...
+        Translation translation = 23;
     }
 }
+
+
 
 
 // Typing Indicator Structure
