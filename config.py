@@ -10,7 +10,7 @@ class ConnMgmtConfig(TypedDict):
     ping_timeout: int    # in seconds
 
 class MessagingFeatureConfig(TypedDict):
-    connection_port: int
+    server_connection_port: int
 
 class TypingFeatureConfig(TypedDict):
     server_connection_port: int
@@ -27,6 +27,7 @@ class LocationFeatureConfig(TypedDict):
 class Config(TypedDict):
     address: str
     feature_support: List[Feature]
+    server_id: str
     conn_mgmt: ConnMgmtConfig
     messaging_feature: MessagingFeatureConfig
     typing_feature: TypingFeatureConfig
@@ -39,6 +40,7 @@ config : Config = {
     # Address based on env set in pipenv script
     'address': ni.ifaddresses('en0')[ni.AF_INET][0]['addr'] if os.getenv('APP_ENV') == 'prod' else '127.0.0.1',
     'feature_support': ['TYPING_INDICATOR', 'LIVE_LOCATION'],  # Features our client wants to support
+    'server_id': 'Server_2',  
 
     # Features and Ports
     'conn_mgmt': {
@@ -47,7 +49,7 @@ config : Config = {
     },
 
     'messaging_feature':{
-        'connection_port': 6666,
+        'server_connection_port': 6666,
     },
 
     'typing_feature': {
@@ -57,9 +59,9 @@ config : Config = {
     },
 
     'location_feature': {
-        'server_connection_port': 8887, #Server handles client connection
-        'server_forwarding_port': 8888, #Server handles location forwarding
-        'client_udp_port': 8889, #Client sends locations and listens to forwardings
+        'server_connection_port': 8888, #Server handles client connection
+        'server_forwarding_port': 8889, #Server handles location forwarding
+        'client_udp_port': 8890, #Client sends locations and listens to forwardings
         'client_expiry_time': 5, #in min
         'client_sending_interval': 30, # in s
     }
