@@ -27,8 +27,14 @@ class LocationFeatureConfig(TypedDict):
     client_expiry_time: int  # in minutes
     client_sending_interval: int  # in seconds
 
+class UserConfig(TypedDict):
+    userId: str
+    serverId: str
+
 class Config(TypedDict):
     address: str
+    user: UserConfig
+    serverId: str
     feature_support: List[Feature]
     conn_mgmt: ConnMgmtConfig
     messaging_feature: MessagingFeatureConfig
@@ -42,6 +48,11 @@ class Config(TypedDict):
 config : Config = {
     # Address based on env set in pipenv script
     'address': ni.ifaddresses('en0')[ni.AF_INET][0]['addr'] if os.getenv('APP_ENV') == 'prod' else '127.0.0.1',
+    'user': {
+        'userId': 'user_1',
+        'serverId': 'ikomm_server_2'
+    },
+    'serverId': 'ikomm_server_2', # The ID of this server instance
     'feature_support': ['TYPING_INDICATOR', 'LIVE_LOCATION', 'CHAT_MESSAGE'],  # Features our client wants to support
 
     # Features and Ports
@@ -49,13 +60,9 @@ config : Config = {
         'discovery_port': 9999,
         'ping_timeout': 300,
     },
-
-    'messaging_feature':{
-        'connection_port': 6666,
-    },
-
+    
     'chat_feature': {
-        'server_connection_port': 6667, #Server handles client connection
+        'server_connection_port': 6666, #Server handles client connection
     },
 
     'typing_feature': {

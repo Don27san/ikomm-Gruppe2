@@ -5,6 +5,7 @@ from .discovery_service import DiscoveryService
 from .typing_feature import TypingFeature
 from .location_feature import LocationFeature
 from .chat_feature import ChatFeature
+import time
 
 def run_client_logic():
     discovery = DiscoveryService()
@@ -24,16 +25,17 @@ def run_client_logic():
     # chat feature
     chat_feature = ChatFeature()
     threading.Thread(target=chat_feature.handle_connection, args=(server_list,), daemon=True).start()
-    threading.Thread(target=chat_feature.handle_listening, daemon=True).start()
 
     return typing_event, live_location, chat_feature # for GUI
 
 
 # main can still be kept for standalone testing of the client logic
 def main():
-    run_client_logic()
+    typing_event, live_location, chat_feature = run_client_logic()
+    time.sleep(5)
+    chat_feature.send_message("user123", "server456", "Hello from client!")
     while True:
-        pass  # Keep the threads alive (for debugging only)
+        pass
 
 if __name__ == "__main__":
     main()

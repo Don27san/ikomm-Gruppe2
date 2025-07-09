@@ -99,7 +99,11 @@ class FeatureBase:
                     red(f"Server closes. {self.feature_name} connection closed to {feature_ip}:{feature_port}. \n")
                 elif message_name == 'UNSUPPORTED_MESSAGE':
                     yellow(f"Server {feature_ip}:{feature_port} does not support {payload['messageName']}. \n")
+                # Try to handle the message in the specific feature implementation
+                elif self.handle_feature_message(message_name, payload, self.client):
+                    pass # The message was handled by the subclass
                 else:
+                    # If the subclass didn't handle it, then it's truly unsupported
                     unsupported_message = messenger_pb2.UnsupportedMessage()
                     unsupported_message.message_name = message_name
                     self.client.send_msg(serialize_msg('UNSUPPORTED_MESSAGE', unsupported_message))
@@ -109,6 +113,10 @@ class FeatureBase:
             red(f"Failed to connect to {self.feature_name} on {feature_ip}:{feature_port}. Error: {e} \n")
             self.client.close()
             self._running = False
+
+    def handle_feature_message(self, message_name, payload, conn):
+        """This method is intended to be overridden by subclasses to handle feature-specific messages."""
+        return False # Return True if message was handled, False otherwise
 
     def _get_server_for_feature(self, server_list):
         for feature_server in server_list:

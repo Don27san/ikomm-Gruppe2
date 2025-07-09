@@ -39,6 +39,11 @@ message ConnectResponse {
     Result result = 1;
 }
 
+message ConnectServer {
+    string serverId = 1;
+    repeated string features = 2;
+}
+
 message HangUp {
     enum Reason {
         UNKNOWN_REASON = 0;
@@ -153,7 +158,7 @@ message LiveLocation {
 message LiveLocations {
     message ExtendedLiveLocation {
         LiveLocation live_location = 1;
-        string chatmessageID = 2;
+        uint64 messageSnowflake = 2;
     }
 
     repeated ExtendedLiveLocation extended_live_locations = 1;

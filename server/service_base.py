@@ -14,6 +14,14 @@ class ServiceBase:
         self.server = None
         self._running = True
         self.subscriber_dict = {}   # dict to store feature subscribers
+        self.server_dict = {'192.168.1.101': {
+            'serverId': 'server_2',
+            'functions': {'CHAT_MESSAGE': {
+                'conn': None,
+                'port': 6666,
+            }
+            }
+        }} # dict to store connections to other servers
         self.bind_ip = config['address']
         self.bind_port = bind_port
         self.forwarding_port = forwarding_port
@@ -79,6 +87,9 @@ class ServiceBase:
                     red(f"{self.feature_name}: Hangup received from {addr}. Connection closed. \n")
                 elif message_name == 'UNSUPPORTED_MESSAGE':
                     yellow(f"{self.feature_name}: Client {addr} did not support {data['messageName']}. \n")
+                # Try to handle the message in the specific feature implementation
+                elif self.handle_feature_message(message_name, data, conn, addr):
+                    pass # The message was handled by the subclass
                 else:
                     unsupported_message = messenger_pb2.UnsupportedMessage()
                     unsupported_message.message_name = message_name
@@ -103,6 +114,10 @@ class ServiceBase:
                     unsupported_message.message_name = message_name
                     conn.send(serialize_msg('UNSUPPORTED_MESSAGE', unsupported_message))
                     yellow(f"{self.feature_name}: {message_name} is not supported. Error message sent to unknown client {addr}. \n")
+
+    def handle_feature_message(self, message_name, data, conn, addr):
+        """This method is intended to be overridden by subclasses to handle feature-specific messages."""
+        return False # Return True if message was handled, False otherwise
 
     def stop(self):
         """Gracefully stop the feature process when client UI is closed."""

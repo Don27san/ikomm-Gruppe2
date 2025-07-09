@@ -24,10 +24,10 @@ class LocationService(ServiceBase):
 
         def send_chatmessage(data):
             chatmessage = messenger_pb2.ChatMessage()
-            chatmessage.messageId = "chatmessage123"
+            chatmessage.messageSnowflake = int(time.time() * 1000)
             chatmessage.live_location.CopyFrom(format_live_location(data))
             print("Initial LiveLocation Chatmessage sent to all clients.")
-            return chatmessage.messageId
+            return chatmessage.messageSnowflake
 
         addr = config['address']
         port = config['location_feature']['server_forwarding_port']
@@ -43,7 +43,7 @@ class LocationService(ServiceBase):
                 # Append dict with relevant data
                 data['userIP'] = addr[0]
                 data['userPort'] = addr[1]
-                data['chatMessageID'] = None
+                data['messageSnowflake'] = None
 
                 if addr[0] in self.subscriber_dict.keys():
                     self.subscriber_dict[addr[0]]['lastActive'] = time.time()
@@ -59,8 +59,8 @@ class LocationService(ServiceBase):
                         break
                 # ... or append and send chatmessage
                 if not user_found:
-                    chatmessageID = send_chatmessage(data)
-                    data["chatMessageID"] = chatmessageID
+                    chatmessage_snowflake = send_chatmessage(data)
+                    data["messageSnowflake"] = chatmessage_snowflake
                     self.location_events_list.append(data)
                     continue  # skip to the next iteration of the while loop, since initial location event is sent via Chatmessage (TCP)
 
@@ -89,7 +89,7 @@ class LocationService(ServiceBase):
         for event in self.location_events_list:
             extended_live_location = live_locations.extended_live_locations.add()
             extended_live_location.live_location.CopyFrom(format_live_location(event))
-            extended_live_location.chatmessageID = event["chatMessageID"]
+            extended_live_location.messageSnowflake = event["messageSnowflake"]
         
         return live_locations
 
