@@ -36,8 +36,7 @@ class LocationFeature(FeatureBase):
                 error_printed = True
             time.sleep(0.1)  # wait 100ms to reduce CPU load
 
-        server_addr = self.server_address
-        server_forwarding_port = self.udp_server_port
+        
 
         while time.time() < self.expiry_at and self._running and self._running_sharing:
             now = time.time()
@@ -52,8 +51,8 @@ class LocationFeature(FeatureBase):
                         live_location.location.latitude = synthetic_lat
                         live_location.location.longitude = synthetic_lon
                         try:
-                            self.socket.sendto(serialize_msg('LIVE_LOCATION', live_location), (server_addr, server_forwarding_port))
-                            print(f'\nLive Location sent to {server_addr}:{server_forwarding_port}')
+                            self.socket.sendto(serialize_msg('LIVE_LOCATION', live_location), (self.server_address, self.udp_server_port))
+                            print(f'\nLive Location sent to {self.server_address}:{self.udp_server_port}')
                         except Exception as e:
                             red(f"Error while sending live location: {e}")
                     else:

@@ -21,10 +21,9 @@ class DiscoveryService:
 
     def discover_servers(self, timeout=2):
         blue(f"Discovering servers at port {config['conn_mgmt']['discovery_port']} for {timeout}s ...")
-        # Broadcast discovery request to entire local network.
-        addr = '<broadcast>' if os.getenv('APP_ENV') == 'prod' else '127.0.0.1' #We only broadcast when in prod. Otherwise we push via localhost for testing.
-        #addr = get_broadcast_ip() if os.getenv('APP_ENV') == 'prod' else '127.0.0.1'   # ALTERNATIVE: Replaces <broadcast> with the actual broadcast address of your active network interface using netiface
+        addr = self._get_broadcast_ip() if os.getenv('APP_ENV') == 'prod' else '127.0.0.1'   # Actual broadcast address of your active network interface using netiface
 
+        # Broadcast discovery request to entire local network.
         self.discovery_socket.sendto(serialize_msg('DISCOVER_SERVER'), (addr, config['conn_mgmt']['discovery_port']))
 
         self.discovery_socket.settimeout(timeout)
@@ -33,7 +32,7 @@ class DiscoveryService:
                 res, addr = self.discovery_socket.recvfrom(1024)
                 payload = parse_msg(res)[2] #Get the payload of the received message
                 payload['server_ip'] = addr[0] #Append Server IPs to contact them there in future calls.
-                self.server_list.append(payload) #Not protected against duplicates yet. (Is that even a case?)
+                self.server_list.append(payload)
                 print("Discovered: ", payload)
 
 
@@ -47,12 +46,12 @@ class DiscoveryService:
         return self.server_list
 
 
-def get_broadcast_ip(interface='en0'):
-    """
-    Replaces <broadcast> with the actual broadcast address of your active network interface using netiface
-    """
-    try:
-        return ni.ifaddresses(interface)[ni.AF_INET][0]['broadcast']
-    except Exception as e:
-        red(f"Could not determine broadcast address: {e}")
-        return None
+    def _get_broadcast_ip(self, interface='en0'):
+        """
+        Replaces <broadcast> with the actual broadcast address of your active network interface using netiface
+        """
+        try:
+            return ni.ifaddresses(interface)[ni.AF_INET][0]['broadcast']
+        except Exception as e:
+            red(f"Could not determine broadcast address: {e}")
+            return None
