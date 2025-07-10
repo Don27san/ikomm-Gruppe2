@@ -9,6 +9,7 @@ from client.discovery_service import DiscoveryService
 from client.typing_feature import TypingFeature
 from client.location_feature import LocationFeature
 from client.translation_feature import TranslationFeature
+from client.document_feature import DocumentFeature
 
 def run_client_logic():
     discovery = DiscoveryService()
@@ -30,8 +31,11 @@ def run_client_logic():
     translation = TranslationFeature()
     threading.Thread(target=translation.handle_connection, args=(server_list,), daemon=True).start()
 
+    # document feature
+    document = DocumentFeature()
+    threading.Thread(target=document.handle_connection, args=(server_list,), daemon=True).start()
 
-    return typing_event, live_location, translation # for GUI
+    return typing_event, live_location, translation, document  # for GUI
 #
 #
 # main can still be kept for standalone testing of the client logic
@@ -46,7 +50,7 @@ window = None
 # def main():
 #     global window
 #     app = QApplication(sys.argv)
-#     typing_feature, location_feature, translation = run_client_logic()
+#     typing_feature, location_feature, translation, document = run_client_logic()
 #     window = ChatWindow(typing_feature, location_feature)
 #     window.show()
 #     sys.exit(app.exec_())

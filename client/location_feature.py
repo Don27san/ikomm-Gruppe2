@@ -7,6 +7,7 @@ from utils import green, red, serialize_msg, parse_msg, live_location
 from config import config
 from .feature_base import FeatureBase
 
+
 class LocationFeature(FeatureBase):
     """
     ...

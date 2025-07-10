@@ -139,7 +139,6 @@ class FeatureBase:
             self.client.send_msg(serialize_msg('UNSUPPORTED_MESSAGE', unsupported_message))
             yellow(f"Unsupported message '{message_name}' received. Notified server at {self.feature_ip}:{self.feature_port}. \n")
 
-
     def _get_server_for_feature(self, server_list):
         for feature_server in server_list:
             for features in feature_server['feature']:
