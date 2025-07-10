@@ -70,6 +70,40 @@ class Document(_message.Message):
     mimeType: str
     def __init__(self, documentId: Optional[str] = ..., filename: Optional[str] = ..., mimeType: Optional[str] = ..., data: Optional[bytes] = ...) -> None: ...
 
+class DocumentStatus(_message.Message):
+    __slots__ = ["documentSnowflake", "expiry", "result"]
+    class Result(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = []
+    AVAILABLE: DocumentStatus.Result
+    DELETED: DocumentStatus.Result
+    DOCUMENTSNOWFLAKE_FIELD_NUMBER: ClassVar[int]
+    EXPIRED: DocumentStatus.Result
+    EXPIRY_FIELD_NUMBER: ClassVar[int]
+    NOT_FOUND: DocumentStatus.Result
+    PENDING_UPLOAD: DocumentStatus.Result
+    RESULT_FIELD_NUMBER: ClassVar[int]
+    UNKNOWN_ERROR: DocumentStatus.Result
+    documentSnowflake: int
+    expiry: int
+    result: DocumentStatus.Result
+    def __init__(self, documentSnowflake: Optional[int] = ..., result: Optional[Union[DocumentStatus.Result, str]] = ..., expiry: Optional[int] = ...) -> None: ...
+
+class DownloadDocument(_message.Message):
+    __slots__ = ["documentSnowflake"]
+    DOCUMENTSNOWFLAKE_FIELD_NUMBER: ClassVar[int]
+    documentSnowflake: int
+    def __init__(self, documentSnowflake: Optional[int] = ...) -> None: ...
+
+class DownloadingDocument(_message.Message):
+    __slots__ = ["data", "documentSnowflake", "result"]
+    DATA_FIELD_NUMBER: ClassVar[int]
+    DOCUMENTSNOWFLAKE_FIELD_NUMBER: ClassVar[int]
+    RESULT_FIELD_NUMBER: ClassVar[int]
+    data: bytes
+    documentSnowflake: int
+    result: DocumentStatus.Result
+    def __init__(self, documentSnowflake: Optional[int] = ..., result: Optional[Union[DocumentStatus.Result, str]] = ..., data: Optional[bytes] = ...) -> None: ...
+
 class Group(_message.Message):
     __slots__ = ["groupId", "serverId"]
     GROUPID_FIELD_NUMBER: ClassVar[int]
