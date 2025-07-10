@@ -145,9 +145,35 @@ message LiveLocation {
 message LiveLocations {
     message ExtendedLiveLocation {
         LiveLocation live_location = 1;
-        string chatmessageID = 2;
+        uint64 messageSnowflake = 2;
     }
 
     repeated ExtendedLiveLocation extended_live_locations = 1;
 }
 
+// Request document download
+message DownloadDocument {
+    uint64 documentSnowflake = 1;
+}
+
+// Receive document
+message DownloadingDocument {
+    uint64 documentSnowflake = 1;
+    DocumentStatus.Result result = 2;
+    bytes data = 3;
+}
+
+// Document Status
+message DocumentStatus {
+    uint64 documentSnowflake = 1;
+    enum Result {
+        UNKNOWN_ERROR = 0;
+        AVAILABLE = 1;
+        NOT_FOUND = 2;
+        EXPIRED = 3;
+        DELETED = 4;
+        PENDING_UPLOAD = 5;
+    }
+    Result result = 2;
+    uint64 expiry = 3;
+}

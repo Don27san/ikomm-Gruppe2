@@ -23,7 +23,7 @@ def run_client_logic():
     # location feature
     live_location = LocationFeature()
     threading.Thread(target=live_location.handle_connection, args=(server_list,), daemon=True).start()
-    #threading.Thread(target=live_location.start_location_sharing, daemon=True).start()
+    threading.Thread(target=live_location.start_location_sharing, daemon=True).start()
     threading.Thread(target=live_location.handle_listening, daemon=True).start()
 
     # translation feature
@@ -40,16 +40,13 @@ def main():
     while True:
         pass  # Keep the threads alive (for debugging only)
 
-if __name__ == "__main__":
-    main()
-
 # Keep window reference alive
 window = None
 
 # def main():
 #     global window
 #     app = QApplication(sys.argv)
-#     typing_feature, location_feature = run_client_logic()
+#     typing_feature, location_feature, translation = run_client_logic()
 #     window = ChatWindow(typing_feature, location_feature)
 #     window.show()
 #     sys.exit(app.exec_())

@@ -7,7 +7,7 @@ from config import config
 
 from protobuf import messenger_pb2
 
-FeatureName = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'CHAT_MESSAGE', 'Translation']
+FeatureName = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'CHAT_MESSAGE', 'Translation', 'DOCUMENT']
 
 class FeatureBase:
     """
@@ -80,11 +80,10 @@ class FeatureBase:
                     else:
                         continue
 
-                self._handle_connection_response(message_name, payload)
-                self._handle_ping_pong(message_name)
-                self._handle_hangup(message_name, payload)
-                self._handle_unsupported_message(message_name, payload)
-                
+                # Handle messages
+                message_handled = self.handle_message_for_feature(message_name, payload)
+                if not message_handled:
+                    self._handle_base_messages(message_name, payload)
 
         except Exception as e:
             red(f"Failed to connect to {self.feature_name} on {self.feature_ip}:{self.feature_port}. Error: {e} \n")
@@ -99,47 +98,47 @@ class FeatureBase:
 
         self.client.send_msg(serialize_msg('CONNECT_CLIENT', connect_client))
 
-    def _handle_ping_pong(self, message_name=None):
+    def handle_message_for_feature(self, message_name=None, payload=None):
+        """
+        Updated for each feature individually if it receives messages beyond the _handle_base_messages function
+        """
+        return False
 
-        if message_name == 'PING':
-            print(f"Received PING for {self.feature_name} from {self.feature_ip}:{self.feature_port}")
-            self.client.send_msg(serialize_msg('PONG', pong))
-            green(f"Responded with PONG for {self.feature_name} to {self.feature_ip}:{self.feature_port} \n")
-
-        elif message_name == 'PONG':
-            green(f"Pong received for {self.feature_name} from {self.feature_ip}:{self.feature_port} \n")
-
-
-    def _handle_connection_response(self, message_name=None, payload=None):
+    def _handle_base_messages(self, message_name=None, payload=None):
+        # Handle connection response
         if message_name == 'CONNECTED':
             if payload['result'] == 'IS_ALREADY_CONNECTED_ERROR':
-                        yellow(f"Already subscribed to {self.feature_name} on {self.feature_ip}:{self.feature_port} \n")
+                yellow(f"Already subscribed to {self.feature_name} on {self.feature_ip}:{self.feature_port} \n")
             elif payload['result'] == 'CONNECTED':
                 green(f"CONNECTED to {self.feature_name} on {self.feature_ip}:{self.feature_port} \n")
             else:
                 red(f"Unknown connection response for {self.feature_name} from {self.feature_ip}:{self.feature_port}. Check the payload of the connection response. \n")
-                
-    def _handle_hangup(self, message_name=None, payload=None):
-        if message_name == 'HANGUP':
+
+        # Handle Ping-Pong
+        elif message_name == 'PING':
+            print(f"Received PING for {self.feature_name} from {self.feature_ip}:{self.feature_port}")
+            self.client.send_msg(serialize_msg('PONG', pong))
+            green(f"Responded with PONG for {self.feature_name} to {self.feature_ip}:{self.feature_port} \n")
+        elif message_name == 'PONG':
+            green(f"Pong received for {self.feature_name} from {self.feature_ip}:{self.feature_port} \n")
+
+        # Handle Hangup
+        elif message_name == 'HANGUP':
             self.client.close()
             self._running = False
             red(f"Server closes. {self.feature_name} connection closed to {self.feature_ip}:{self.feature_port}. \n")
+
+        # Handle Receive Unsupported Message
         elif message_name == 'UNSUPPORTED_MESSAGE':
             yellow(f"Server {self.feature_ip}:{self.feature_port} does not support {payload['messageName']}. \n")
 
+        # Handle all other (unsupported) messages
+        else:
+            unsupported_message = messenger_pb2.UnsupportedMessage()
+            unsupported_message.message_name = message_name
+            self.client.send_msg(serialize_msg('UNSUPPORTED_MESSAGE', unsupported_message))
+            yellow(f"Unsupported message '{message_name}' received. Notified server at {self.feature_ip}:{self.feature_port}. \n")
 
-    def _handle_unsupported_message(self, message_name=None, payload=None):
-
-        # When we have sent an unsupported message
-        if message_name == 'UNSUPPORTED_MESSAGE':
-            yellow(f"Server {self.feature_ip}:{self.feature_port} does not support our message{payload['messageName']}. \n")
-
-        # When we have received an unsupported message (Todo: handle this case better, since we should send this out sparcely!)
-        # if message_name not in ['PING', 'PONG', 'HANGUP', 'CONNECTED', 'UNSUPPORTED_MESSAGE']:
-        #     unsupported_message = messenger_pb2.UnsupportedMessage()
-        #     unsupported_message.message_name = message_name
-        #     self.client.send_msg(serialize_msg('UNSUPPORTED_MESSAGE', unsupported_message))
-        #     yellow(f"Unsupported message '{message_name}' received. Notified server at {self.feature_ip}:{self.feature_port}. \n")
 
     def _get_server_for_feature(self, server_list):
         for feature_server in server_list:

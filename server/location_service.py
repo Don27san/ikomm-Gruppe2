@@ -5,6 +5,7 @@ from config import config
 from utils import blue, green, yellow, red, parse_msg, serialize_msg
 import time
 from .service_base import ServiceBase
+from utils.generate_chat_message import generate_chat_message
 
 class LocationService(ServiceBase):
     """
@@ -23,11 +24,15 @@ class LocationService(ServiceBase):
     def handle_forwarding(self):
 
         def send_chatmessage(data):
-            chatmessage = messenger_pb2.ChatMessage()
-            chatmessage.messageId = "chatmessage123"
-            chatmessage.live_location.CopyFrom(format_live_location(data))
+            content_dict={'live_location': format_live_location(data)}
+
+            chatmessage = generate_chat_message(
+                author_user_id=data['user']['userId'],
+                author_server_id=data['user']['serverId'],
+                content=content_dict,
+            )
             print("Initial LiveLocation Chatmessage sent to all clients.")
-            return chatmessage.messageId
+            return chatmessage.messageSnowflake
 
         addr = config['address']
         port = config['location_feature']['server_forwarding_port']
@@ -59,9 +64,11 @@ class LocationService(ServiceBase):
                         break
                 # ... or append and send chatmessage
                 if not user_found:
-                    chatmessageID = send_chatmessage(data)
-                    data["chatMessageID"] = chatmessageID
-                    self.location_events_list.append(data)
+                    try:
+                        data["messageSnowflake"] = send_chatmessage(data)
+                        self.location_events_list.append(data)
+                    except Exception as e:
+                        print("Initial Live Location could not be sent via Chatmessage.")
                     continue  # skip to the next iteration of the while loop, since initial location event is sent via Chatmessage (TCP)
 
                 # Delete expired items in location_events_list
@@ -89,7 +96,7 @@ class LocationService(ServiceBase):
         for event in self.location_events_list:
             extended_live_location = live_locations.extended_live_locations.add()
             extended_live_location.live_location.CopyFrom(format_live_location(event))
-            extended_live_location.chatmessageID = event["chatMessageID"]
+            extended_live_location.messageSnowflake = event["messageSnowflake"]
         
         return live_locations
 
