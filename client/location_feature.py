@@ -36,8 +36,6 @@ class LocationFeature(FeatureBase):
                 error_printed = True
             time.sleep(0.1)  # wait 100ms to reduce CPU load
 
-        
-
         while time.time() < self.expiry_at and self._running and self._running_sharing:
             now = time.time()
             if now - self.last_location_sent > config['location_feature']['client_sending_interval']:
