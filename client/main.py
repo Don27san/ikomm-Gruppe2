@@ -5,12 +5,13 @@ import threading
 from PyQt5.QtWidgets import QApplication
 from GUI.chatwindow import ChatWindow  # Adjust import as needed
 
-from client.discovery_service import DiscoveryService
-from client.typing_feature import TypingFeature
-from client.location_feature import LocationFeature
-from client.translation_feature import TranslationFeature
-from client.document_feature import DocumentFeature
-
+from .discovery_service import DiscoveryService
+from .typing_feature import TypingFeature
+from .location_feature import LocationFeature
+from .chat_feature import ChatFeature
+from .translation_feature import TranslationFeature
+from .document_feature import DocumentFeature
+import time
 def run_client_logic():
     discovery = DiscoveryService()
     server_list = discovery.discover_servers()
@@ -27,6 +28,10 @@ def run_client_logic():
     threading.Thread(target=live_location.start_location_sharing, daemon=True).start()
     threading.Thread(target=live_location.handle_listening, daemon=True).start()
 
+    # chat feature
+    chat_feature = ChatFeature()
+    threading.Thread(target=chat_feature.handle_connection, args=(server_list,), daemon=True).start()
+
     # translation feature
     translation = TranslationFeature()
     threading.Thread(target=translation.handle_connection, args=(server_list,), daemon=True).start()
@@ -35,7 +40,7 @@ def run_client_logic():
     document = DocumentFeature()
     threading.Thread(target=document.handle_connection, args=(server_list,), daemon=True).start()
 
-    return typing_event, live_location, translation, document  # for GUI
+    return typing_event, live_location, chat_feature, translation, document  # for GUI
 #
 #
 # main can still be kept for standalone testing of the client logic
@@ -47,10 +52,11 @@ def main():
 # Keep window reference alive
 window = None
 
+# Alternative main function for GUI
 # def main():
 #     global window
 #     app = QApplication(sys.argv)
-#     typing_feature, location_feature, translation, document = run_client_logic()
+#     typing_feature, location_feature, chat_feature, translation, document = run_client_logic()
 #     window = ChatWindow(typing_feature, location_feature)
 #     window.show()
 #     sys.exit(app.exec_())

@@ -38,6 +38,11 @@ message ConnectResponse {
     Result result = 1;
 }
 
+message ConnectServer {
+    string serverId = 1;
+    repeated string features = 2;
+}
+
 message HangUp {
     enum Reason {
         UNKNOWN_REASON = 0;
@@ -64,8 +69,7 @@ message UnsupportedMessage {
 
 
 // ALL FEATURE Structures
-// Chat Message
-// Chat Message
+// Group Structure
 message Group {
     string groupId = 1;
     string serverId = 2;
@@ -111,10 +115,29 @@ message ChatMessage {
         Document document = 12;
         LiveLocation live_location = 22;
         Translation translation = 23;
+       // stickers, etc...
     }
 }
 
-
+// Chat Message Response
+message ChatMessageResponse {
+    uint64 messageSnowflake = 1;
+    enum Status {
+        UNKNOWN_STATUS = 0;
+        DELIVERED = 1;
+        OTHER_ERROR = 2;
+        USER_AWAY = 3;
+        USER_NOT_FOUND = 4;
+        OTHER_SERVER_TIMEOUT = 5;
+        OTHER_SERVER_NOT_FOUND = 6;
+        USER_BLOCKED = 7;
+    }
+    message DeliveryStatus {
+        User user = 1;
+        Status status = 2;
+    }
+    repeated DeliveryStatus statuses = 2;
+}
 
 
 // Typing Indicator Structure

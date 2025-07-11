@@ -13,7 +13,7 @@ class DocumentFeature(FeatureBase):
     def __init__(self):
         super().__init__('DOCUMENT')
 
-    def handle_message_for_feature(self, message_name=None, payload=None):
+    def handle_message_for_feature(self, message_name=None, payload=None, conn=None, addr=None):
         """
         Handles feature specific message "DownloadingDocument"
         """

@@ -14,6 +14,14 @@ class ServiceBase:
         self.server = None
         self._running = True
         self.subscriber_dict = {}   # dict to store feature subscribers
+        self.server_dict = {'192.168.1.101': {
+            'serverId': 'server_2',
+            'functions': {'CHAT_MESSAGE': {
+                'conn': None,
+                'port': 6666,
+            }
+            }
+        }} # dict to store connections to other servers
         self.bind_ip = config['address']
         self.bind_port = bind_port
         self.forwarding_port = forwarding_port
@@ -62,28 +70,10 @@ class ServiceBase:
                 # update data
                 self.subscriber_dict[subscriberIP]['lastActive'] = time.time()
                 self.subscriber_dict[subscriberIP]['ping_sent'] = False
-                # handle received message
-                if message_name == 'CONNECT_CLIENT':
-                    response = messenger_pb2.ConnectResponse()
-                    response.result = messenger_pb2.ConnectResponse.Result.IS_ALREADY_CONNECTED_ERROR
-                    conn.send(serialize_msg('CONNECTED', response))
-                    yellow(f"{self.feature_name}: {addr} already subscribed. \n")
-                elif message_name == 'PING':
-                    conn.send(serialize_msg('PONG', pong))
-                    green(f"{self.feature_name}: Pong answered to {addr}. \n")
-                elif message_name == 'PONG':
-                    green(f"{self.feature_name}: Pong received from {addr} \n")
-                elif message_name == 'HANGUP':
-                    del self.subscriber_dict[subscriberIP]
-                    conn.close()
-                    red(f"{self.feature_name}: Hangup received from {addr}. Connection closed. \n")
-                elif message_name == 'UNSUPPORTED_MESSAGE':
-                    yellow(f"{self.feature_name}: Client {addr} did not support {data['messageName']}. \n")
-                else:
-                    unsupported_message = messenger_pb2.UnsupportedMessage()
-                    unsupported_message.message_name = message_name
-                    conn.send(serialize_msg('UNSUPPORTED_MESSAGE', unsupported_message))
-                    yellow(f"{self.feature_name}: {message_name} is not supported. Error message sent to known client {addr}. \n")
+                # Handle messages
+                message_handled = self.handle_message_for_feature(message_name, data, conn, addr)
+                if not message_handled:
+                    self._handle_base_messages(message_name, data, conn, addr)
 
             # Unknown client handling
             else:
@@ -104,6 +94,47 @@ class ServiceBase:
                     conn.send(serialize_msg('UNSUPPORTED_MESSAGE', unsupported_message))
                     yellow(f"{self.feature_name}: {message_name} is not supported. Error message sent to unknown client {addr}. \n")
 
+
+    def handle_message_for_feature(self, message_name=None, data=None, conn=None, addr=None):
+        """
+        Updated for each feature individually if it receives messages beyond the _handle_base_messages function
+        """
+        return False
+
+    def _handle_base_messages(self, message_name=None, data=None, conn=None, addr=None):
+        # Handle connection response
+        if message_name == 'CONNECT_CLIENT':
+            response = messenger_pb2.ConnectResponse()
+            response.result = messenger_pb2.ConnectResponse.Result.IS_ALREADY_CONNECTED_ERROR
+            conn.send(serialize_msg('CONNECTED', response))
+            yellow(f"{self.feature_name}: {addr} already subscribed. \n")
+        
+        # Handle Ping-Pong
+        elif message_name == 'PING':
+            conn.send(serialize_msg('PONG', pong))
+            green(f"{self.feature_name}: Pong answered to {addr}. \n")
+        elif message_name == 'PONG':
+            green(f"{self.feature_name}: Pong received from {addr} \n")
+        
+        # Handle Hangup
+        elif message_name == 'HANGUP':
+            subscriberIP = addr[0]
+            del self.subscriber_dict[subscriberIP]
+            conn.close()
+            red(f"{self.feature_name}: Hangup received from {addr}. Connection closed. \n")
+        
+        # Handle Receive Unsupported Message
+        elif message_name == 'UNSUPPORTED_MESSAGE':
+            yellow(f"{self.feature_name}: Client {addr} did not support {data['messageName']}. \n")
+        
+        # Handle all other (unsupported) messages
+        else:
+            unsupported_message = messenger_pb2.UnsupportedMessage()
+            unsupported_message.message_name = message_name
+            conn.send(serialize_msg('UNSUPPORTED_MESSAGE', unsupported_message))
+            yellow(f"{self.feature_name}: {message_name} is not supported. Error message sent to known client {addr}. \n")
+
+            
     def stop(self):
         """Gracefully stop the feature process when client UI is closed."""
         self._running = False

@@ -3,13 +3,16 @@ import netifaces as ni
 from typing import Literal, List, TypedDict
 
 # Config Types
-Feature = Literal['TYPING_INDICATOR', 'LIVE_LOCATION']
+Feature = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'CHAT_MESSAGE']
 
 class ConnMgmtConfig(TypedDict):
     discovery_port: int
     ping_timeout: int    # in seconds
 
 class MessagingFeatureConfig(TypedDict):
+    server_connection_port: int
+
+class ChatFeatureConfig(TypedDict):
     server_connection_port: int
 
 class TypingFeatureConfig(TypedDict):
@@ -24,12 +27,19 @@ class LocationFeatureConfig(TypedDict):
     client_expiry_time: int  # in minutes
     client_sending_interval: int  # in seconds
 
+class UserConfig(TypedDict):
+    userId: str
+    serverId: str
+
 class Config(TypedDict):
     address: str
+    user: UserConfig
+    serverId: str
     feature_support: List[Feature]
     server_id: str
     conn_mgmt: ConnMgmtConfig
     messaging_feature: MessagingFeatureConfig
+    chat_feature: ChatFeatureConfig
     typing_feature: TypingFeatureConfig
     location_feature: LocationFeatureConfig
     
@@ -39,7 +49,12 @@ class Config(TypedDict):
 config : Config = {
     # Address based on env set in pipenv script
     'address': ni.ifaddresses('en0')[ni.AF_INET][0]['addr'] if os.getenv('APP_ENV') == 'prod' else '127.0.0.1',
-    'feature_support': ['TYPING_INDICATOR', 'LIVE_LOCATION'],  # Features our client wants to support
+    'user': {
+        'userId': 'user_1',
+        'serverId': 'ikomm_server_2'
+    },
+    'serverId': 'ikomm_server_2', # The ID of this server instance
+    'feature_support': ['TYPING_INDICATOR', 'LIVE_LOCATION', 'CHAT_MESSAGE'],  # Features our client wants to support
     'server_id': 'Server_2',  
 
     # Features and Ports
@@ -47,9 +62,8 @@ config : Config = {
         'discovery_port': 9999,
         'ping_timeout': 300,
     },
-
-    'messaging_feature':{
-        'server_connection_port': 6666,
+    'chat_feature': {
+        'server_connection_port': 6666, #Server handles client connection
     },
 
     'typing_feature': {

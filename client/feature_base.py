@@ -43,7 +43,6 @@ class FeatureBase:
             red(str(e) + '\n')
             return
         
-
         self.server_address = self.feature_ip
 
         if self.feature_ip is None or self.feature_port is None:
@@ -54,7 +53,6 @@ class FeatureBase:
             self.client.start_client(self.feature_ip, self.feature_port)
 
             self._send_connection_request()
-            
             while self._running:
                 # Check: server still active?
                 try:
@@ -80,10 +78,10 @@ class FeatureBase:
                     else:
                         continue
 
-                # Handle messages
-                message_handled = self.handle_message_for_feature(message_name, payload)
+                    # Handle messages; pass client conn and address
+                message_handled = self.handle_message_for_feature(message_name, payload, self.client, addr)
                 if not message_handled:
-                    self._handle_base_messages(message_name, payload)
+                    self._handle_base_messages(message_name, payload, self.client, addr)
 
         except Exception as e:
             red(f"Failed to connect to {self.feature_name} on {self.feature_ip}:{self.feature_port}. Error: {e} \n")
@@ -95,16 +93,23 @@ class FeatureBase:
             connect_client.udpPort = config['typing_feature']['client_udp_port']
         elif self.feature_name == 'LIVE_LOCATION':
             connect_client.udpPort = config['location_feature']['client_udp_port']
+        elif self.feature_name == 'CHAT_MESSAGE':
+            connect_client.udpPort = 0  # Chat uses TCP only, no UDP needed
+        elif self.feature_name == 'Translation':
+            connect_client.udpPort = 0  # Translation uses TCP only, no UDP needed
+        elif self.feature_name == 'DOCUMENT':
+            connect_client.udpPort = 0  # Document uses TCP only, no UDP needed
 
         self.client.send_msg(serialize_msg('CONNECT_CLIENT', connect_client))
+        blue(f'Trying to connect to feature: {self.feature_name}...')
 
-    def handle_message_for_feature(self, message_name=None, payload=None):
+    def handle_message_for_feature(self, message_name=None, payload=None, conn=None, addr=None):
         """
         Updated for each feature individually if it receives messages beyond the _handle_base_messages function
         """
         return False
 
-    def _handle_base_messages(self, message_name=None, payload=None):
+    def _handle_base_messages(self, message_name=None, payload=None, conn=None, addr=None):
         # Handle connection response
         if message_name == 'CONNECTED':
             if payload['result'] == 'IS_ALREADY_CONNECTED_ERROR':

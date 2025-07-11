@@ -6,6 +6,8 @@ import time
 from .announcement_service import AnnouncementService
 from .typing_service import TypingService
 from .location_service import LocationService
+from .chat_service import ChatService
+# from .discovery_service import DiscoveryService
 from utils import red
 
 
@@ -14,12 +16,17 @@ def main():
         red("\nGracefully shutting down...")
         typing_service.stop()
         location_service.stop()
+        chat_service.stop()
         announcer.stop()
         sys.exit(0)
 
     # Graceful shutdown
     signal.signal(signal.SIGINT, shutdown_handler)
     signal.signal(signal.SIGTERM, shutdown_handler)
+
+    # Server Discovery Service (commented for now)
+    # discovery = DiscoveryService()
+    # server_list = discovery.discover_servers()
 
     # Listen for discovery calls and announce server
     announcer = AnnouncementService()
@@ -35,6 +42,10 @@ def main():
     threading.Thread(target=location_service.handle_connections, daemon=True).start()
     threading.Thread(target=location_service.handle_forwarding, daemon=True).start()
 
+    # Chat Service
+    chat_service = ChatService()
+    threading.Thread(target=chat_service.handle_connections, daemon=True).start()
+    # threading.Thread(target=chat_service.handle_connections, args=(server_list,), daemon=True).start()
 
     # Keep the main thread alive.
     while True:

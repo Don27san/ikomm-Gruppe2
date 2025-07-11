@@ -45,7 +45,6 @@ class DiscoveryService:
         
         return self.server_list
 
-
     def _get_broadcast_ip(self, interface='en0'):
         """
         Replaces <broadcast> with the actual broadcast address of your active network interface using netiface

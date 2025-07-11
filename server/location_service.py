@@ -48,7 +48,7 @@ class LocationService(ServiceBase):
                 # Append dict with relevant data
                 data['userIP'] = addr[0]
                 data['userPort'] = addr[1]
-                data['chatMessageID'] = None
+                data['messageSnowflake'] = None
 
                 if addr[0] in self.subscriber_dict.keys():
                     self.subscriber_dict[addr[0]]['lastActive'] = time.time()
