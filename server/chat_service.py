@@ -12,7 +12,7 @@ class ChatService(ServiceBase):
         # Overriding to remove forwarding logic, as chat is TCP based and handled differently
         super().handle_connections()
 
-    def handle_feature_message(self, message_name, data, conn, addr):
+    def handle_message_for_feature(self, message_name, data, conn, addr):
         if message_name == 'CHAT_MESSAGE':
             subscriberIP = addr[0]
             author_info = data.get('author', {})
