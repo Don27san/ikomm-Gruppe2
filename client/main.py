@@ -45,11 +45,8 @@ def run_client_logic():
 #
 # main can still be kept for standalone testing of the client logic
 def main():
-    typing_event, live_location, chat_feature, translation, document = run_client_logic()
-    time.sleep(5)
-    chat_feature.send_message("user123", "server456", "Hello from client!")
     while True:
-        pass  # Keep the threads alive
+        pass  # Keep the threads alive (for debugging only)
 
 # Keep window reference alive
 window = None
