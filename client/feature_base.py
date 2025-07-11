@@ -7,7 +7,7 @@ from config import config
 
 from protobuf import messenger_pb2
 
-FeatureName = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'CHAT_MESSAGE']
+FeatureName = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'CHAT_MESSAGE', 'Translation', 'DOCUMENT']
 
 class FeatureBase:
     """
@@ -37,25 +37,22 @@ class FeatureBase:
 
     def handle_connection(self, server_list):
 
-        feature_ip, feature_port, self.udp_server_port = self._get_server_for_feature(server_list)
-        self.server_address = feature_ip
+        try:
+            self.feature_ip, self.feature_port, self.udp_server_port = self._get_server_for_feature(server_list)
+        except ValueError as e:
+            red(str(e) + '\n')
+            return
+        
+        self.server_address = self.feature_ip
 
-        if feature_ip is None or feature_port is None:
+        if self.feature_ip is None or self.feature_port is None:
             return
 
         try:
             self.client = ConnectionHandler(timeout=self.ping_timeout)
-            self.client.start_client(feature_ip, feature_port)
+            self.client.start_client(self.feature_ip, self.feature_port)
 
-            if self.feature_name == 'TYPING_INDICATOR':
-                connect_client.udpPort = config['typing_feature']['client_udp_port']
-            elif self.feature_name == 'LIVE_LOCATION':
-                connect_client.udpPort = config['location_feature']['client_udp_port']
-            elif self.feature_name == 'CHAT_MESSAGE':
-                connect_client.udpPort = 0  # Chat uses TCP only, no UDP needed
-
-            self.client.send_msg(serialize_msg('CONNECT_CLIENT', connect_client))
-            blue(f'Trying to connect to feature: {self.feature_name}...')
+            self._send_connection_request()
             while self._running:
                 # Check: server still active?
                 try:
@@ -64,55 +61,88 @@ class FeatureBase:
                     self.last_msg_received_time = time.time()
                     self.ping_sent = False
                 except queue.Empty:
-                    # only send ping if no TCP and UDP message is received
+                    # only send ping if no TCP and UDP message is in the queue
                     if self.ping_sent:
                         hangup = messenger_pb2.HangUp()
                         hangup.reason = messenger_pb2.HangUp.Reason.TIMEOUT
                         self.client.send_msg(serialize_msg('HANGUP', hangup))
                         self.client.close()
                         self._running = False
-                        red(f"Server not active anymore. {self.feature_name} connection closed to {feature_ip}:{feature_port} \n")
+                        red(f"Server not active anymore. {self.feature_name} connection closed to {self.feature_ip}:{self.feature_port} \n")
                         break
                     elif time.time() - self.last_msg_received_time > self.ping_timeout:
                         self.client.send_msg(serialize_msg('PING', ping))
                         self.ping_sent = True
-                        yellow(f"Server not responding. Ping sent for {self.feature_name} to {feature_ip}:{feature_port}. \n")
+                        yellow(f"Server not responding. Ping sent for {self.feature_name} to {self.feature_ip}:{self.feature_port}. \n")
                         continue
                     else:
                         continue
 
-                if message_name == 'CONNECTED':
-                    if payload['result'] == 'IS_ALREADY_CONNECTED_ERROR':
-                        yellow(f"Already connected to {self.feature_name} on {feature_ip}:{feature_port} \n")
-                    elif payload['result'] == 'CONNECTED':
-                        green(f"Connected to {self.feature_name} on {feature_ip}:{feature_port} \n")
-                    else:
-                        red(f"Unknown connection response for {self.feature_name} from {feature_ip}:{feature_port} \n")
-                elif message_name == 'PONG':
-                    green(f"Pong received for {self.feature_name} from {feature_ip}:{feature_port} \n")
-                elif message_name == 'PING':
-                    self.client.send_msg(serialize_msg('PONG', pong))
-                    green(f"Answered PONG for {self.feature_name} to {feature_ip}:{feature_port} \n")
-                elif message_name == 'HANGUP':
-                    self.client.close()
-                    self._running = False
-                    red(f"Server closes. {self.feature_name} connection closed to {feature_ip}:{feature_port}. \n")
-                elif message_name == 'UNSUPPORTED_MESSAGE':
-                    yellow(f"Server {feature_ip}:{feature_port} does not support {payload['messageName']}. \n")
-                # Try to handle the message in the specific feature implementation
-                elif self.handle_feature_message(message_name, payload, self.client):
-                    pass # The message was handled by the subclass
-                else:
-                    # If the subclass didn't handle it, then it's truly unsupported
-                    unsupported_message = messenger_pb2.UnsupportedMessage()
-                    unsupported_message.message_name = message_name
-                    self.client.send_msg(serialize_msg('UNSUPPORTED_MESSAGE', unsupported_message))
-                    yellow(f"Received {message_name} is not supported. Error message sent to {feature_ip}:{feature_port}. \n")
+                # Handle messages
+                message_handled = self.handle_message_for_feature(message_name, payload)
+                if not message_handled:
+                    self._handle_base_messages(message_name, payload)
 
         except Exception as e:
-            red(f"Failed to connect to {self.feature_name} on {feature_ip}:{feature_port}. Error: {e} \n")
+            red(f"Failed to connect to {self.feature_name} on {self.feature_ip}:{self.feature_port}. Error: {e} \n")
             self.client.close()
             self._running = False
+    
+    def _send_connection_request(self):
+        if self.feature_name == 'TYPING_INDICATOR':
+            connect_client.udpPort = config['typing_feature']['client_udp_port']
+        elif self.feature_name == 'LIVE_LOCATION':
+            connect_client.udpPort = config['location_feature']['client_udp_port']
+        elif self.feature_name == 'CHAT_MESSAGE':
+            connect_client.udpPort = 0  # Chat uses TCP only, no UDP needed
+        elif self.feature_name == 'Translation':
+            connect_client.udpPort = 0  # Translation uses TCP only, no UDP needed
+        elif self.feature_name == 'DOCUMENT':
+            connect_client.udpPort = 0  # Document uses TCP only, no UDP needed
+
+        self.client.send_msg(serialize_msg('CONNECT_CLIENT', connect_client))
+        blue(f'Trying to connect to feature: {self.feature_name}...')
+
+    def handle_message_for_feature(self, message_name=None, payload=None):
+        """
+        Updated for each feature individually if it receives messages beyond the _handle_base_messages function
+        """
+        return False
+
+    def _handle_base_messages(self, message_name=None, payload=None):
+        # Handle connection response
+        if message_name == 'CONNECTED':
+            if payload['result'] == 'IS_ALREADY_CONNECTED_ERROR':
+                yellow(f"Already subscribed to {self.feature_name} on {self.feature_ip}:{self.feature_port} \n")
+            elif payload['result'] == 'CONNECTED':
+                green(f"CONNECTED to {self.feature_name} on {self.feature_ip}:{self.feature_port} \n")
+            else:
+                red(f"Unknown connection response for {self.feature_name} from {self.feature_ip}:{self.feature_port}. Check the payload of the connection response. \n")
+
+        # Handle Ping-Pong
+        elif message_name == 'PING':
+            print(f"Received PING for {self.feature_name} from {self.feature_ip}:{self.feature_port}")
+            self.client.send_msg(serialize_msg('PONG', pong))
+            green(f"Responded with PONG for {self.feature_name} to {self.feature_ip}:{self.feature_port} \n")
+        elif message_name == 'PONG':
+            green(f"Pong received for {self.feature_name} from {self.feature_ip}:{self.feature_port} \n")
+
+        # Handle Hangup
+        elif message_name == 'HANGUP':
+            self.client.close()
+            self._running = False
+            red(f"Server closes. {self.feature_name} connection closed to {self.feature_ip}:{self.feature_port}. \n")
+
+        # Handle Receive Unsupported Message
+        elif message_name == 'UNSUPPORTED_MESSAGE':
+            yellow(f"Server {self.feature_ip}:{self.feature_port} does not support {payload['messageName']}. \n")
+
+        # Handle all other (unsupported) messages
+        else:
+            unsupported_message = messenger_pb2.UnsupportedMessage()
+            unsupported_message.message_name = message_name
+            self.client.send_msg(serialize_msg('UNSUPPORTED_MESSAGE', unsupported_message))
+            yellow(f"Unsupported message '{message_name}' received. Notified server at {self.feature_ip}:{self.feature_port}. \n")
 
     def handle_feature_message(self, message_name, payload, conn):
         """This method is intended to be overridden by subclasses to handle feature-specific messages."""
@@ -124,8 +154,7 @@ class FeatureBase:
                 if features['featureName'] == self.feature_name:
                     return feature_server['server_ip'], features['port'], features.get('udpPort')
 
-        red(f'Could not find server in server_list: {server_list} hosting feature {self.feature_name}')
-        return None, None
+        raise ValueError(f"Could not find server hosting feature '{self.feature_name}' in the provided server list.")
 
     def stop(self):
         """Gracefully stop the feature process when client UI is closed."""

@@ -1,6 +1,5 @@
 syntax = "proto3";
 package typing_indicator;
-import "google/protobuf/timestamp.proto";
 
 
 
@@ -84,7 +83,17 @@ message Document {
     bytes data = 4;
 }
 
-// Chat Message
+// Translation Structure
+message Translation {
+    enum Language{
+        DE = 0;
+        EN = 1;
+        ZH = 2;
+    }
+    string original_message = 1;
+    Language target_language = 2;
+}
+
 message ChatMessage {
     uint64 messageSnowflake = 1;
 
@@ -105,6 +114,7 @@ message ChatMessage {
         string textContent = 11;
         Document document = 12;
         LiveLocation live_location = 22;
+        Translation translation = 23;
        // stickers, etc...
     }
 }
@@ -164,3 +174,29 @@ message LiveLocations {
     repeated ExtendedLiveLocation extended_live_locations = 1;
 }
 
+// Request document download
+message DownloadDocument {
+    uint64 documentSnowflake = 1;
+}
+
+// Receive document
+message DownloadingDocument {
+    uint64 documentSnowflake = 1;
+    DocumentStatus.Result result = 2;
+    bytes data = 3;
+}
+
+// Document Status
+message DocumentStatus {
+    uint64 documentSnowflake = 1;
+    enum Result {
+        UNKNOWN_ERROR = 0;
+        AVAILABLE = 1;
+        NOT_FOUND = 2;
+        EXPIRED = 3;
+        DELETED = 4;
+        PENDING_UPLOAD = 5;
+    }
+    Result result = 2;
+    uint64 expiry = 3;
+}

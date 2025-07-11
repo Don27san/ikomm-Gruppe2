@@ -24,7 +24,7 @@ def main():
     signal.signal(signal.SIGINT, shutdown_handler)
     signal.signal(signal.SIGTERM, shutdown_handler)
 
-    # Server Discovery Service
+    # Server Discovery Service (commented for now)
     # discovery = DiscoveryService()
     # server_list = discovery.discover_servers()
 

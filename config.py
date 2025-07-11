@@ -10,7 +10,7 @@ class ConnMgmtConfig(TypedDict):
     ping_timeout: int    # in seconds
 
 class MessagingFeatureConfig(TypedDict):
-    connection_port: int
+    server_connection_port: int
 
 class ChatFeatureConfig(TypedDict):
     server_connection_port: int
@@ -36,6 +36,7 @@ class Config(TypedDict):
     user: UserConfig
     serverId: str
     feature_support: List[Feature]
+    server_id: str
     conn_mgmt: ConnMgmtConfig
     messaging_feature: MessagingFeatureConfig
     chat_feature: ChatFeatureConfig
@@ -54,13 +55,13 @@ config : Config = {
     },
     'serverId': 'ikomm_server_2', # The ID of this server instance
     'feature_support': ['TYPING_INDICATOR', 'LIVE_LOCATION', 'CHAT_MESSAGE'],  # Features our client wants to support
+    'server_id': 'Server_2',  
 
     # Features and Ports
     'conn_mgmt': {
         'discovery_port': 9999,
         'ping_timeout': 300,
     },
-    
     'chat_feature': {
         'server_connection_port': 6666, #Server handles client connection
     },
@@ -72,9 +73,9 @@ config : Config = {
     },
 
     'location_feature': {
-        'server_connection_port': 8887, #Server handles client connection
-        'server_forwarding_port': 8888, #Server handles location forwarding
-        'client_udp_port': 8889, #Client sends locations and listens to forwardings
+        'server_connection_port': 8888, #Server handles client connection
+        'server_forwarding_port': 8889, #Server handles location forwarding
+        'client_udp_port': 8890, #Client sends locations and listens to forwardings
         'client_expiry_time': 5, #in min
         'client_sending_interval': 30, # in s
     }

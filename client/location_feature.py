@@ -7,6 +7,7 @@ from utils import green, red, serialize_msg, parse_msg, live_location
 from config import config
 from .feature_base import FeatureBase
 
+
 class LocationFeature(FeatureBase):
     """
     ...
@@ -36,9 +37,6 @@ class LocationFeature(FeatureBase):
                 error_printed = True
             time.sleep(0.1)  # wait 100ms to reduce CPU load
 
-        server_addr = self.server_address
-        server_forwarding_port = self.udp_server_port
-
         while time.time() < self.expiry_at and self._running and self._running_sharing:
             now = time.time()
             if now - self.last_location_sent > config['location_feature']['client_sending_interval']:
@@ -52,8 +50,8 @@ class LocationFeature(FeatureBase):
                         live_location.location.latitude = synthetic_lat
                         live_location.location.longitude = synthetic_lon
                         try:
-                            self.socket.sendto(serialize_msg('LIVE_LOCATION', live_location), (server_addr, server_forwarding_port))
-                            print(f'\nLive Location sent to {server_addr}:{server_forwarding_port}')
+                            self.socket.sendto(serialize_msg('LIVE_LOCATION', live_location), (self.server_address, self.udp_server_port))
+                            print(f'\nLive Location sent to {self.server_address}:{self.udp_server_port}')
                         except Exception as e:
                             red(f"Error while sending live location: {e}")
                     else:

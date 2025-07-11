@@ -1,4 +1,3 @@
-from google.protobuf import timestamp_pb2 as _timestamp_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf.internal import enum_type_wrapper as _enum_type_wrapper
 from google.protobuf import descriptor as _descriptor
@@ -118,8 +117,24 @@ class Document(_message.Message):
     data: bytes
     def __init__(self, documentId: _Optional[str] = ..., filename: _Optional[str] = ..., mimeType: _Optional[str] = ..., data: _Optional[bytes] = ...) -> None: ...
 
+class Translation(_message.Message):
+    __slots__ = ("original_message", "target_language")
+    class Language(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        DE: _ClassVar[Translation.Language]
+        EN: _ClassVar[Translation.Language]
+        ZH: _ClassVar[Translation.Language]
+    DE: Translation.Language
+    EN: Translation.Language
+    ZH: Translation.Language
+    ORIGINAL_MESSAGE_FIELD_NUMBER: _ClassVar[int]
+    TARGET_LANGUAGE_FIELD_NUMBER: _ClassVar[int]
+    original_message: str
+    target_language: Translation.Language
+    def __init__(self, original_message: _Optional[str] = ..., target_language: _Optional[_Union[Translation.Language, str]] = ...) -> None: ...
+
 class ChatMessage(_message.Message):
-    __slots__ = ("messageSnowflake", "author", "user", "group", "userOfGroup", "textContent", "document", "live_location")
+    __slots__ = ("messageSnowflake", "author", "user", "group", "userOfGroup", "textContent", "document", "live_location", "translation")
     class UserOfGroup(_message.Message):
         __slots__ = ("user", "group")
         USER_FIELD_NUMBER: _ClassVar[int]
@@ -135,6 +150,7 @@ class ChatMessage(_message.Message):
     TEXTCONTENT_FIELD_NUMBER: _ClassVar[int]
     DOCUMENT_FIELD_NUMBER: _ClassVar[int]
     LIVE_LOCATION_FIELD_NUMBER: _ClassVar[int]
+    TRANSLATION_FIELD_NUMBER: _ClassVar[int]
     messageSnowflake: int
     author: User
     user: User
@@ -143,7 +159,8 @@ class ChatMessage(_message.Message):
     textContent: str
     document: Document
     live_location: LiveLocation
-    def __init__(self, messageSnowflake: _Optional[int] = ..., author: _Optional[_Union[User, _Mapping]] = ..., user: _Optional[_Union[User, _Mapping]] = ..., group: _Optional[_Union[Group, _Mapping]] = ..., userOfGroup: _Optional[_Union[ChatMessage.UserOfGroup, _Mapping]] = ..., textContent: _Optional[str] = ..., document: _Optional[_Union[Document, _Mapping]] = ..., live_location: _Optional[_Union[LiveLocation, _Mapping]] = ...) -> None: ...
+    translation: Translation
+    def __init__(self, messageSnowflake: _Optional[int] = ..., author: _Optional[_Union[User, _Mapping]] = ..., user: _Optional[_Union[User, _Mapping]] = ..., group: _Optional[_Union[Group, _Mapping]] = ..., userOfGroup: _Optional[_Union[ChatMessage.UserOfGroup, _Mapping]] = ..., textContent: _Optional[str] = ..., document: _Optional[_Union[Document, _Mapping]] = ..., live_location: _Optional[_Union[LiveLocation, _Mapping]] = ..., translation: _Optional[_Union[Translation, _Mapping]] = ...) -> None: ...
 
 class ChatMessageResponse(_message.Message):
     __slots__ = ("messageSnowflake", "statuses")
@@ -223,3 +240,43 @@ class LiveLocations(_message.Message):
     EXTENDED_LIVE_LOCATIONS_FIELD_NUMBER: _ClassVar[int]
     extended_live_locations: _containers.RepeatedCompositeFieldContainer[LiveLocations.ExtendedLiveLocation]
     def __init__(self, extended_live_locations: _Optional[_Iterable[_Union[LiveLocations.ExtendedLiveLocation, _Mapping]]] = ...) -> None: ...
+
+class DownloadDocument(_message.Message):
+    __slots__ = ("documentSnowflake",)
+    DOCUMENTSNOWFLAKE_FIELD_NUMBER: _ClassVar[int]
+    documentSnowflake: int
+    def __init__(self, documentSnowflake: _Optional[int] = ...) -> None: ...
+
+class DownloadingDocument(_message.Message):
+    __slots__ = ("documentSnowflake", "result", "data")
+    DOCUMENTSNOWFLAKE_FIELD_NUMBER: _ClassVar[int]
+    RESULT_FIELD_NUMBER: _ClassVar[int]
+    DATA_FIELD_NUMBER: _ClassVar[int]
+    documentSnowflake: int
+    result: DocumentStatus.Result
+    data: bytes
+    def __init__(self, documentSnowflake: _Optional[int] = ..., result: _Optional[_Union[DocumentStatus.Result, str]] = ..., data: _Optional[bytes] = ...) -> None: ...
+
+class DocumentStatus(_message.Message):
+    __slots__ = ("documentSnowflake", "result", "expiry")
+    class Result(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+        __slots__ = ()
+        UNKNOWN_ERROR: _ClassVar[DocumentStatus.Result]
+        AVAILABLE: _ClassVar[DocumentStatus.Result]
+        NOT_FOUND: _ClassVar[DocumentStatus.Result]
+        EXPIRED: _ClassVar[DocumentStatus.Result]
+        DELETED: _ClassVar[DocumentStatus.Result]
+        PENDING_UPLOAD: _ClassVar[DocumentStatus.Result]
+    UNKNOWN_ERROR: DocumentStatus.Result
+    AVAILABLE: DocumentStatus.Result
+    NOT_FOUND: DocumentStatus.Result
+    EXPIRED: DocumentStatus.Result
+    DELETED: DocumentStatus.Result
+    PENDING_UPLOAD: DocumentStatus.Result
+    DOCUMENTSNOWFLAKE_FIELD_NUMBER: _ClassVar[int]
+    RESULT_FIELD_NUMBER: _ClassVar[int]
+    EXPIRY_FIELD_NUMBER: _ClassVar[int]
+    documentSnowflake: int
+    result: DocumentStatus.Result
+    expiry: int
+    def __init__(self, documentSnowflake: _Optional[int] = ..., result: _Optional[_Union[DocumentStatus.Result, str]] = ..., expiry: _Optional[int] = ...) -> None: ...

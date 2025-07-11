@@ -19,6 +19,7 @@ message_classes = {
     'PING': messenger_pb2.Ping,
     'PONG': messenger_pb2.Pong,
     'UNSUPPORTED_MESSAGE': messenger_pb2.UnsupportedMessage,
+    'DOWNLOADING_DOCUMENT': messenger_pb2.DownloadingDocument,
 }
 
 
