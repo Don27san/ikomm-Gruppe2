@@ -25,7 +25,8 @@ class TranslationFeature(FeatureBase):
             text (str): The text to be translated.
             target_language (str): The language to translate the text into.
         """
-      
+        # It would be best to use send_message function from chat_feature.py
+        
         # Construct the translation request message
         msg = generate_chat_message(
             author_user_id="user123",

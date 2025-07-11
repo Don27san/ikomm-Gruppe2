@@ -144,10 +144,6 @@ class FeatureBase:
             self.client.send_msg(serialize_msg('UNSUPPORTED_MESSAGE', unsupported_message))
             yellow(f"Unsupported message '{message_name}' received. Notified server at {self.feature_ip}:{self.feature_port}. \n")
 
-    def handle_feature_message(self, message_name, payload, conn):
-        """This method is intended to be overridden by subclasses to handle feature-specific messages."""
-        return False # Return True if message was handled, False otherwise
-
     def _get_server_for_feature(self, server_list):
         for feature_server in server_list:
             for features in feature_server['feature']:

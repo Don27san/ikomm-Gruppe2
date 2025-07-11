@@ -1,5 +1,5 @@
 from .feature_base import FeatureBase
-from utils import serialize_msg, parse_msg, green, red, yellow
+from utils import serialize_msg, green, red, yellow, generate_chat_message
 from protobuf import messenger_pb2
 import time
 import queue
@@ -11,22 +11,22 @@ class ChatFeature(FeatureBase):
         self.chat_history = []
         self.ack_list = []
 
-    def send_message(self, recipient_user_id, recipient_server_id, text):
+    def send_message(self, recipient_user_id, recipient_server_id, text, content=None):
         if not self._running or not self.client:
             red("Not connected to chat server.")
             return
 
-        message = messenger_pb2.ChatMessage()
-        # Generate a unique snowflake ID. Using time and random for simplicity.
-        message.messageSnowflake = int(time.time() * 1000)
-        message.author.userId = config['user']['userId']
-        message.author.serverId = config['user']['serverId']
-        message.textContent = text
+        # If no content is provided, default to text content
+        if content is None:
+            content = {'textContent': text}
 
-        # Set the recipient
-        recipient = message.user
-        recipient.userId = recipient_user_id
-        recipient.serverId = recipient_server_id
+        # Use the generate_chat_message utility function
+        message = generate_chat_message(
+            author_user_id=config['user']['userId'],
+            author_server_id=config['user']['serverId'],
+            recipient={'user': {'userId': recipient_user_id, 'serverId': recipient_server_id}},
+            content=content
+        )
 
         try:
             self.client.send_msg(serialize_msg('CHAT_MESSAGE', message))
