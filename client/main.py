@@ -45,6 +45,7 @@ def run_client_logic():
 #
 # main can still be kept for standalone testing of the client logic
 def main():
+    run_client_logic()
     while True:
         pass  # Keep the threads alive (for debugging only)
 

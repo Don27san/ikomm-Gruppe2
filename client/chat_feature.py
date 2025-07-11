@@ -34,7 +34,7 @@ class ChatFeature(FeatureBase):
         except Exception as e:
             red(f"Failed to send message: {e}")
 
-    def handle_message_for_feature(self, message_name, payload, conn):
+    def handle_message_for_feature(self, message_name=None, payload=None, conn=None, addr=None):
         if message_name == 'CHAT_MESSAGE':
             self.chat_history.append(payload)
             author_info = payload.get('author', {})

@@ -78,10 +78,10 @@ class FeatureBase:
                     else:
                         continue
 
-                # Handle messages
-                message_handled = self.handle_message_for_feature(message_name, payload)
+                    # Handle messages; pass client conn and address
+                message_handled = self.handle_message_for_feature(message_name, payload, self.client, addr)
                 if not message_handled:
-                    self._handle_base_messages(message_name, payload)
+                    self._handle_base_messages(message_name, payload, self.client, addr)
 
         except Exception as e:
             red(f"Failed to connect to {self.feature_name} on {self.feature_ip}:{self.feature_port}. Error: {e} \n")
@@ -103,13 +103,13 @@ class FeatureBase:
         self.client.send_msg(serialize_msg('CONNECT_CLIENT', connect_client))
         blue(f'Trying to connect to feature: {self.feature_name}...')
 
-    def handle_message_for_feature(self, message_name=None, payload=None):
+    def handle_message_for_feature(self, message_name=None, payload=None, conn=None, addr=None):
         """
         Updated for each feature individually if it receives messages beyond the _handle_base_messages function
         """
         return False
 
-    def _handle_base_messages(self, message_name=None, payload=None):
+    def _handle_base_messages(self, message_name=None, payload=None, conn=None, addr=None):
         # Handle connection response
         if message_name == 'CONNECTED':
             if payload['result'] == 'IS_ALREADY_CONNECTED_ERROR':
