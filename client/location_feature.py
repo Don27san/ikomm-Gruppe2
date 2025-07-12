@@ -8,18 +8,6 @@ from utils import green, red, serialize_msg, parse_msg, live_location
 from config import config
 from .feature_base import FeatureBase
 
-from PyQt5.QtCore import QObject, pyqtSignal
-
-class LocationBridge(QObject):
-    locationUpdated = pyqtSignal(list)  # 传递位置列表
-
-    def __init__(self):
-        super().__init__()
-
-    def update_locations(self, data):
-        self.locationUpdated.emit(data)
-
-
 
 class LocationFeature(FeatureBase, QObject):
     # Signal to emit when location is received
@@ -80,8 +68,6 @@ class LocationFeature(FeatureBase, QObject):
         self._running_sharing = False
 
     def handle_listening(self):
-        self.bridge.update_locations(data)
-
         while self._running:
             try:
                 res, addr = self.socket.recvfrom(1024)
