@@ -4,10 +4,14 @@ from protobuf import messenger_pb2
 import time
 import queue
 from config import config
+from PyQt5.QtCore import QObject, pyqtSignal
 
-class ChatFeature(FeatureBase):
+class ChatFeature(FeatureBase, QObject):
+    # Signal to emit when chat history is updated
+    chatEventReceived = pyqtSignal()  # Trigger signal for GUI to refresh from chat_history
     def __init__(self):
         super().__init__('CHAT_MESSAGE')
+        QObject.__init__(self)
         self.chat_history = []
         self.ack_list = []
 
@@ -31,6 +35,11 @@ class ChatFeature(FeatureBase):
         try:
             self.client.send_msg(serialize_msg('CHAT_MESSAGE', message))
             yellow(f"Sent message: {text}")
+            
+            # Add sent message to chat_history so it appears in GUI
+            self.chat_history.append(message)
+            self.chatEventReceived.emit()
+            
         except Exception as e:
             red(f"Failed to send message: {e}")
 
@@ -42,6 +51,9 @@ class ChatFeature(FeatureBase):
             server_id = author_info.get('serverId', 'Unknown')
             message_text = payload.get('textContent', '')
             green(f"Received message from @{user_id}@{server_id}: \"{message_text}\"")
+            
+            # Emit trigger signal for GUI to update from chat_history
+            self.chatEventReceived.emit()
 
             # Acknowledge the message back to the server
             try:

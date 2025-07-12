@@ -6,12 +6,14 @@ from GUI.locationviewer import LocationViewer
 from PyQt5.QtCore import QThread, pyqtSignal
 import os
 import geocoder
+import time
 
 from client.typing_feature import TypingFeature
 from client.location_feature import LocationFeature
 from client.document_feature import DocumentFeature
 # from client.chat_feature iimport ChatFeature
 from utils import parse_msg, colors  # For parsing received messages
+from config import config
 
 
 # Thread for listening to TypingEvent
@@ -36,25 +38,16 @@ class TypingListenerThread(QThread):
         self.wait()
 
 class LocationListenerThread(QThread):
-    location_received = pyqtSignal(float, float)  # lat, lon
-
-
     def __init__(self, locationFeature):
         super().__init__()
         self.locationFeature = locationFeature
-        self.running = True
 
     def run(self):
-        while self.running:
-            res, addr = self.locationFeature.socket.recvfrom(1024)
-            data = parse_msg(res)[2]
-            if hasattr(data, 'location'):
-                lat = data.location.latitude
-                lon = data.location.longitude
-                self.location_received.emit(lat, lon)
+        # Use the existing handle_listening method from LocationFeature
+        self.locationFeature.handle_listening()
 
     def stop(self):
-        self.running = False
+        self.locationFeature._running = False
 
 class LocationSharingThread(QThread):
     def __init__(self, location_feature):
@@ -72,9 +65,19 @@ class ChatWindow(QMainWindow):
         super().__init__()
         uic.loadUi(os.path.join(os.path.dirname(__file__), "chatwindow.ui"), self)
 
+        # Set window title with user info from config
+        user_id = config['user']['userId']
+        server_id = config['user']['serverId']
+        self.setWindowTitle(f"Chat - {user_id}@{server_id}")
+
         # Initialize TypingFeature instance
         self.typing_feature = typing_feature
 
+        # Initialize ChatFeature instance
+        self.chat_feature = chat_feature
+        # Connect chat history update signal to GUI refresh
+        self.chat_feature.chatEventReceived.connect(self.updateChatDisplay)
+        
         # Start background listener thread
         self.typingThread = TypingListenerThread(self.typing_feature)
         self.typingThread.typingEventReceived.connect(self.showTyping)
@@ -85,8 +88,11 @@ class ChatWindow(QMainWindow):
 
         # Start background listener thread
         self.locationListener = LocationListenerThread(self.locationFeature)
-        self.locationListener.location_received.connect(self.displayReceivedLocation)
         self.locationListener.start()
+        # Connect the signal from LocationFeature directly to GUI
+        self.locationFeature.locationEventReceived.connect(self.displayReceivedLocation)
+        # track live-map viewer for continuous updates
+        self.liveMapViewer = None  # will hold the map window for live updates
 
         self.typingTimer = QTimer(self)
         self.typingTimer.setInterval(2000)
@@ -95,6 +101,9 @@ class ChatWindow(QMainWindow):
         self.messageInput.textEdited.connect(self.showTyping)
         self.shareLocationButton.clicked.connect(self.shareLocation)
         self.chatDisplay.anchorClicked.connect(self.handleLinkClick)
+        # disable default link navigation; handle clicks in handleLinkClick  
+        self.chatDisplay.setOpenExternalLinks(False)
+        self.chatDisplay.setOpenLinks(False)
 
         self.sendButton.clicked.connect(self.sendMessage)
 
@@ -105,6 +114,56 @@ class ChatWindow(QMainWindow):
 
         self.log_signal.connect(self.status.append)
         colors.gui_logger = self.thread_safe_log
+        
+        # The chat feature connection is already handled in main.py
+        # Load and display existing chat history when window opens
+        self.updateChatDisplay()
+
+    def updateChatDisplay(self):
+        """Update chat display with all content from chat_history"""
+        # Clear current display
+        self.chatDisplay.clear()
+        
+        # Display all messages from chat_history
+        for message in self.chat_feature.chat_history:
+            formatted_content = self.formatChatMessage(message)
+            self.chatDisplay.append(formatted_content)
+    
+    def formatChatMessage(self, message):
+        """Format a chat message based on its content type"""
+        author_info = message.get('author', {})
+        user_id = author_info.get('userId', 'Unknown')
+        server_id = author_info.get('serverId', 'Unknown')
+        author = f"{user_id}@{server_id}"
+        
+        # Handle different content types based on protobuf oneof content field
+        if 'textContent' in message:
+            return f"{author}: {message['textContent']}"
+        elif 'document' in message:
+            doc_info = message['document']
+            filename = doc_info.get('filename', 'Unknown Document')
+            doc_id = doc_info.get('documentId', 'N/A')
+            mime_type = doc_info.get('mimeType', 'unknown')
+            return f"{author}: 📄 {filename} ({mime_type})"
+        elif 'live_location' in message:
+            # Handle LiveLocation structure (field name is live_location in protobuf)
+            live_loc = message['live_location']
+            location = live_loc.get('location', {})
+            lat = location.get('latitude', 0)
+            lon = location.get('longitude', 0)
+            timestamp = live_loc.get('timestamp', 0)
+            return f"{author}: 📍 Location ({lat:.5f}, {lon:.5f})"
+        elif 'translation' in message:
+            translation_info = message['translation']
+            original_msg = translation_info.get('original_message', 'Unknown')
+            target_lang = translation_info.get('target_language', 0)
+            # Convert language enum to readable format
+            lang_names = {0: 'DE', 1: 'EN', 2: 'ZH'}
+            lang_name = lang_names.get(target_lang, 'Unknown')
+            return f"{author}: 🌐 Translation to {lang_name}: \"{original_msg}\""
+        else:
+            # Fallback for unknown content types
+            return f"{author}: [Unsupported message type]"
 
     def thread_safe_log(self, text):
         self.log_signal.emit(text)
@@ -116,10 +175,14 @@ class ChatWindow(QMainWindow):
     def sendMessage(self):
         text = self.messageInput.text().strip()
         if text:
-            self.send_feature.send_message(recipientUserID(), recipientServerID(), text)
-            self.chatDisplay.append("[You] " + text)
+            # send via chat_feature using recipient IDs
+            self.chat_feature.send_message(
+                self.recipientUserID(),
+                self.recipientServerID(),
+                text
+            )
             self.messageInput.clear()
-            self.chatDisplay.append("[Friend] reply test")
+            # The sent message will be handled by the chat feature and appear in chat_history
 
     def showTyping(self):
         self.typingLabel.setText("writing")
@@ -132,24 +195,32 @@ class ChatWindow(QMainWindow):
         g = geocoder.ip('me')
         if g.ok:
             lat, lon = g.latlng
-            link = f"https://www.google.com/maps?q={lat},{lon}"
-            html = f'<a href="{link}">Click to check the location</a>'
-            self.chatDisplay.append(f"[You] live location: {html}")
-
-            # Run location sharing in a separate thread
+            # open map viewer and update location
+            if self.liveMapViewer is None:
+                self.liveMapViewer = LocationViewer()
+            self.liveMapViewer.show()
+            self.liveMapViewer.updateLocation(lat, lon)
+            
+            # start background location-sharing
             self.locationSharingThread = LocationSharingThread(self.locationFeature)
             self.locationSharingThread.start()
         else:
-            self.chatDisplay.append("[System] Could not get current location.")
+            # Add system message to chat for error
+            pass  # Could add error handling here if needed
 
     def handleLinkClick(self, url):
-        self.viewer = LocationViewer(url.toString())
-        self.viewer.show()
+        # Open the live map viewer (without reloading each time)
+        if self.liveMapViewer is None:
+            self.liveMapViewer = LocationViewer()
+        self.liveMapViewer.show()
 
     def displayReceivedLocation(self, lat, lon):
-        link = f"https://www.google.com/maps?q={lat},{lon}"
-        html = f'<a href="{link}">Click to check the location</a>'
-        self.chatDisplay.append(f"[Friend] live location: {html}")
+        # Update the map marker; open map if needed
+        if self.liveMapViewer is None:
+            self.liveMapViewer = LocationViewer()
+            self.liveMapViewer.show()
+        self.liveMapViewer.updateLocation(lat, lon)
+        # Location messages will appear in chat through the chat_history system
 
     def stopLocationSharing(self):
         self.locationFeature.stop_location_sharing()

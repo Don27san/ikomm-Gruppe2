@@ -4,9 +4,9 @@ from PyQt5.QtWidgets import QApplication
 import sys
 
 if __name__ == "__main__":
-    typing_feature, location_feature = run_client_logic()  #  Receive both instances
+    typing_feature, location_feature, chat_feature, translation, document = run_client_logic()  # Receive all feature instances
 
     app = QApplication(sys.argv)
-    window = ChatWindow(typing_feature, location_feature)  #  Pass both into the window
+    window = ChatWindow(typing_feature, location_feature, chat_feature, translation, document)  # Pass all features into the window
     window.show()
     sys.exit(app.exec_())

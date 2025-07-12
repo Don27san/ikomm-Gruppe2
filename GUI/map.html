@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Live Location</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>html, body, #map { height:100%; margin:0; }</style>
+  <script>
+    let map, marker;
+    function initMap() {
+      map = L.map('map').setView([0,0], 15);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+      marker = L.marker([0,0]).addTo(map);
+    }
+    function updatePosition(lat, lng) {
+      // Use proper Leaflet API methods
+      marker.setLatLng([lat, lng]);
+      map.setView([lat, lng], map.getZoom());
+    }
+  </script>
+</head>
+<body onload="initMap()">
+  <div id="map"></div>
+</body>
+</html>

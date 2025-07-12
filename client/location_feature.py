@@ -3,6 +3,7 @@ import time
 import geocoder
 import random
 import math
+from PyQt5.QtCore import QObject, pyqtSignal
 from utils import green, red, serialize_msg, parse_msg, live_location
 from config import config
 from .feature_base import FeatureBase
@@ -20,13 +21,16 @@ class LocationBridge(QObject):
 
 
 
-class LocationFeature(FeatureBase):
+class LocationFeature(FeatureBase, QObject):
+    # Signal to emit when location is received
+    locationEventReceived = pyqtSignal(float, float)  # lat, lon
     """
     ...
     """
 
     def __init__(self):
         super().__init__('LIVE_LOCATION')
+        QObject.__init__(self)
         self.src_addr = config['address']
         self.src_port = config['location_feature']['client_udp_port']
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -83,13 +87,18 @@ class LocationFeature(FeatureBase):
                 res, addr = self.socket.recvfrom(1024)
                 data = parse_msg(res)[2]
                 self.last_msg_received_time = time.time()
-                green(f'Received live_locations from {addr[0]}:{addr[1]}')
+                green(f'Received live_locations from {addr[0]}:{addr[1]}, {data}')
                 self.location_list = data # Update the event list with the received location events
+                
+                lat = data['extendedLiveLocations'][0]['liveLocation']['location']['latitude']
+                lon = data['extendedLiveLocations'][0]['liveLocation']['location']['longitude']
+                self.locationEventReceived.emit(lat, lon)
+                    
             except Exception as e:
                 red(f"Error receiving or processing data: {e}")
 
 
-def synthetic_location(base_lat, base_lon, max_meters=20):
+def synthetic_location(base_lat, base_lon, max_meters=25):
     delta_lat = random.uniform(-1, 1) * max_meters / 111_320
     delta_lon = random.uniform(-1, 1) * max_meters / (40075000 * abs(math.cos(math.radians(base_lat))) / 360)
     return base_lat + delta_lat, base_lon + delta_lon
