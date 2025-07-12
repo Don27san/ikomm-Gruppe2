@@ -9,7 +9,8 @@ import geocoder
 
 from client.typing_feature import TypingFeature
 from client.location_feature import LocationFeature
-# from client.chat_feature import ChatFeature
+from client.document_feature import DocumentFeature
+# from client.chat_feature iimport ChatFeature
 from utils import parse_msg, colors  # For parsing received messages
 
 
@@ -92,9 +93,13 @@ class ChatWindow(QMainWindow):
         self.typingTimer.timeout.connect(self.clearTyping)
 
         self.messageInput.textEdited.connect(self.showTyping)
-        self.sendButton.clicked.connect(self.sendMessage)
         self.shareLocationButton.clicked.connect(self.shareLocation)
         self.chatDisplay.anchorClicked.connect(self.handleLinkClick)
+
+        self.sendButton.clicked.connect(self.sendMessage)
+
+        self.document_feature = document
+        self.downloadButton.clicked.connect(self.downloadDocument)
 
         self.typingLabel.clear()
 
@@ -150,8 +155,9 @@ class ChatWindow(QMainWindow):
         self.locationFeature.stop_location_sharing()
         self.chatDisplay.append("[System] Location sharing stopped.")
 
-    def downloadDocument():
-        pass
+    def downloadDocument(self):
+        self.document_feature.trigger_document_download(1234567890)
+        
 
     def recipientUserID(self):
         UserID = self.recipient_user_id.text().strip()
