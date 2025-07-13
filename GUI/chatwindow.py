@@ -131,39 +131,27 @@ class ChatWindow(QMainWindow):
     
     def formatChatMessage(self, message):
         """Format a chat message based on its content type"""
-        author_info = message.get('author', {})
-        user_id = author_info.get('userId', 'Unknown')
-        server_id = author_info.get('serverId', 'Unknown')
-        author = f"{user_id}@{server_id}"
+        # Handle protobuf message format
+        author = f"{message.author.userId}@{message.author.serverId}"
         
-        # Handle different content types based on protobuf oneof content field
-        if 'textContent' in message:
-            return f"{author}: {message['textContent']}"
-        elif 'document' in message:
-            doc_info = message['document']
-            filename = doc_info.get('filename', 'Unknown Document')
-            doc_id = doc_info.get('documentId', 'N/A')
-            mime_type = doc_info.get('mimeType', 'unknown')
-            return f"{author}: 📄 {filename} ({mime_type})"
-        elif 'live_location' in message:
-            # Handle LiveLocation structure (field name is live_location in protobuf)
-            live_loc = message['live_location']
-            location = live_loc.get('location', {})
-            lat = location.get('latitude', 0)
-            lon = location.get('longitude', 0)
-            timestamp = live_loc.get('timestamp', 0)
-            return f"{author}: 📍 Location ({lat:.5f}, {lon:.5f})"
-        elif 'translation' in message:
-            translation_info = message['translation']
-            original_msg = translation_info.get('original_message', 'Unknown')
-            target_lang = translation_info.get('target_language', 0)
-            # Convert language enum to readable format
+        # Check if message has textContent directly
+        if hasattr(message, 'textContent') and message.textContent:
+            return f"{author}: {message.textContent}"
+        
+        # Handle other content types if they exist
+        if hasattr(message, 'document') and message.document:
+            doc = message.document
+            return f"{author}: 📄 {doc.filename} ({doc.mimeType})"
+        elif hasattr(message, 'live_location') and message.live_location:
+            loc = message.live_location.location
+            return f"{author}: � Location ({loc.latitude:.5f}, {loc.longitude:.5f})"
+        elif hasattr(message, 'translation') and message.translation:
+            translation = message.translation
             lang_names = {0: 'DE', 1: 'EN', 2: 'ZH'}
-            lang_name = lang_names.get(target_lang, 'Unknown')
-            return f"{author}: 🌐 Translation to {lang_name}: \"{original_msg}\""
+            lang_name = lang_names.get(translation.target_language, 'Unknown')
+            return f"{author}: 🌐 Translation to {lang_name}: \"{translation.original_message}\""
         else:
-            # Fallback for unknown content types
-            return f"{author}: [Unsupported message type]"
+            return f"{author}: [No content]"
 
     def thread_safe_log(self, text):
         self.log_signal.emit(text)
