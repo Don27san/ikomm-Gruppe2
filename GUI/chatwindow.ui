@@ -35,17 +35,17 @@
       </property>
       <item>
        <property name="text">
-        <string>简体中文</string>
+        <string>🇨🇳</string>
        </property>
       </item>
       <item>
        <property name="text">
-        <string>English</string>
+        <string>🇬🇧</string>
        </property>
       </item>
       <item>
        <property name="text">
-        <string>Deutsch</string>
+        <string>🇩🇪</string>
        </property>
       </item>
      </widget>
