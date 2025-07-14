@@ -160,8 +160,6 @@ message TypingEvents {
 //Live Location Structure
 message LiveLocation {
 
-
-
     User author = 1;
 
     oneof recipient {
