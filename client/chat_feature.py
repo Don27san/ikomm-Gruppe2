@@ -5,6 +5,7 @@ import time
 import queue
 from config import config
 from PyQt5.QtCore import QObject, pyqtSignal
+from google.protobuf.json_format import MessageToDict
 
 class ChatFeature(FeatureBase, QObject):
     # Signal to emit when chat history is updated
@@ -15,14 +16,14 @@ class ChatFeature(FeatureBase, QObject):
         self.chat_history = []
         self.ack_list = []
 
-    def send_message(self, recipient_user_id, recipient_server_id, text, content=None):
-        if not self._running or not self.client:
+    def send_message(self, recipient_user_id, recipient_server_id, content=None):
+        if not self.is_connected():
             red("Not connected to chat server.")
             return
 
         # If no content is provided, default to text content
         if content is None:
-            content = {'textContent': text}
+            content = {'textContent': "Hello, this is a test message!"}
 
         # Use the generate_chat_message utility function
         message = generate_chat_message(
@@ -34,10 +35,10 @@ class ChatFeature(FeatureBase, QObject):
 
         try:
             self.client.send_msg(serialize_msg('CHAT_MESSAGE', message))
-            yellow(f"Sent message: {text}")
+            yellow(f"Sent message: {content}")
             
             # Add sent message to chat_history so it appears in GUI
-            self.chat_history.append(message)
+            self.chat_history.append(MessageToDict(message))
             self.chatEventReceived.emit()
             
         except Exception as e:
@@ -50,7 +51,7 @@ class ChatFeature(FeatureBase, QObject):
             user_id = author_info.get('userId', 'Unknown')
             server_id = author_info.get('serverId', 'Unknown')
             message_text = payload.get('textContent', '')
-            green(f"Received message from @{user_id}@{server_id}: \"{message_text}\"")
+            green(f"Received message from {user_id}@{server_id}: \"{message_text}\"")
             
             # Emit trigger signal for GUI to update from chat_history
             self.chatEventReceived.emit()

@@ -29,12 +29,16 @@ class FeatureBase:
         self._running = True
         self.udp_server_port = None
         self.server_address = None
-        self.client=None
+        self.client = None  # Initialize client as None
 
         # Check: server still active?
         self.last_msg_received_time = None
         self.ping_sent = False
         self.ping_timeout = config["conn_mgmt"]["ping_timeout"]
+
+    def is_connected(self):
+        """Check if the client is connected to the server."""
+        return self._running and self.client is not None
 
     def handle_connection(self, server_list):
 
@@ -68,7 +72,6 @@ class FeatureBase:
                         hangup.reason = messenger_pb2.HangUp.Reason.TIMEOUT
                         self.client.send_msg(serialize_msg('HANGUP', hangup))
                         self.client.close()
-                        self.client = None
                         self._running = False
                         red(f"Server not active anymore. {self.feature_name} connection closed to {self.feature_ip}:{self.feature_port} \n")
                         break
@@ -88,7 +91,6 @@ class FeatureBase:
         except Exception as e:
             red(f"Failed to connect to {self.feature_name} on {self.feature_ip}:{self.feature_port}. Error: {e} \n")
             self.client.close()
-            self.client = None
             self._running = False
     
     def _send_connection_request(self):
@@ -133,7 +135,6 @@ class FeatureBase:
         # Handle Hangup
         elif message_name == 'HANGUP':
             self.client.close()
-            self.client = None
             self._running = False
             red(f"Server closes. {self.feature_name} connection closed to {self.feature_ip}:{self.feature_port}. \n")
 
@@ -158,16 +159,12 @@ class FeatureBase:
 
     def stop(self):
         """Gracefully stop the feature process when client UI is closed."""
-        try:
-            if self.client is None:
-                red(f"{self.feature_name}: Client already closed.\n")
-                return
-
-            self._running = False
+        self._running = False
+        if self.client is not None:
             hangup = messenger_pb2.HangUp()
             hangup.reason = messenger_pb2.HangUp.Reason.EXIT
             self.client.send_msg(serialize_msg('HANGUP', hangup))
             self.client.close()
-            red(f"{self.feature_name}: Client is closing. Connection is closed and the server notified. \n")
-        except Exception as e:
-            red(f"{self.feature_name}: Unknown error while closing client: {e}")
+            red(f"Client is closing. {self.feature_name} connection is closed and the server notified. \n")
+        else:
+            red(f"Client is closing. {self.feature_name} was not connected. \n")

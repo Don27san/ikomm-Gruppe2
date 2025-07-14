@@ -86,6 +86,8 @@ class ChatWindow(QMainWindow):
         # Initialize LocationFeature instance
         self.locationFeature = location_feature
 
+        self.translationFeature = translation
+
         # Start background listener thread
         self.locationListener = LocationListenerThread(self.locationFeature)
         self.locationListener.start()
@@ -131,27 +133,46 @@ class ChatWindow(QMainWindow):
     
     def formatChatMessage(self, message):
         """Format a chat message based on its content type"""
-        # Handle protobuf message format
-        author = f"{message.author.userId}@{message.author.serverId}"
+        # Handle dictionary message format with safe access
+        try:
+            author_info = message.get('author', {})
+            user_id = author_info.get('userId', 'Unknown')
+            server_id = author_info.get('serverId', 'Unknown')
+            author = f"{user_id}@{server_id}"
+        except (AttributeError, TypeError):
+            author = "Unknown"
         
-        # Check if message has textContent directly
-        if hasattr(message, 'textContent') and message.textContent:
-            return f"{author}: {message.textContent}"
-        
+        # Check if message has textContent
+        text_content = message.get('textContent', '')
+        if text_content:
+            return f"{author}: {text_content}"
+
         # Handle other content types if they exist
-        if hasattr(message, 'document') and message.document:
-            doc = message.document
-            return f"{author}: 📄 {doc.filename} ({doc.mimeType})"
-        elif hasattr(message, 'live_location') and message.live_location:
-            loc = message.live_location.location
-            return f"{author}: � Location ({loc.latitude:.5f}, {loc.longitude:.5f})"
-        elif hasattr(message, 'translation') and message.translation:
-            translation = message.translation
+        document = message.get('document')
+        if document:
+            filename = document.get('filename', 'Unknown file')
+            mime_type = document.get('mimeType', 'Unknown type')
+            return f"{author}: 📄 {filename} ({mime_type})"
+        
+        live_location = message.get('live_location')
+        if live_location:
+            location = live_location.get('location', {})
+            lat = location.get('latitude', 0.0)
+            lon = location.get('longitude', 0.0)
+            live_location_html = f'<a href="location://{lat},{lon}">Click to check the location</a>'
+            return f"{author}: 📍 Location ({lat:.5f}, {lon:.5f}) - {live_location_html}"
+        
+        translation = message.get('translation')
+
+        # Translation isn't used, it should be differently handled depending on the group
+        if translation:
             lang_names = {0: 'DE', 1: 'EN', 2: 'ZH'}
-            lang_name = lang_names.get(translation.target_language, 'Unknown')
-            return f"{author}: 🌐 Translation to {lang_name}: \"{translation.original_message}\""
-        else:
-            return f"{author}: [No content]"
+            target_lang = translation.get('target_language', -1)
+            lang_name = lang_names.get(target_lang, 'Unknown')
+            original_msg = translation.get('original_message', '')
+            return f"{author}: 🌐 Translation to {lang_name}: \"{original_msg}\""
+        
+        return f"{author}: [No content]"
 
     def thread_safe_log(self, text):
         self.log_signal.emit(text)
@@ -162,15 +183,39 @@ class ChatWindow(QMainWindow):
 
     def sendMessage(self):
         text = self.messageInput.text().strip()
-        if text:
-            # send via chat_feature using recipient IDs
-            self.chat_feature.send_message(
-                self.recipientUserID(),
-                self.recipientServerID(),
-                text
-            )
+        if text and self.recipientUserID() and self.recipientServerID():
+            lang = self.chooseLanguage. currentText()
+            emoji_to_code = {
+                '🇨🇳': 'ZH',
+                '🇬🇧': 'EN',
+                '🇩🇪': 'DE',
+            }
+            if lang == 'choose language':
+                self.chat_feature.send_message(
+                    self.recipientUserID(),
+                    self.recipientServerID(),
+                    {'textContent': text}
+                )
+            elif lang in emoji_to_code:
+                lang_code = emoji_to_code[lang]
+                self.translationFeature.send_translation_request(
+                    text, lang_code, self.recipientUserID(), self.recipientServerID()
+                )   
+            else:
+                print(f"Unsupported language setting: {lang}")
+
             self.messageInput.clear()
-            # The sent message will be handled by the chat feature and appear in chat_history
+
+
+        # if text:
+        #     # send via chat_feature using recipient IDs
+        #     self.chat_feature.send_message(
+        #         self.recipientUserID(),
+        #         self.recipientServerID(),
+        #         text
+        #     )
+        #     self.messageInput.clear()
+        #     # The sent message will be handled by the chat feature and appear in chat_history
 
     def showTyping(self):
         self.typingLabel.setText("writing")
@@ -197,18 +242,31 @@ class ChatWindow(QMainWindow):
             pass  # Could add error handling here if needed
 
     def handleLinkClick(self, url):
-        # Open the live map viewer (without reloading each time)
-        if self.liveMapViewer is None:
-            self.liveMapViewer = LocationViewer()
-        self.liveMapViewer.show()
+        # Handle location links with coordinates
+        url_str = url.toString()
+        if url_str.startswith("location://"):
+            coords = url_str.replace("location://", "")
+            try:
+                lat, lon = map(float, coords.split(","))
+                if self.liveMapViewer is None:
+                    self.liveMapViewer = LocationViewer()
+                self.liveMapViewer.show()
+                self.liveMapViewer.updateLocation(lat, lon)
+            except (ValueError, IndexError):
+                print(f"Invalid location coordinates: {coords}")
+        else:
+            # Open the live map viewer (without reloading each time)
+            if self.liveMapViewer is None:
+                self.liveMapViewer = LocationViewer()
+            self.liveMapViewer.show()
 
     def displayReceivedLocation(self, lat, lon):
         # Update the map marker; open map if needed
-        if self.liveMapViewer is None:
-            self.liveMapViewer = LocationViewer()
-            self.liveMapViewer.show()
-        self.liveMapViewer.updateLocation(lat, lon)
-        # Location messages will appear in chat through the chat_history system
+        # if self.liveMapViewer is None:
+        #     self.liveMapViewer = LocationViewer()
+        #     self.liveMapViewer.show()
+        if self.liveMapViewer is not None:
+            self.liveMapViewer.updateLocation(lat, lon)
 
     def stopLocationSharing(self):
         self.locationFeature.stop_location_sharing()
@@ -223,14 +281,14 @@ class ChatWindow(QMainWindow):
         if UserID:
             return UserID
         else:
-            return "User123"
+            return None
         
     def recipientServerID(self):
         ServerID = self.recipient_server_id.text().strip()
         if ServerID:
             return ServerID
         else:
-            return "server123"
+            return None
 
     def closeEvent(self, event):
         # Gracefully stop threads when window is closed
