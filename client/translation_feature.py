@@ -17,7 +17,7 @@ class TranslationFeature(FeatureBase):
        
 
 
-    def send_translation_request(self, text : str, target_language: target_languages):
+    def send_translation_request(self, text : str, target_language: target_languages, recipient_user_id : str, recipient_server_id: str):
         """
         Sends a translation request to the server of group 4.
         
@@ -33,8 +33,8 @@ class TranslationFeature(FeatureBase):
             author_server_id="server456", 
             recipient={
                 "user": {
-                    "userId": "user789", #Todo @Chang: Needs to be replaced with data from UI 
-                    "serverId": "server456" #Todo @Chang: Needs to be replaced with data from UI 
+                    "userId": recipient_user_id, 
+                    "serverId": recipient_server_id,
                 }
             },
             content={
