@@ -234,16 +234,10 @@ class ChatWindow(QMainWindow):
 
     def closeEvent(self, event):
         # Gracefully stop threads when window is closed
-        self.typingThread.stop()
-        self.locationFeature.stop_location_sharing()
-
-        if hasattr(self, 'locationSharingThread'):
-            self.locationSharingThread.quit()
-            self.locationSharingThread.wait()
-
-        if hasattr(self, 'locationListener'):
-            self.locationListener.stop()
-            self.locationListener.quit()
-            self.locationListener.wait()
+        self.locationFeature.stop()
+        self.typing_feature.stop()
+        self.chat_feature.stop()
+        self.document_feature.stop()
+        #self.translation_feature.stop()
 
         event.accept()

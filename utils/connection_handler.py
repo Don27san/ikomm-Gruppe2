@@ -2,6 +2,7 @@ import socket
 from threading import Thread
 from typing import Tuple
 import queue
+from utils import red
 
 
 class ConnectionHandler:
@@ -130,4 +131,7 @@ class ConnectionHandler:
             return self.msg_queue.get()
 
     def close(self) -> None:
-        self.socket.close()
+        try:
+            self.socket.close()
+        except Exception as e:
+            red(f"{e}")

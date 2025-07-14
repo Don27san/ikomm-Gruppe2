@@ -57,7 +57,7 @@ window = None
 #     global window
 #     app = QApplication(sys.argv)
 #     typing_feature, location_feature, chat_feature, translation, document = run_client_logic()
-#     window = ChatWindow(typing_feature, location_feature)
+#     window = ChatWindow(typing_feature, location_feature, chat_feature, translation, document)
 #     window.show()
 #     sys.exit(app.exec_())
 
