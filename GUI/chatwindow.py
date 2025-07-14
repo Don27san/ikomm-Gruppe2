@@ -193,7 +193,7 @@ class ChatWindow(QMainWindow):
                 self.chat_feature.send_message(
                     self.recipientUserID(),
                     self.recipientServerID(),
-                    text
+                    {'textContent': text}
                 )
             elif lang in emoji_to_code:
                 lang_code = emoji_to_code[lang]
