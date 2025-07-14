@@ -184,17 +184,22 @@ class ChatWindow(QMainWindow):
         text = self.messageInput.text().strip()
         if text:
             lang = self.chooseLanguage. currentText()
-
+            emoji_to_code = {
+                '🇨🇳': 'ZH',
+                '🇬🇧': 'EN',
+                '🇩🇪': 'DE',
+            }
             if lang == 'choose language':
                 self.chat_feature.send_message(
                     self.recipientUserID(),
                     self.recipientServerID(),
                     text
                 )
-            elif lang in ['ZH', 'DE', 'GB']:
+            elif lang in emoji_to_code:
+                lang_code = emoji_to_code[lang]
                 self.translationFeature.send_translation_request(
-                    self, text, lang, self.userID, self.serverID
-                )
+                    self, text, lang_code, self.recipientUserID(), self.recipientServerID()
+                )   
             else:
                 print(f"Unsupported language setting: {lang}")
 

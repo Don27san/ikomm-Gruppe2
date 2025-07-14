@@ -40,12 +40,12 @@
       </item>
       <item>
        <property name="text">
-        <string>🇨🇳</string>
+        <string value="ZH">🇨🇳</string>
        </property>
       </item>
       <item>
        <property name="text">
-        <string>🇬🇧</string>
+        <string value="EN">🇬🇧</string>
        </property>
       </item>
       <item>
