@@ -16,26 +16,6 @@ from utils import parse_msg, colors  # For parsing received messages
 from config import config
 
 
-# Thread for listening to TypingEvent
-class TypingListenerThread(QThread):
-    typingEventReceived = pyqtSignal()
-
-    def __init__(self, typing_feature):
-        super().__init__()
-        self.typing_feature = typing_feature
-        self.running = True
-
-    def run(self):
-        while self.running:
-            data, addr = self.typing_feature.socket.recvfrom(1024)
-            parsed = parse_msg(data)
-            self.typing_feature.event_list = parsed
-            self.typingEventReceived.emit()  # Notify UI
-
-    def stop(self):
-        self.running = False
-        self.quit()
-        self.wait()
 
 class LocationListenerThread(QThread):
     def __init__(self, locationFeature):
@@ -77,11 +57,8 @@ class ChatWindow(QMainWindow):
         self.chat_feature = chat_feature
         # Connect chat history update signal to GUI refresh
         self.chat_feature.chatEventReceived.connect(self.updateChatDisplay)
-        
-        # Start background listener thread
-        self.typingThread = TypingListenerThread(self.typing_feature)
-        self.typingThread.typingEventReceived.connect(self.showTyping)
-        self.typingThread.start()
+        # Connect typing event receival signal to GUI refresh
+        self.typing_feature.typing_event_received.connect(self.showTyping)
 
         # Initialize LocationFeature instance
         self.locationFeature = location_feature
@@ -97,10 +74,10 @@ class ChatWindow(QMainWindow):
         self.liveMapViewer = None  # will hold the map window for live updates
 
         self.typingTimer = QTimer(self)
-        self.typingTimer.setInterval(2000)
+        self.typingTimer.setInterval(1500)
         self.typingTimer.timeout.connect(self.clearTyping)
 
-        self.messageInput.textEdited.connect(self.showTyping)
+        self.messageInput.textEdited.connect(self.typing_feature.on_press)
         self.shareLocationButton.clicked.connect(self.shareLocation)
         self.chatDisplay.anchorClicked.connect(self.handleLinkClick)
         # disable default link navigation; handle clicks in handleLinkClick  
@@ -176,14 +153,11 @@ class ChatWindow(QMainWindow):
     def thread_safe_log(self, text):
         self.log_signal.emit(text)
 
-    def sendTypingEvent(self):
-        self.typing_feature.send_typing_event()
-        self.showTyping()
 
     def sendMessage(self):
         text = self.messageInput.text().strip()
         if text and self.recipientUserID() and self.recipientServerID():
-            lang = self.chooseLanguage. currentText()
+            lang = self.chooseLanguage.currentText()
             emoji_to_code = {
                 '🇨🇳': 'ZH',
                 '🇬🇧': 'EN',
@@ -216,8 +190,15 @@ class ChatWindow(QMainWindow):
         #     self.messageInput.clear()
         #     # The sent message will be handled by the chat feature and appear in chat_history
 
-    def showTyping(self):
-        self.typingLabel.setText("writing")
+    def showTyping(self, events_list=None):
+        currently_typing = []
+        for user in events_list:
+            if time.time() - user.get('timestamp', 0) < 2:
+                currently_typing.append(user['user']['userId'])
+        
+                
+        
+        self.typingLabel.setText(f"{', '.join(currently_typing)} {'are' if len(currently_typing) > 1 else 'is'} typing...")
         self.typingTimer.start()
 
     def clearTyping(self):

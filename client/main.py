@@ -19,7 +19,6 @@ def run_client_logic():
     # typing feature
     typing_event = TypingFeature()
     threading.Thread(target=typing_event.handle_connection, args=(server_list,), daemon=True).start()
-    threading.Thread(target=typing_event.handle_typing, daemon=True).start()
     threading.Thread(target=typing_event.handle_listening, daemon=True).start()
 
     # location feature
