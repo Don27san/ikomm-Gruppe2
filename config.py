@@ -77,7 +77,7 @@ config : Config = {
         'server_forwarding_port': 8889, #Server handles location forwarding
         'client_udp_port': 8890, #Client sends locations and listens to forwardings
         'client_expiry_time': 5, #in min
-        'client_sending_interval': 30, # in s
+        'client_sending_interval': 10, # in s
     }
 }
 

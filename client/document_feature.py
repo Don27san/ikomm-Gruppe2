@@ -42,6 +42,10 @@ class DocumentFeature(FeatureBase):
         """
         Request document download from server
         """
+        if not self.is_connected():
+            red("Not connected to document server.")
+            return
+            
         download_msg = messenger_pb2.DownloadDocument()
         download_msg.documentSnowflake = documentSnowflake
         self.client.send_msg((serialize_msg('DOWNLOAD_DOCUMENT', download_msg)))

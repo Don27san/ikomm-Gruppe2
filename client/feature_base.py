@@ -29,11 +29,16 @@ class FeatureBase:
         self._running = True
         self.udp_server_port = None
         self.server_address = None
+        self.client = None  # Initialize client as None
 
         # Check: server still active?
         self.last_msg_received_time = None
         self.ping_sent = False
         self.ping_timeout = config["conn_mgmt"]["ping_timeout"]
+
+    def is_connected(self):
+        """Check if the client is connected to the server."""
+        return self._running and self.client is not None
 
     def handle_connection(self, server_list):
 
@@ -155,8 +160,11 @@ class FeatureBase:
     def stop(self):
         """Gracefully stop the feature process when client UI is closed."""
         self._running = False
-        hangup = messenger_pb2.HangUp()
-        hangup.reason = messenger_pb2.HangUp.Reason.EXIT
-        self.client.send_msg(serialize_msg('HANGUP', hangup))
-        self.client.close()
-        red(f"Client is closing. {self.feature_name} connection is closed and the server notified. \n")
+        if self.client is not None:
+            hangup = messenger_pb2.HangUp()
+            hangup.reason = messenger_pb2.HangUp.Reason.EXIT
+            self.client.send_msg(serialize_msg('HANGUP', hangup))
+            self.client.close()
+            red(f"Client is closing. {self.feature_name} connection is closed and the server notified. \n")
+        else:
+            red(f"Client is closing. {self.feature_name} was not connected. \n")
