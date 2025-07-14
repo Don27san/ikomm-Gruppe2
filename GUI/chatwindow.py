@@ -189,7 +189,7 @@ class ChatWindow(QMainWindow):
                 self.chat_feature.send_message(
                     self.recipientUserID(),
                     self.recipientServerID(),
-                    text
+                    {'textContent': text}
                 )
             elif lang in ['ZH', 'DE', 'GB']:
                 self.translationFeature.send_translation_request(

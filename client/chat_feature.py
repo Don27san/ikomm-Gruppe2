@@ -16,14 +16,14 @@ class ChatFeature(FeatureBase, QObject):
         self.chat_history = []
         self.ack_list = []
 
-    def send_message(self, recipient_user_id, recipient_server_id, text, content=None):
+    def send_message(self, recipient_user_id, recipient_server_id, content=None):
         if not self._running or not self.client:
             red("Not connected to chat server.")
             return
 
         # If no content is provided, default to text content
         if content is None:
-            content = {'textContent': text}
+            content = {'textContent': "Hello, this is a test message!"}
 
         # Use the generate_chat_message utility function
         message = generate_chat_message(
