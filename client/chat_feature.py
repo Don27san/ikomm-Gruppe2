@@ -17,7 +17,7 @@ class ChatFeature(FeatureBase, QObject):
         self.ack_list = []
 
     def send_message(self, recipient_user_id, recipient_server_id, content=None):
-        if not self._running or not self.client:
+        if not self.is_connected():
             red("Not connected to chat server.")
             return
 
@@ -35,7 +35,7 @@ class ChatFeature(FeatureBase, QObject):
 
         try:
             self.client.send_msg(serialize_msg('CHAT_MESSAGE', message))
-            yellow(f"Sent message: {text}")
+            yellow(f"Sent message: {content}")
             
             # Add sent message to chat_history so it appears in GUI
             self.chat_history.append(MessageToDict(message))

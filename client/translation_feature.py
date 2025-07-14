@@ -2,7 +2,7 @@ from .feature_base import FeatureBase
 from typing import Literal
 from protobuf import messenger_pb2
 from utils import generate_chat_message
-from utils import serialize_msg
+from utils import serialize_msg, red
 
 target_languages = Literal[
     'DE',  # German
@@ -25,6 +25,10 @@ class TranslationFeature(FeatureBase):
             text (str): The text to be translated.
             target_language (str): The language to translate the text into.
         """
+        if not self.is_connected():
+            red("Not connected to translation server.")
+            return
+            
         # It would be best to use send_message function from chat_feature.py
         
         # Construct the translation request message

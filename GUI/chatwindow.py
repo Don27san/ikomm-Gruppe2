@@ -159,7 +159,8 @@ class ChatWindow(QMainWindow):
             location = live_location.get('location', {})
             lat = location.get('latitude', 0.0)
             lon = location.get('longitude', 0.0)
-            return f"{author}: 📍 Location ({lat:.5f}, {lon:.5f})"
+            live_location_html = f'<a href="location://{lat},{lon}">Click to check the location</a>'
+            return f"{author}: 📍 Location ({lat:.5f}, {lon:.5f}) - {live_location_html}"
         
         translation = message.get('translation')
 
@@ -241,18 +242,31 @@ class ChatWindow(QMainWindow):
             pass  # Could add error handling here if needed
 
     def handleLinkClick(self, url):
-        # Open the live map viewer (without reloading each time)
-        if self.liveMapViewer is None:
-            self.liveMapViewer = LocationViewer()
-        self.liveMapViewer.show()
+        # Handle location links with coordinates
+        url_str = url.toString()
+        if url_str.startswith("location://"):
+            coords = url_str.replace("location://", "")
+            try:
+                lat, lon = map(float, coords.split(","))
+                if self.liveMapViewer is None:
+                    self.liveMapViewer = LocationViewer()
+                self.liveMapViewer.show()
+                self.liveMapViewer.updateLocation(lat, lon)
+            except (ValueError, IndexError):
+                print(f"Invalid location coordinates: {coords}")
+        else:
+            # Open the live map viewer (without reloading each time)
+            if self.liveMapViewer is None:
+                self.liveMapViewer = LocationViewer()
+            self.liveMapViewer.show()
 
     def displayReceivedLocation(self, lat, lon):
         # Update the map marker; open map if needed
-        if self.liveMapViewer is None:
-            self.liveMapViewer = LocationViewer()
-            self.liveMapViewer.show()
-        self.liveMapViewer.updateLocation(lat, lon)
-        # Location messages will appear in chat through the chat_history system
+        # if self.liveMapViewer is None:
+        #     self.liveMapViewer = LocationViewer()
+        #     self.liveMapViewer.show()
+        if self.liveMapViewer is not None:
+            self.liveMapViewer.updateLocation(lat, lon)
 
     def stopLocationSharing(self):
         self.locationFeature.stop_location_sharing()
