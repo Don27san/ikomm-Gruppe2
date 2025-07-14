@@ -29,7 +29,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QComboBox" name="comboBox">
+     <widget class="QComboBox" name="chooseLanguage">
       <property name="currentText">
        <string>choose language</string>
       </property>
@@ -50,7 +50,7 @@
       </item>
       <item>
        <property name="text">
-        <string>🇩🇪</string>
+        <string value="DE">🇩🇪</string>
        </property>
       </item>
      </widget>

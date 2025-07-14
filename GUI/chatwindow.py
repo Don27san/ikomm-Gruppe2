@@ -86,6 +86,8 @@ class ChatWindow(QMainWindow):
         # Initialize LocationFeature instance
         self.locationFeature = location_feature
 
+        self.translationFeature = translation
+
         # Start background listener thread
         self.locationListener = LocationListenerThread(self.locationFeature)
         self.locationListener.start()
@@ -163,14 +165,33 @@ class ChatWindow(QMainWindow):
     def sendMessage(self):
         text = self.messageInput.text().strip()
         if text:
-            # send via chat_feature using recipient IDs
-            self.chat_feature.send_message(
-                self.recipientUserID(),
-                self.recipientServerID(),
-                text
-            )
+            lang = self.chooseLanguage. currentText()
+
+            if lang == 'choose language':
+                self.chat_feature.send_message(
+                    self.recipientUserID(),
+                    self.recipientServerID(),
+                    text
+                )
+            elif lang in ['ZH', 'DE', 'GB']:
+                self.translationFeature.send_translation_request(
+                    self, text, lang, self.userID, self.serverID
+                )
+            else:
+                print(f"Unsupported language setting: {lang}")
+
             self.messageInput.clear()
-            # The sent message will be handled by the chat feature and appear in chat_history
+
+
+        # if text:
+        #     # send via chat_feature using recipient IDs
+        #     self.chat_feature.send_message(
+        #         self.recipientUserID(),
+        #         self.recipientServerID(),
+        #         text
+        #     )
+        #     self.messageInput.clear()
+        #     # The sent message will be handled by the chat feature and appear in chat_history
 
     def showTyping(self):
         self.typingLabel.setText("writing")
