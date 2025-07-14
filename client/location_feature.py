@@ -29,7 +29,7 @@ class LocationFeature(FeatureBase, QObject):
 
         self._running_sharing = False
 
-    def start_location_sharing(self):
+    def start_location_sharing(self, recipient_userId: str="user_1", recipient_serverId: str="ikomm_server_2"): # TODO: change to None
         self._running_sharing = True
         self.expiry_at = time.time() + 60 * config['location_feature']['client_expiry_time']
 
@@ -44,6 +44,8 @@ class LocationFeature(FeatureBase, QObject):
         while time.time() < self.expiry_at and self._running and self._running_sharing:
             now = time.time()
             if now - self.last_location_sent > config['location_feature']['client_sending_interval']:
+                live_location.user.userId = str(recipient_userId)
+                live_location.user.serverId = str(recipient_serverId)
                 live_location.timestamp = now
                 live_location.expiry_at = self.expiry_at
 

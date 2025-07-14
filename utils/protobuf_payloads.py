@@ -23,8 +23,8 @@ typing_event.user.serverId = config['user']['serverId'] #Static value, must be r
 
 # LiveLocation Payload
 live_location = messenger_pb2.LiveLocation()
-live_location.user.userId = config['user']['userId'] #Static value, must be replaced if necessary
-live_location.user.serverId = config['user']['serverId'] #Static value, must be replaced if necessary
+live_location.author.userId = config['user']['userId'] #Static value, must be replaced if necessary
+live_location.author.serverId = config['user']['serverId'] #Static value, must be replaced if necessary
 
 # ChatMessage Payload
 chat_message = messenger_pb2.ChatMessage()

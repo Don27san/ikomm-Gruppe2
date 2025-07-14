@@ -9,6 +9,11 @@ message User {
     string serverId = 2;
 }
 
+message UserOfGroup {
+    User user = 1;
+    Group group = 2;
+}
+
 message DiscoverServer {
   // Empty by design. Need this for correct parsing. Do not delete!
 }
@@ -154,14 +159,25 @@ message TypingEvents {
 
 //Live Location Structure
 message LiveLocation {
-    User user = 1;
-    double timestamp = 2;
-    double expiry_at = 3;
+
+
+
+    User author = 1;
+
+    oneof recipient {
+        User user = 3;
+        Group group = 4;
+        UserOfGroup userOfGroup = 5;
+    };
+
+    double timestamp = 6;
+    double expiry_at = 7;
+
     message Location {
         double latitude = 1;
         double longitude = 2;
     };
-    Location location = 4;
+    Location location = 8;
 }
 
 // Bundle for multiple Live Locations
