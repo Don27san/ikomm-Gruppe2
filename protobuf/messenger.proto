@@ -163,19 +163,19 @@ message LiveLocation {
     User author = 1;
 
     oneof recipient {
-        User user = 3;
-        Group group = 4;
-        UserOfGroup userOfGroup = 5;
+        User user = 2;
+        Group group = 3;
+        UserOfGroup userOfGroup = 4;
     };
 
-    double timestamp = 6;
-    double expiry_at = 7;
+    double timestamp = 5;
+    double expiry_at = 6;
 
     message Location {
         double latitude = 1;
         double longitude = 2;
     };
-    Location location = 8;
+    Location location = 7;
 }
 
 // Bundle for multiple Live Locations
