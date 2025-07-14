@@ -5,6 +5,7 @@ import time
 import queue
 from config import config
 from PyQt5.QtCore import QObject, pyqtSignal
+from google.protobuf.json_format import MessageToDict
 
 class ChatFeature(FeatureBase, QObject):
     # Signal to emit when chat history is updated
@@ -37,7 +38,7 @@ class ChatFeature(FeatureBase, QObject):
             yellow(f"Sent message: {text}")
             
             # Add sent message to chat_history so it appears in GUI
-            self.chat_history.append(message)
+            self.chat_history.append(MessageToDict(message))
             self.chatEventReceived.emit()
             
         except Exception as e:
@@ -50,7 +51,7 @@ class ChatFeature(FeatureBase, QObject):
             user_id = author_info.get('userId', 'Unknown')
             server_id = author_info.get('serverId', 'Unknown')
             message_text = payload.get('textContent', '')
-            green(f"Received message from @{user_id}@{server_id}: \"{message_text}\"")
+            green(f"Received message from {user_id}@{server_id}: \"{message_text}\"")
             
             # Emit trigger signal for GUI to update from chat_history
             self.chatEventReceived.emit()

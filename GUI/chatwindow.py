@@ -131,27 +131,45 @@ class ChatWindow(QMainWindow):
     
     def formatChatMessage(self, message):
         """Format a chat message based on its content type"""
-        # Handle protobuf message format
-        author = f"{message.author.userId}@{message.author.serverId}"
+        # Handle dictionary message format with safe access
+        try:
+            author_info = message.get('author', {})
+            user_id = author_info.get('userId', 'Unknown')
+            server_id = author_info.get('serverId', 'Unknown')
+            author = f"{user_id}@{server_id}"
+        except (AttributeError, TypeError):
+            author = "Unknown"
         
-        # Check if message has textContent directly
-        if hasattr(message, 'textContent') and message.textContent:
-            return f"{author}: {message.textContent}"
-        
+        # Check if message has textContent
+        text_content = message.get('textContent', '')
+        if text_content:
+            return f"{author}: {text_content}"
+
         # Handle other content types if they exist
-        if hasattr(message, 'document') and message.document:
-            doc = message.document
-            return f"{author}: 📄 {doc.filename} ({doc.mimeType})"
-        elif hasattr(message, 'live_location') and message.live_location:
-            loc = message.live_location.location
-            return f"{author}: � Location ({loc.latitude:.5f}, {loc.longitude:.5f})"
-        elif hasattr(message, 'translation') and message.translation:
-            translation = message.translation
+        document = message.get('document')
+        if document:
+            filename = document.get('filename', 'Unknown file')
+            mime_type = document.get('mimeType', 'Unknown type')
+            return f"{author}: 📄 {filename} ({mime_type})"
+        
+        live_location = message.get('live_location')
+        if live_location:
+            location = live_location.get('location', {})
+            lat = location.get('latitude', 0.0)
+            lon = location.get('longitude', 0.0)
+            return f"{author}: 📍 Location ({lat:.5f}, {lon:.5f})"
+        
+        translation = message.get('translation')
+
+        # Translation isn't used, it should be differently handled depending on the group
+        if translation:
             lang_names = {0: 'DE', 1: 'EN', 2: 'ZH'}
-            lang_name = lang_names.get(translation.target_language, 'Unknown')
-            return f"{author}: 🌐 Translation to {lang_name}: \"{translation.original_message}\""
-        else:
-            return f"{author}: [No content]"
+            target_lang = translation.get('target_language', -1)
+            lang_name = lang_names.get(target_lang, 'Unknown')
+            original_msg = translation.get('original_message', '')
+            return f"{author}: 🌐 Translation to {lang_name}: \"{original_msg}\""
+        
+        return f"{author}: [No content]"
 
     def thread_safe_log(self, text):
         self.log_signal.emit(text)
