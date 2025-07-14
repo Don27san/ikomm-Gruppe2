@@ -13,7 +13,7 @@ target_languages = Literal[
 class TranslationFeature(FeatureBase):
     
     def __init__(self):
-        super().__init__('Translation')  #Takes care of connection
+        super().__init__('TRANSLATION')  #Takes care of connection
        
 
 
