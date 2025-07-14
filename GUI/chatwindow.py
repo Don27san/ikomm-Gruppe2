@@ -182,7 +182,7 @@ class ChatWindow(QMainWindow):
 
     def sendMessage(self):
         text = self.messageInput.text().strip()
-        if text:
+        if text and self.recipientUserID() and self.recipientServerID():
             lang = self.chooseLanguage. currentText()
             emoji_to_code = {
                 '🇨🇳': 'ZH',
@@ -198,7 +198,7 @@ class ChatWindow(QMainWindow):
             elif lang in emoji_to_code:
                 lang_code = emoji_to_code[lang]
                 self.translationFeature.send_translation_request(
-                    self, text, lang_code, self.recipientUserID(), self.recipientServerID()
+                    text, lang_code, self.recipientUserID(), self.recipientServerID()
                 )   
             else:
                 print(f"Unsupported language setting: {lang}")
@@ -267,14 +267,14 @@ class ChatWindow(QMainWindow):
         if UserID:
             return UserID
         else:
-            return "User123"
+            return None
         
     def recipientServerID(self):
         ServerID = self.recipient_server_id.text().strip()
         if ServerID:
             return ServerID
         else:
-            return "server123"
+            return None
 
     def closeEvent(self, event):
         # Gracefully stop threads when window is closed
