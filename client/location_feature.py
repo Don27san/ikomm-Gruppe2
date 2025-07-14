@@ -29,7 +29,7 @@ class LocationFeature(FeatureBase, QObject):
 
         self._running_sharing = False
 
-    def start_location_sharing(self):
+    def start_location_sharing(self, recipient_userId: str="user_1", recipient_serverId: str="ikomm_server_2"): # TODO: change to None
         self._running_sharing = True
         self.expiry_at = time.time() + 60 * config['location_feature']['client_expiry_time']
 
@@ -37,13 +37,15 @@ class LocationFeature(FeatureBase, QObject):
         error_printed = False
         while self.udp_server_port is None and self._running_sharing and self._running:
             if not error_printed:
-                red(f"Location cannot be shared. No server_forwarding_port received.\n")
+                red(f"{self.feature_name}: Location cannot be shared. No server_forwarding_port received.\n")
                 error_printed = True
             time.sleep(0.1)  # wait 100ms to reduce CPU load
 
         while time.time() < self.expiry_at and self._running and self._running_sharing:
             now = time.time()
             if now - self.last_location_sent > config['location_feature']['client_sending_interval']:
+                live_location.user.userId = str(recipient_userId)
+                live_location.user.serverId = str(recipient_serverId)
                 live_location.timestamp = now
                 live_location.expiry_at = self.expiry_at
 
@@ -55,13 +57,13 @@ class LocationFeature(FeatureBase, QObject):
                         live_location.location.longitude = synthetic_lon
                         try:
                             self.socket.sendto(serialize_msg('LIVE_LOCATION', live_location), (self.server_address, self.udp_server_port))
-                            print(f'\nLive Location sent to {self.server_address}:{self.udp_server_port}')
+                            print(f'{self.feature_name}: \nLive Location sent to {self.server_address}:{self.udp_server_port}')
                         except Exception as e:
-                            red(f"Error while sending live location: {e}")
+                            red(f"{self.feature_name}: Error while sending live location: {e}")
                     else:
-                        red("Could not determine location.")
+                        red("{self.feature_name}: Could not determine location.")
                 except Exception as e:
-                    red(f"Error while sending live location: {e}")
+                    red(f"{self.feature_name}: Error while sending live location: {e}")
                 self.last_location_sent = now
 
     def stop_location_sharing(self):
@@ -73,7 +75,7 @@ class LocationFeature(FeatureBase, QObject):
                 res, addr = self.socket.recvfrom(1024)
                 data = parse_msg(res)[2]
                 self.last_msg_received_time = time.time()
-                green(f'Received live_locations from {addr[0]}:{addr[1]}, {data}')
+                green(f'{self.feature_name}: Received live_locations from {addr[0]}:{addr[1]}, {data}')
                 self.location_list = data # Update the event list with the received location events
                 
                 lat = data['extendedLiveLocations'][0]['liveLocation']['location']['latitude']
@@ -81,7 +83,7 @@ class LocationFeature(FeatureBase, QObject):
                 self.locationEventReceived.emit(lat, lon)
                     
             except Exception as e:
-                red(f"Error receiving or processing data: {e}")
+                red(f"{self.feature_name}: Error receiving or processing data: {e}")
 
 
 def synthetic_location(base_lat, base_lon, max_meters=25):

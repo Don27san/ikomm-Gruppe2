@@ -42,11 +42,14 @@ class DocumentFeature(FeatureBase):
         """
         Request document download from server
         """
-        if not self.is_connected():
-            red("Not connected to document server.")
-            return
-            
-        download_msg = messenger_pb2.DownloadDocument()
-        download_msg.documentSnowflake = documentSnowflake
-        self.client.send_msg((serialize_msg('DOWNLOAD_DOCUMENT', download_msg)))
-        green(f"{self.feature_name}: Document {documentSnowflake} requested from {self.feature_ip}:{self.feature_port}.\n")
+        try:
+            if not self.is_connected():
+                red(f"{self.feature_name}: No connection to server.")
+                return
+
+            download_msg = messenger_pb2.DownloadDocument()
+            download_msg.documentSnowflake = documentSnowflake
+            self.client.send_msg((serialize_msg('DOWNLOAD_DOCUMENT', download_msg)))
+            green(f"{self.feature_name}: Document {documentSnowflake} requested from {self.feature_ip}:{self.feature_port}.\n")
+        except Exception as e:
+            red(f"{self.feature_name}: Unknown Error during document request: {e}.\n")

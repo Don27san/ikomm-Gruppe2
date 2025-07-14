@@ -25,7 +25,7 @@ def run_client_logic():
     # location feature
     live_location = LocationFeature()
     threading.Thread(target=live_location.handle_connection, args=(server_list,), daemon=True).start()
-    threading.Thread(target=live_location.start_location_sharing, daemon=True).start()
+    #threading.Thread(target=live_location.start_location_sharing, daemon=True).start()
     threading.Thread(target=live_location.handle_listening, daemon=True).start()
 
     # chat feature
@@ -57,7 +57,7 @@ window = None
 #     global window
 #     app = QApplication(sys.argv)
 #     typing_feature, location_feature, chat_feature, translation, document = run_client_logic()
-#     window = ChatWindow(typing_feature, location_feature)
+#     window = ChatWindow(typing_feature, location_feature, chat_feature, translation, document)
 #     window.show()
 #     sys.exit(app.exec_())
 

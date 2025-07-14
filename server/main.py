@@ -37,15 +37,16 @@ def main():
     threading.Thread(target=typing_service.handle_connections, daemon=True).start()
     threading.Thread(target=typing_service.handle_forwarding, daemon=True).start()
 
-    # Location Service
-    location_service = LocationService()
-    threading.Thread(target=location_service.handle_connections, daemon=True).start()
-    threading.Thread(target=location_service.handle_forwarding, daemon=True).start()
-
     # Chat Service
     chat_service = ChatService()
     threading.Thread(target=chat_service.handle_connections, daemon=True).start()
     # threading.Thread(target=chat_service.handle_connections, args=(server_list,), daemon=True).start()
+
+    # Location Service
+    location_service = LocationService(chat_service=chat_service)
+    threading.Thread(target=location_service.handle_connections, daemon=True).start()
+    threading.Thread(target=location_service.handle_forwarding, daemon=True).start()
+
 
     # Keep the main thread alive.
     while True:

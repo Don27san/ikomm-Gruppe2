@@ -6,6 +6,7 @@ from utils import blue, green, yellow, red, parse_msg, serialize_msg
 import time
 from .service_base import ServiceBase
 from utils.generate_chat_message import generate_chat_message
+from .chat_service import ChatService
 
 class LocationService(ServiceBase):
     """
@@ -14,23 +15,26 @@ class LocationService(ServiceBase):
     - Handles receival, bundling and forwarding of location events to the subscriber group.
     """
 
-    def __init__(self):
+    def __init__(self, chat_service: ChatService):
         super().__init__('LIVE_LOCATION', bind_port=config['location_feature']['server_connection_port'],
                          forwarding_port=config['location_feature']['server_forwarding_port'])
         self.location_events_list = [] #List to bundle location activities. No filtering, this is client's task!
-
+        self.chat_service = chat_service
 
 
     def handle_forwarding(self):
 
         def send_chatmessage(data):
             content_dict={'live_location': format_live_location(data)}
+            recipient_type, recipient_data = extract_recipient(data)
 
             chatmessage = generate_chat_message(
-                author_user_id=data['user']['userId'],
-                author_server_id=data['user']['serverId'],
-                content=content_dict,
+                author_user_id=data['author']['userId'],
+                author_server_id=data['author']['serverId'],
+                recipient={recipient_type: recipient_data},
+                content=content_dict
             )
+            self.chat_service.route_message(chatmessage)
             print("Initial LiveLocation Chatmessage sent to all clients.")
             return chatmessage.messageSnowflake
 
@@ -58,8 +62,10 @@ class LocationService(ServiceBase):
                 user_found = False
                 # either update location_events_list...
                 for item in self.location_events_list:
-                    if item["userIP"] == data['userIP']:
+                    if item["userIP"] == data['userIP'] and extract_recipient(item) == extract_recipient(data):
                         item["location"] = data['location']
+                        item["expiryAt"] = data["expiryAt"]
+                        item["timestamp"] = data["timestamp"]
                         user_found = True
                         break
                 # ... or append and send chatmessage
@@ -68,7 +74,7 @@ class LocationService(ServiceBase):
                         data["messageSnowflake"] = send_chatmessage(data)
                         self.location_events_list.append(data)
                     except Exception as e:
-                        print("Initial Live Location could not be sent via Chatmessage.")
+                        print(f"Initial Live Location could not be sent via Chatmessage: {e}.")
                     continue  # skip to the next iteration of the while loop, since initial location event is sent via Chatmessage (TCP)
 
                 # Delete expired items in location_events_list
@@ -101,10 +107,23 @@ class LocationService(ServiceBase):
         return live_locations
 
 def format_live_location(data):
-    user_message = ParseDict(data['user'], messenger_pb2.User())
-
     live_location = messenger_pb2.LiveLocation()
-    live_location.user.CopyFrom(user_message)
+
+    author_message = ParseDict(data['author'], messenger_pb2.User())
+    recipient_type, recipient_data = extract_recipient(data)
+    if recipient_type == 'user':
+        recipient_message = ParseDict(recipient_data, messenger_pb2.User())
+        live_location.user.CopyFrom(recipient_message)
+    elif recipient_type == 'group':
+        recipient_message = ParseDict(recipient_data, messenger_pb2.Group())
+        live_location.group.CopyFrom(recipient_message)
+    elif recipient_type == 'userOfGroup':
+        recipient_message = ParseDict(recipient_data, messenger_pb2.ChatMessage.UserOfGroup())
+        live_location.userOfGroup.CopyFrom(recipient_message)
+    else:
+        red("Unknown or missing recipient type in data")
+
+    live_location.author.CopyFrom(author_message)
     live_location.timestamp = data['timestamp']
     live_location.expiry_at = data['expiryAt']
     live_location.location.latitude = data['location']['latitude']
@@ -112,6 +131,22 @@ def format_live_location(data):
 
     return live_location
 
+def extract_recipient(data_dict):
+    """
+    Extracts the recipient type and recipient data from a dictionary
+    converted from a protobuf ChatMessage using MessageToDict.
+
+    Args:
+        data_dict (dict): Dictionary version of a ChatMessage.
+
+    Returns:
+        tuple: (recipient_type: str or None, recipient_data: dict or None)
+    """
+    recipient_keys = ['user', 'group', 'userOfGroup']
+    for key in recipient_keys:
+        if key in data_dict:
+            return key, data_dict[key]
+    return None, None
 
 
 
