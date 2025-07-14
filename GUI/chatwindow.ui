@@ -31,8 +31,13 @@
     <item>
      <widget class="QComboBox" name="comboBox">
       <property name="currentText">
-       <string>简体中文</string>
+       <string>choose language</string>
       </property>
+      <item>
+       <property name="text">
+        <string>choose language</string>
+       </property>
+      </item>
       <item>
        <property name="text">
         <string>🇨🇳</string>
