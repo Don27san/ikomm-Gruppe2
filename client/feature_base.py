@@ -159,12 +159,16 @@ class FeatureBase:
 
     def stop(self):
         """Gracefully stop the feature process when client UI is closed."""
+
         self._running = False
         if self.client is not None:
-            hangup = messenger_pb2.HangUp()
-            hangup.reason = messenger_pb2.HangUp.Reason.EXIT
-            self.client.send_msg(serialize_msg('HANGUP', hangup))
-            self.client.close()
-            red(f"Client is closing. {self.feature_name} connection is closed and the server notified. \n")
+            try:
+                hangup = messenger_pb2.HangUp()
+                hangup.reason = messenger_pb2.HangUp.Reason.EXIT
+                self.client.send_msg(serialize_msg('HANGUP', hangup))
+                self.client.close()
+                red(f"{self.feature_name}: Client is closing. Connection is closed and the server notified. \n")
+            except Exception as e:
+                red(f"{self.feature_name}: Unknown error while closing client: {e}")
         else:
-            red(f"Client is closing. {self.feature_name} was not connected. \n")
+            red(f"{self.feature_name}: Client already closed.\n")

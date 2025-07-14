@@ -25,7 +25,7 @@ def run_client_logic():
     # location feature
     live_location = LocationFeature()
     threading.Thread(target=live_location.handle_connection, args=(server_list,), daemon=True).start()
-    threading.Thread(target=live_location.start_location_sharing, daemon=True).start()
+    #threading.Thread(target=live_location.start_location_sharing, daemon=True).start()
     threading.Thread(target=live_location.handle_listening, daemon=True).start()
 
     # chat feature
