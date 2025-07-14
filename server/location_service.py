@@ -121,7 +121,7 @@ def format_live_location(data):
         recipient_message = ParseDict(recipient_data, messenger_pb2.ChatMessage.UserOfGroup())
         live_location.userOfGroup.CopyFrom(recipient_message)
     else:
-        raise ValueError("Unknown or missing recipient type in data")
+        red("Unknown or missing recipient type in data")
 
     live_location.author.CopyFrom(author_message)
     live_location.timestamp = data['timestamp']
