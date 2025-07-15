@@ -7,7 +7,7 @@ from config import config
 
 from protobuf import messenger_pb2
 
-FeatureName = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'MESSAGES', 'TRANSLATION', 'DOCUMENT']
+FeatureName = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'MESSAGES', 'TRANSLATION', 'documents']
 
 class FeatureBase:
     """
