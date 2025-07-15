@@ -5,7 +5,7 @@ from protobuf import messenger_pb2
 
 class ChatService(ServiceBase):
     def __init__(self):
-        super().__init__('CHAT_MESSAGE', bind_port=config['chat_feature']['server_connection_port'])
+        super().__init__('MESSAGES', bind_port=config['chat_feature']['server_connection_port'])
         self.message_history = {} # Using dict to store messages with snowflake as key
 
     def handle_connections(self):
@@ -13,13 +13,13 @@ class ChatService(ServiceBase):
         super().handle_connections()
 
     def handle_message_for_feature(self, message_name, data, conn, addr):
-        if message_name == 'CHAT_MESSAGE':
+        if message_name == 'MESSAGE':
             subscriberIP = addr[0]
             author_info = data.get('author', {})
             user_id = author_info.get('userId', 'Unknown')
             server_id = author_info.get('serverId', 'Unknown')
             message_text = data.get('textContent', '')
-            green(f"Received CHAT_MESSAGE from @{user_id}@{server_id} ({subscriberIP}): \"{message_text}\"")
+            green(f"Received MESSAGE from @{user_id}@{server_id} ({subscriberIP}): \"{message_text}\"")
 
             # Create a ChatMessage protobuf object from the dictionary
             chat_message = messenger_pb2.ChatMessage()
@@ -82,7 +82,7 @@ class ChatService(ServiceBase):
                 # Author is on another server
                 for server_ip, server_data in self.server_dict.items():
                     if server_data.get('serverId') == original_message.author.serverId:
-                        conn = server_data['functions'].get('CHAT_MESSAGE', {}).get('conn')
+                        conn = server_data['functions'].get('MESSAGES', {}).get('conn')
                         if conn:
                             try:
                                 conn.sendall(serialize_msg('MESSAGE_ACK', ack_response))
@@ -90,7 +90,7 @@ class ChatService(ServiceBase):
                             except Exception as e:
                                 red(f"Failed to send ACK to server: {e}")
                                 conn.close()
-                                server_data['functions']['CHAT_MESSAGE']['conn'] = None
+                                server_data['functions']['MESSAGES']['conn'] = None
                         else:
                             red(f"No connection to server {original_message.author.serverId}")
                         return True
@@ -117,7 +117,7 @@ class ChatService(ServiceBase):
             yellow("Recipient not specified")
 
     def send_msg_to_user(self, chat_message):
-        serialized_message = serialize_msg('CHAT_MESSAGE', chat_message)
+        serialized_message = serialize_msg('MESSAGE', chat_message)
         recipient_user = chat_message.user
         
         # Find the subscriber corresponding to this user on this server
@@ -142,16 +142,16 @@ class ChatService(ServiceBase):
         # Find the server in the server_dict by its serverId
         for server_ip, server_data in self.server_dict.items():
             if server_data.get('serverId') == target_server_id:
-                chat_feature_info = server_data['functions'].get('CHAT_MESSAGE')
+                chat_feature_info = server_data['functions'].get('MESSAGES')
 
                 if not chat_feature_info:
-                    red(f"CHAT_MESSAGE feature not available for server {target_server_id}")
+                    red(f"MESSAGE feature not available for server {target_server_id}")
                     return
 
                 conn = chat_feature_info.get('conn')
                 if conn:
                     try:
-                        serialized_message = serialize_msg('CHAT_MESSAGE', chat_message)
+                        serialized_message = serialize_msg('MESSAGE', chat_message)
                         conn.sendall(serialized_message)
                         green(f"Successfully forwarded message to server {target_server_id}")
                     except Exception as e:

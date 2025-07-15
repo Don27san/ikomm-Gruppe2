@@ -11,7 +11,7 @@ class DocumentFeature(FeatureBase):
     """
 
     def __init__(self):
-        super().__init__('DOCUMENT')
+        super().__init__('documents')
 
     def handle_message_for_feature(self, message_name=None, payload=None, conn=None, addr=None):
         """
