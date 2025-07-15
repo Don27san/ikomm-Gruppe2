@@ -11,7 +11,7 @@ class ChatFeature(FeatureBase, QObject):
     # Signal to emit when chat history is updated
     chatEventReceived = pyqtSignal()  # Trigger signal for GUI to refresh from chat_history
     def __init__(self):
-        super().__init__('CHAT_MESSAGE')
+        super().__init__('MESSAGES')
         QObject.__init__(self)
         self.chat_history = []
         self.ack_list = []
@@ -34,7 +34,7 @@ class ChatFeature(FeatureBase, QObject):
         )
 
         try:
-            self.client.send_msg(serialize_msg('CHAT_MESSAGE', message))
+            self.client.send_msg(serialize_msg('MESSAGE', message))
             yellow(f"Sent message: {content}")
             
             # Add sent message to chat_history so it appears in GUI
@@ -45,7 +45,7 @@ class ChatFeature(FeatureBase, QObject):
             red(f"Failed to send message: {e}")
 
     def handle_message_for_feature(self, message_name=None, payload=None, conn=None, addr=None):
-        if message_name == 'CHAT_MESSAGE':
+        if message_name == 'MESSAGE':
             self.chat_history.append(payload)
             author_info = payload.get('author', {})
             user_id = author_info.get('userId', 'Unknown')

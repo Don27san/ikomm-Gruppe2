@@ -52,6 +52,11 @@
     }
   </style>
   <script>
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialLat = parseFloat(urlParams.get('lat')) || 0;
+    const initialLon = parseFloat(urlParams.get('lon')) || 0;
+
     const customMarker = L.divIcon({
       html: '<div class="custom-marker"><div class="pulse-ring"></div></div>',
       className: '',
@@ -60,13 +65,13 @@
     });
 
     let map, marker;
-    function initMap() {
-      map = L.map('map').setView([0, 0], 15);
+    function initMap(lat = 0, lon = 0) {
+      map = L.map('map').setView([lat, lon], 15);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
-        attribution: '© OpenStreetMap contributors'
+        attribution: '📍 Live Location Active'
       }).addTo(map);
-      marker = L.marker([0, 0], { icon: customMarker }).addTo(map);
+      marker = L.marker([lat, lon], { icon: customMarker }).addTo(map);
     }
     function updatePosition(lat, lng) {
       // Use proper Leaflet API methods
@@ -76,7 +81,7 @@
   </script>
 </head>
 
-<body onload="initMap()">
+<body onload="initMap(initialLat, initialLon)">
   <div id="map"></div>
 </body>
 

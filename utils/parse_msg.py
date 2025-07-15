@@ -14,7 +14,7 @@ message_classes = {
     'TYPING_EVENTS': messenger_pb2.TypingEvents,
     'LIVE_LOCATION': messenger_pb2.LiveLocation,
     'LIVE_LOCATIONS': messenger_pb2.LiveLocations,
-    'CHAT_MESSAGE': messenger_pb2.ChatMessage,
+    'MESSAGE': messenger_pb2.ChatMessage,
     'MESSAGE_ACK': messenger_pb2.ChatMessageResponse,
     'PING': messenger_pb2.Ping,
     'PONG': messenger_pb2.Pong,

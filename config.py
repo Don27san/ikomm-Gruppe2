@@ -3,7 +3,7 @@ import netifaces as ni
 from typing import Literal, List, TypedDict
 
 # Config Types
-Feature = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'CHAT_MESSAGE']
+Feature = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'MESSAGES']
 
 class ConnMgmtConfig(TypedDict):
     discovery_port: int
@@ -34,9 +34,8 @@ class UserConfig(TypedDict):
 class Config(TypedDict):
     address: str
     user: UserConfig
-    serverId: str
     feature_support: List[Feature]
-    server_id: str
+    serverId: str
     conn_mgmt: ConnMgmtConfig
     messaging_feature: MessagingFeatureConfig
     chat_feature: ChatFeatureConfig
@@ -51,11 +50,10 @@ config : Config = {
     'address': ni.ifaddresses('en0')[ni.AF_INET][0]['addr'] if os.getenv('APP_ENV') == 'prod' else '127.0.0.1',
     'user': {
         'userId': 'user_1',
-        'serverId': 'ikomm_server_2'
+        'serverId': 'server_2'
     },
-    'serverId': 'ikomm_server_2', # The ID of this server instance
-    'feature_support': ['TYPING_INDICATOR', 'LIVE_LOCATION', 'CHAT_MESSAGE'],  # Features our client wants to support
-    'server_id': 'Server_2',  
+    'feature_support': ['TYPING_INDICATOR', 'LIVE_LOCATION', 'MESSAGES'],  # Features our client wants to support
+    'serverId': 'server_2',  
 
     # Features and Ports
     'conn_mgmt': {

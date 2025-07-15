@@ -30,12 +30,14 @@ class LocationListenerThread(QThread):
         self.locationFeature._running = False
 
 class LocationSharingThread(QThread):
-    def __init__(self, location_feature):
+    def __init__(self, location_feature, user_id, server_id):
         super().__init__()
         self.location_feature = location_feature
+        self.user_id = user_id
+        self.server_id = server_id
 
     def run(self):
-        self.location_feature.start_location_sharing()
+        self.location_feature.start_location_sharing(self.user_id, self.server_id)
 
 
 class ChatWindow(QMainWindow):
@@ -129,9 +131,14 @@ class ChatWindow(QMainWindow):
         if document:
             filename = document.get('filename', 'Unknown file')
             mime_type = document.get('mimeType', 'Unknown type')
-            return f"{author}: 📄 {filename} ({mime_type})"
+            doc_id = document.get('documentSnowflake')
+            if doc_id:
+                download_link = f'<a href="document://{doc_id}">Click to download</a>'
+            else:
+                download_link = '[No link]'
+            return f"{author}: 📄 {filename} ({mime_type}) - {download_link}"
         
-        live_location = message.get('live_location')
+        live_location = message.get('liveLocation')
         if live_location:
             location = live_location.get('location', {})
             lat = location.get('latitude', 0.0)
@@ -206,17 +213,19 @@ class ChatWindow(QMainWindow):
         self.typingLabel.clear()
 
     def shareLocation(self):
+        user_id = self.recipientUserID()
+        server_id = self.recipientServerID()
         g = geocoder.ip('me')
         if g.ok:
             lat, lon = g.latlng
             # open map viewer and update location
             if self.liveMapViewer is None:
-                self.liveMapViewer = LocationViewer()
+                self.liveMapViewer = LocationViewer(lat, lon)
             self.liveMapViewer.show()
-            self.liveMapViewer.updateLocation(lat, lon)
+            # self.liveMapViewer.updateLocation(lat, lon)
             
             # start background location-sharing
-            self.locationSharingThread = LocationSharingThread(self.locationFeature)
+            self.locationSharingThread = LocationSharingThread(self.locationFeature, user_id, server_id)
             self.locationSharingThread.start()
         else:
             # Add system message to chat for error
@@ -235,6 +244,14 @@ class ChatWindow(QMainWindow):
                 self.liveMapViewer.updateLocation(lat, lon)
             except (ValueError, IndexError):
                 print(f"Invalid location coordinates: {coords}")
+        
+        elif url_str.startswith("document://"):
+            doc_id = url_str.replace("document://", "")
+            try:
+                self.downloadDocument(doc_id)
+            except (ValueError, IndexError):
+                print(f"Invalid document request: {url}")
+
         else:
             # Open the live map viewer (without reloading each time)
             if self.liveMapViewer is None:
@@ -249,12 +266,14 @@ class ChatWindow(QMainWindow):
         if self.liveMapViewer is not None:
             self.liveMapViewer.updateLocation(lat, lon)
 
+
+
     def stopLocationSharing(self):
         self.locationFeature.stop_location_sharing()
         self.chatDisplay.append("[System] Location sharing stopped.")
 
-    def downloadDocument(self):
-        self.document_feature.trigger_document_download(1234567890)
+    def downloadDocument(self, doc_id):
+        self.document_feature.trigger_document_download(doc_id)
         
 
     def recipientUserID(self):
