@@ -3,12 +3,12 @@ from config import config
 
 # Server_Announce Payload
 server_announce = messenger_pb2.ServerAnnounce()
-server_announce.serverId=config['server_id']
+server_announce.serverId=config['serverId']
 server_announce.feature.add(featureName="TYPING_INDICATOR", port=config['typing_feature']['server_connection_port'],
                             udpPort=config['typing_feature']['server_forwarding_port'])
 server_announce.feature.add(featureName="LIVE_LOCATION", port=config['location_feature']['server_connection_port'],
                             udpPort=config['location_feature']['server_forwarding_port'])
-server_announce.feature.add(featureName="CHAT_MESSAGE", port=config['chat_feature']['server_connection_port'],
+server_announce.feature.add(featureName="MESSAGES", port=config['chat_feature']['server_connection_port'],
                             udpPort=0)
 
 # Connect_Client Payload

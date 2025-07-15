@@ -7,7 +7,7 @@ from config import config
 
 from protobuf import messenger_pb2
 
-FeatureName = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'CHAT_MESSAGE', 'TRANSLATION', 'DOCUMENT']
+FeatureName = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'MESSAGES', 'TRANSLATION', 'DOCUMENT']
 
 class FeatureBase:
     """
@@ -84,6 +84,7 @@ class FeatureBase:
                         continue
 
                     # Handle messages; pass client conn and address
+                print(f"Received message '{message_name}' from {addr} for {self.feature_name} on {self.feature_ip}:{self.feature_port} - {payload}")
                 message_handled = self.handle_message_for_feature(message_name, payload, self.client, addr)
                 if not message_handled:
                     self._handle_base_messages(message_name, payload, self.client, addr)
@@ -98,7 +99,7 @@ class FeatureBase:
             connect_client.udpPort = config['typing_feature']['client_udp_port']
         elif self.feature_name == 'LIVE_LOCATION':
             connect_client.udpPort = config['location_feature']['client_udp_port']
-        elif self.feature_name == 'CHAT_MESSAGE':
+        elif self.feature_name == 'MESSAGES':
             connect_client.udpPort = 0  # Chat uses TCP only, no UDP needed
         elif self.feature_name == 'TRANSLATION':
             connect_client.udpPort = 0  # Translation uses TCP only, no UDP needed
