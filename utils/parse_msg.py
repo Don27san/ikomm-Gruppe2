@@ -20,6 +20,7 @@ message_classes = {
     'PONG': messenger_pb2.Pong,
     'UNSUPPORTED_MESSAGE': messenger_pb2.UnsupportedMessage,
     'DOWNLOADING_DOCUMENT': messenger_pb2.DownloadingDocument,
+    'TRANSLATED': messenger_pb2.Translated,
 }
 
 
