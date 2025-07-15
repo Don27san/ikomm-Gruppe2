@@ -131,7 +131,12 @@ class ChatWindow(QMainWindow):
         if document:
             filename = document.get('filename', 'Unknown file')
             mime_type = document.get('mimeType', 'Unknown type')
-            return f"{author}: 📄 {filename} ({mime_type})"
+            doc_id = document.get('documentSnowflake')
+            if doc_id:
+                download_link = f'<a href="document://{doc_id}">Click to download</a>'
+            else:
+                download_link = '[No link]'
+            return f"{author}: 📄 {filename} ({mime_type}) - {download_link}"
         
         live_location = message.get('live_location')
         if live_location:
@@ -259,8 +264,8 @@ class ChatWindow(QMainWindow):
         self.locationFeature.stop_location_sharing()
         self.chatDisplay.append("[System] Location sharing stopped.")
 
-    def downloadDocument(self):
-        self.document_feature.trigger_document_download(1234567890)
+    def downloadDocument(self, doc_id):
+        self.document_feature.trigger_document_download(doc_id)
         
 
     def recipientUserID(self):
