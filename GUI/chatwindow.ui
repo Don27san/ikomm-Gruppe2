@@ -12,6 +12,18 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="leftMargin">
+ <number>10</number>
+</property>
+<property name="topMargin">
+ <number>10</number>
+</property>
+<property name="rightMargin">
+ <number>10</number>
+</property>
+<property name="bottomMargin">
+ <number>10</number>
+</property>
     <item>
      <widget class="QTextBrowser" name="chatDisplay"/>
     </item>
@@ -29,80 +41,105 @@
      </widget>
     </item>
     <item>
-     <widget class="QComboBox" name="chooseLanguage">
-      <property name="currentText">
-       <string>choose language</string>
-      </property>
-      <item>
-       <property name="text">
-        <string>choose language</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string value="ZH">🇨🇳</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string value="EN">🇬🇧</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string value="DE">🇩🇪</string>
-       </property>
-      </item>
-     </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <property name="spacing">
+        <number>1</number>
+        </property>
+        <property name="topMargin">
+        <number>0</number>
+        </property>
+        <item>
+        <widget class="QLineEdit" name="recipient_user_id">
+            <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+            </sizepolicy>
+            </property>
+            <property name="placeholderText">
+            <string>RecipientUserID</string>
+            </property>
+        </widget>
+        </item>
+        <item>
+        <widget class="QLineEdit" name="recipient_server_id">
+            <property name="sizePolicy">
+            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+            </sizepolicy>
+            </property>
+            <property name="placeholderText">
+            <string>RecipientServerID</string>
+            </property>
+        </widget>
+        </item>
+        </layout>
     </item>
-    <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_5">
-      <property name="spacing">
-       <number>2</number>
-      </property>
-      <property name="topMargin">
-       <number>0</number>
-      </property>
-      <item>
-       <widget class="QLabel" name="label">
-        <property name="text">
-         <string>RecipientUserID</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="recipient_user_id">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_2">
-        <property name="text">
-         <string>RecipientServerID</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="recipient_server_id">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
+    <!-- Removed the standalone chooseLanguage item here -->
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="spacing">
+  <number>2</number> <!-- Or 0 if you want them tightly packed -->
+ </property>
+ <property name="leftMargin">
+  <number>0</number>
+ </property>
+ <property name="topMargin">
+  <number>0</number>
+ </property>
+ <property name="rightMargin">
+  <number>0</number>
+ </property>
+ <property name="bottomMargin">
+  <number>0</number>
+ </property>
+        <item>
+       <widget class="QPushButton" name="shareLocationButton">
+        <property name="text">
+         <string>📍</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+     <widget class="QPushButton" name="downloadButton">
+      <property name="text">
+       <string>📁</string>
+      </property>
+     </widget>
+    </item>
+      <item>
+       <widget class="QComboBox" name="chooseLanguage">
+        <property name="currentText">
+         <string>choose language</string>
+        </property>
+        <item>
+         <property name="text">
+          <string>🌐</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string value="ZH">🇨🇳</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string value="EN">🇬🇧</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string value="DE">🇩🇪</string>
+         </property>
+        </item>
+       </widget>
+      </item>
       <item>
        <widget class="QLineEdit" name="messageInput">
+                   <property name="placeholderText">
+            <string>Type a message</string>
+            </property>
         <property name="sizePolicy">
          <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -124,22 +161,10 @@
         </property>
        </widget>
       </item>
+
      </layout>
     </item>
-    <item>
-     <widget class="QPushButton" name="shareLocationButton">
-      <property name="text">
-       <string>location</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QPushButton" name="downloadButton">
-      <property name="text">
-       <string>Document download</string>
-      </property>
-     </widget>
-    </item>
+    
     <item>
      <widget class="QTextBrowser" name="status"/>
     </item>
