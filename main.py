@@ -33,7 +33,7 @@ if __name__ == "__main__":
     threading.Thread(target=chat_feature.handle_connection, args=(server_list,), daemon=True).start()
 
     # translation feature
-    translation_feature = TranslationFeature()
+    translation_feature = TranslationFeature(chat_feature=chat_feature)
     threading.Thread(target=translation_feature.handle_connection, args=(server_list,), daemon=True).start()
 
     # document feature
