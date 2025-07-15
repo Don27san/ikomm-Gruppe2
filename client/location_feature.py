@@ -29,7 +29,11 @@ class LocationFeature(FeatureBase, QObject):
 
         self._running_sharing = False
 
-    def start_location_sharing(self, recipient_userId: str="user_1", recipient_serverId: str="ikomm_server_2"): # TODO: change to None
+    def start_location_sharing(self, recipient_userId: str=None, recipient_serverId: str=None):
+        if recipient_userId is None or recipient_serverId is None:
+            red(f"{self.feature_name}: No recipient specified. Location could not be shared.\n")
+            return
+
         self._running_sharing = True
         self.expiry_at = time.time() + 60 * config['location_feature']['client_expiry_time']
 
