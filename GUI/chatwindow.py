@@ -133,7 +133,7 @@ class ChatWindow(QMainWindow):
             mime_type = document.get('mimeType', 'Unknown type')
             return f"{author}: 📄 {filename} ({mime_type})"
         
-        live_location = message.get('live_location')
+        live_location = message.get('liveLocation')
         if live_location:
             location = live_location.get('location', {})
             lat = location.get('latitude', 0.0)
