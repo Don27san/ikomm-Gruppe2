@@ -6,6 +6,15 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
+class Language(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
+    __slots__ = ()
+    DE: _ClassVar[Language]
+    EN: _ClassVar[Language]
+    ZH: _ClassVar[Language]
+DE: Language
+EN: Language
+ZH: Language
+
 class User(_message.Message):
     __slots__ = ("userId", "serverId")
     USERID_FIELD_NUMBER: _ClassVar[int]
@@ -127,21 +136,23 @@ class Document(_message.Message):
 
 class Translate(_message.Message):
     __slots__ = ("target_language", "original_text", "translated_text")
-    class Language(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
-        __slots__ = ()
-        DE: _ClassVar[Translate.Language]
-        EN: _ClassVar[Translate.Language]
-        ZH: _ClassVar[Translate.Language]
-    DE: Translate.Language
-    EN: Translate.Language
-    ZH: Translate.Language
     TARGET_LANGUAGE_FIELD_NUMBER: _ClassVar[int]
     ORIGINAL_TEXT_FIELD_NUMBER: _ClassVar[int]
     TRANSLATED_TEXT_FIELD_NUMBER: _ClassVar[int]
-    target_language: Translate.Language
+    target_language: Language
     original_text: str
     translated_text: str
-    def __init__(self, target_language: _Optional[_Union[Translate.Language, str]] = ..., original_text: _Optional[str] = ..., translated_text: _Optional[str] = ...) -> None: ...
+    def __init__(self, target_language: _Optional[_Union[Language, str]] = ..., original_text: _Optional[str] = ..., translated_text: _Optional[str] = ...) -> None: ...
+
+class Translated(_message.Message):
+    __slots__ = ("target_language", "original_text", "translated_text")
+    TARGET_LANGUAGE_FIELD_NUMBER: _ClassVar[int]
+    ORIGINAL_TEXT_FIELD_NUMBER: _ClassVar[int]
+    TRANSLATED_TEXT_FIELD_NUMBER: _ClassVar[int]
+    target_language: Language
+    original_text: str
+    translated_text: str
+    def __init__(self, target_language: _Optional[_Union[Language, str]] = ..., original_text: _Optional[str] = ..., translated_text: _Optional[str] = ...) -> None: ...
 
 class ChatMessage(_message.Message):
     __slots__ = ("messageSnowflake", "author", "user", "group", "userOfGroup", "textContent", "document", "live_location")

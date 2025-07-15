@@ -89,12 +89,19 @@ message Document {
 }
 
 // Translation Structure
-message Translate {
-  enum Language {
+enum Language {
     DE = 0; // German
     EN = 1; // English
     ZH = 2; // Chinese
-  }
+}
+
+message Translate {
+  Language target_language = 1;
+  string original_text = 2;
+  optional string translated_text = 3;
+}
+
+message Translated {
   Language target_language = 1;
   string original_text = 2;
   optional string translated_text = 3;
