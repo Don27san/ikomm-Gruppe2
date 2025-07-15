@@ -89,15 +89,24 @@ message Document {
 }
 
 // Translation Structure
-message Translation {
-    enum Language{
-        DE = 0;
-        EN = 1;
-        ZH = 2;
-    }
-    string original_message = 1;
-    Language target_language = 2;
+enum Language {
+    DE = 0; // German
+    EN = 1; // English
+    ZH = 2; // Chinese
 }
+
+message Translate {
+  Language target_language = 1;
+  string original_text = 2;
+  optional string translated_text = 3;
+}
+
+message Translated {
+  Language target_language = 1;
+  string original_text = 2;
+  optional string translated_text = 3;
+}
+
 
 message ChatMessage {
     uint64 messageSnowflake = 1;
@@ -119,7 +128,6 @@ message ChatMessage {
         string textContent = 11;
         Document document = 12;
         LiveLocation live_location = 22;
-        Translation translation = 23;
        // stickers, etc...
     }
 }

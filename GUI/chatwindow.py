@@ -219,9 +219,9 @@ class ChatWindow(QMainWindow):
             lat, lon = g.latlng
             # open map viewer and update location
             if self.liveMapViewer is None:
-                self.liveMapViewer = LocationViewer()
+                self.liveMapViewer = LocationViewer(lat, lon)
             self.liveMapViewer.show()
-            self.liveMapViewer.updateLocation(lat, lon)
+            # self.liveMapViewer.updateLocation(lat, lon)
             
             # start background location-sharing
             self.locationSharingThread = LocationSharingThread(self.locationFeature, user_id, server_id)
@@ -243,6 +243,14 @@ class ChatWindow(QMainWindow):
                 self.liveMapViewer.updateLocation(lat, lon)
             except (ValueError, IndexError):
                 print(f"Invalid location coordinates: {coords}")
+        
+        elif url_str.startswith("document://"):
+            doc_id = url_str.replace("document://", "")
+            try:
+                self.downloadDocument(doc_id)
+            except (ValueError, IndexError):
+                print(f"Invalid document request: {url}")
+
         else:
             # Open the live map viewer (without reloading each time)
             if self.liveMapViewer is None:

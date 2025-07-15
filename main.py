@@ -33,7 +33,7 @@ if __name__ == "__main__":
     threading.Thread(target=chat_feature.handle_connection, args=(server_list,), daemon=True).start()
 
     # translation feature
-    translation_feature = TranslationFeature()
+    translation_feature = TranslationFeature(chat_feature=chat_feature)
     threading.Thread(target=translation_feature.handle_connection, args=(server_list,), daemon=True).start()
 
     # document feature
@@ -47,6 +47,47 @@ if __name__ == "__main__":
 
     time.sleep(1)  # Ensure features are initialized before creating the window
     app = QApplication(sys.argv)
+    app.setStyleSheet("""
+
+
+    QPushButton {
+        background-color: #424242;
+        border-radius: 5px;
+        padding: 10px 10px;
+    }
+    QPushButton:hover {
+        background-color: #656565;
+    }
+
+    QLineEdit {
+        padding: 10px;
+        border-radius: 5px;
+    }
+                      
+    #sendButton {
+    background-color: #1F5CF1;
+    color: white;
+    }
+                      
+    #messageInput{
+        margin:0px 8px;
+    }
+    
+    QComboBox {
+        background-color: #424242;
+        border-radius: 5px;
+        padding: 10px;
+        color: white;
+        border: none;
+    }
+
+    QComboBox::drop-down {
+        border: none;
+        background: transparent;
+        width: 0px;
+    }
+
+    """)
     window = ChatWindow(typing_feature, location_feature, chat_feature, translation_feature, document_feature)  #  Pass both into the window
     window.show()
     sys.exit(app.exec_())

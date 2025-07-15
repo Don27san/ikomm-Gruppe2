@@ -45,7 +45,7 @@ class FeatureBase:
         try:
             self.feature_ip, self.feature_port, self.udp_server_port = self._get_server_for_feature(server_list)
         except ValueError as e:
-            red(str(e) + '\n')
+            red(str(e))
             return
         
         self.server_address = self.feature_ip
@@ -107,7 +107,7 @@ class FeatureBase:
             connect_client.udpPort = 0  # Document uses TCP only, no UDP needed
 
         self.client.send_msg(serialize_msg('CONNECT_CLIENT', connect_client))
-        blue(f'Trying to connect to feature: {self.feature_name}...')
+        blue(f"Trying to connect to feature: '{self.feature_name}'...")
 
     def handle_message_for_feature(self, message_name=None, payload=None, conn=None, addr=None):
         """
@@ -156,7 +156,7 @@ class FeatureBase:
                 if features['featureName'] == self.feature_name:
                     return feature_server['server_ip'], features['port'], features.get('udpPort')
 
-        raise ValueError(f"Could not find server hosting feature '{self.feature_name}' in the provided server list.")
+        raise ValueError(f"Could not connect to feature '{self.feature_name}'. Not found in provided server list.")
 
     def stop(self):
         """Gracefully stop the feature process when client UI is closed."""
