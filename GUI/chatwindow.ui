@@ -134,13 +134,6 @@
      </widget>
     </item>
     <item>
-     <widget class="QPushButton" name="downloadButton">
-      <property name="text">
-       <string>Document download</string>
-      </property>
-     </widget>
-    </item>
-    <item>
      <widget class="QTextBrowser" name="status"/>
     </item>
    </layout>

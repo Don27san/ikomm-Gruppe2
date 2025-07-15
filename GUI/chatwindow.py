@@ -89,7 +89,6 @@ class ChatWindow(QMainWindow):
         self.sendButton.clicked.connect(self.sendMessage)
 
         self.document_feature = document
-        self.downloadButton.clicked.connect(self.downloadDocument)
 
         self.typingLabel.clear()
 
