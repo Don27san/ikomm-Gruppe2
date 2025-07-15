@@ -5,7 +5,7 @@ from utils import ConnectionHandler, parse_msg, serialize_msg, red, green, yello
 from config import config
 from protobuf import messenger_pb2
 
-FeatureName = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'CHAT_MESSAGE']
+FeatureName = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'MESSAGES']
 
 class ServiceBase:
     def __init__(self, feature_name : FeatureName, bind_port, forwarding_port=None):
@@ -16,7 +16,7 @@ class ServiceBase:
         self.subscriber_dict = {}   # dict to store feature subscribers
         self.server_dict = {'192.168.1.101': {
             'serverId': 'server_2',
-            'functions': {'CHAT_MESSAGE': {
+            'functions': {'MESSAGES': {
                 'conn': None,
                 'port': 6666,
             }

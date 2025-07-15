@@ -12,7 +12,7 @@ MessageName = Literal[
     'TYPING_EVENTS',
     'LIVE_LOCATION',
     'LIVE_LOCATIONS',
-    'CHAT_MESSAGE',
+    'MESSAGE',
     'PING',
     'PONG',
     'UNSUPPORTED_MESSAGE',
