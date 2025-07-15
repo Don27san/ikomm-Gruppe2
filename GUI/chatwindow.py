@@ -30,12 +30,14 @@ class LocationListenerThread(QThread):
         self.locationFeature._running = False
 
 class LocationSharingThread(QThread):
-    def __init__(self, location_feature):
+    def __init__(self, location_feature, user_id, server_id):
         super().__init__()
         self.location_feature = location_feature
+        self.user_id = user_id
+        self.server_id = server_id
 
     def run(self):
-        self.location_feature.start_location_sharing()
+        self.location_feature.start_location_sharing(self.user_id, self.server_id)
 
 
 class ChatWindow(QMainWindow):
@@ -206,6 +208,8 @@ class ChatWindow(QMainWindow):
         self.typingLabel.clear()
 
     def shareLocation(self):
+        user_id = self.recipientUserID()
+        server_id = self.recipientServerID()
         g = geocoder.ip('me')
         if g.ok:
             lat, lon = g.latlng
@@ -216,7 +220,7 @@ class ChatWindow(QMainWindow):
             self.liveMapViewer.updateLocation(lat, lon)
             
             # start background location-sharing
-            self.locationSharingThread = LocationSharingThread(self.locationFeature)
+            self.locationSharingThread = LocationSharingThread(self.locationFeature, user_id, server_id)
             self.locationSharingThread.start()
         else:
             # Add system message to chat for error
@@ -248,6 +252,8 @@ class ChatWindow(QMainWindow):
         #     self.liveMapViewer.show()
         if self.liveMapViewer is not None:
             self.liveMapViewer.updateLocation(lat, lon)
+
+
 
     def stopLocationSharing(self):
         self.locationFeature.stop_location_sharing()
