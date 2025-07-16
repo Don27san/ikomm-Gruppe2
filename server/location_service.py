@@ -21,13 +21,11 @@ class LocationService(ServiceBase):
         self.location_events_list = [] #List to bundle location activities. No filtering, this is client's task!
         self.chat_service = chat_service
 
-
     def handle_forwarding(self):
 
         def send_chatmessage(data):
             content_dict={'live_location': format_live_location(data)}
             recipient_type, recipient_data = extract_recipient(data)
-
 
             chatmessage = generate_chat_message(
                 author_user_id=data['author']['userId'],
