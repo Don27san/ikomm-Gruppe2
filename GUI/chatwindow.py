@@ -170,7 +170,7 @@ class ChatWindow(QMainWindow):
                 '🇬🇧': 'EN',
                 '🇩🇪': 'DE',
             }
-            if lang == 'choose language':
+            if lang == '🌐':
                 self.chat_feature.send_message(
                     self.recipientUserID(),
                     self.recipientServerID(),
