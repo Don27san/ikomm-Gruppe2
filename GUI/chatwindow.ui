@@ -120,17 +120,17 @@
         </item>
         <item>
          <property name="text">
-          <string value="ZH">🇨🇳</string>
+          <string>🇨🇳</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string value="EN">🇬🇧</string>
+          <string>🇬🇧</string>
          </property>
         </item>
         <item>
          <property name="text">
-          <string value="DE">🇩🇪</string>
+          <string>🇩🇪</string>
          </property>
         </item>
        </widget>
