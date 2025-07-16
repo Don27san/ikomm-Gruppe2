@@ -30,10 +30,19 @@ class TypingService(ServiceBase):
             data = parse_msg(res)[2]
             data['userIP'] = addr[0]
             data['userPort'] = addr[1]
-            green(f'\nReceived typing_event from {addr[0]}:{addr[1]}')
 
-            if addr[0] in self.subscriber_dict.keys():
-                self.subscriber_dict[addr[0]]['lastActive'] = time.time()
+            # Update last active:
+            author_is_subscribed = False
+            for subscriber_addr, item in self.subscriber_dict.items():
+                if addr[0] == subscriber_addr[0] and addr[1] == item['udpPort']:
+                    self.subscriber_dict[subscriber_addr]['lastActive'] = time.time()
+                    author_is_subscribed = True
+                    break
+
+            green(f'\nReceived typing_event from {addr[0]}:{addr[1]}')
+            # Check if author is subscribed
+            if not author_is_subscribed:
+                yellow(f"Author {addr[0]}:{addr[1]} is not subscribed to TYPING INDICATOR.")
 
             # 'Upsert' typing_events_list
             if data['userIP'] not in [item['userIP'] for item in self.typing_events_list]:
@@ -46,11 +55,11 @@ class TypingService(ServiceBase):
             #Forward typing_events_list to all subscribers.
             if len(self.subscriber_dict) > 0:
 
-                for subscriberIP, data in self.subscriber_dict.items():
-                    print(f"Forwarded to {subscriberIP}:{data['udpPort']}")
+                for subscriber_addr, data in self.subscriber_dict.items():
+                    print(f"Forwarded to {subscriber_addr[0]}:{data['udpPort']}")
                     typing_events = self.format_typing_events_list()
                     # Forward message 
-                    forwarding_socket.sendto(serialize_msg('TYPING_EVENTS', typing_events), (subscriberIP, data['udpPort']))
+                    forwarding_socket.sendto(serialize_msg('TYPING_EVENTS', typing_events), (subscriber_addr[0], data['udpPort']))
             
             else:
                 yellow('Empty subscriber_list. No forwarding of typing_events.')
