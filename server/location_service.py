@@ -28,6 +28,7 @@ class LocationService(ServiceBase):
             content_dict={'live_location': format_live_location(data)}
             recipient_type, recipient_data = extract_recipient(data)
 
+
             chatmessage = generate_chat_message(
                 author_user_id=data['author']['userId'],
                 author_server_id=data['author']['serverId'],
@@ -54,15 +55,23 @@ class LocationService(ServiceBase):
                 data['userPort'] = addr[1]
                 data['messageSnowflake'] = None
 
-                if addr[0] in self.subscriber_dict.keys():
-                    self.subscriber_dict[addr[0]]['lastActive'] = time.time()
+                # Update last active:
+                author_is_subscribed = False
+                for subscriber_addr, item in self.subscriber_dict.items():
+                    if addr[0] == subscriber_addr[0] and addr[1] == item['udpPort']:
+                        self.subscriber_dict[subscriber_addr]['lastActive'] = time.time()
+                        author_is_subscribed = True
+                        break
 
                 green(f'\nReceived Live Location from {addr[0]}:{addr[1]}')
+                # Check if author is subscribed
+                if not author_is_subscribed:
+                    yellow(f"Author {addr[0]}:{addr[1]} is not subscribed to LIVE LOCATIONs.")
 
                 user_found = False
                 # either update location_events_list...
                 for item in self.location_events_list:
-                    if item["userIP"] == data['userIP'] and extract_recipient(item) == extract_recipient(data):
+                    if item["userIP"] == data['userIP'] and item['userPort'] == data['userPort'] and extract_recipient(item) == extract_recipient(data):
                         item["location"] = data['location']
                         item["expiryAt"] = data["expiryAt"]
                         item["timestamp"] = data["timestamp"]
@@ -86,11 +95,11 @@ class LocationService(ServiceBase):
                 # Forward location_events_list to all subscribers.
                 if len(self.subscriber_dict) > 0:
                     live_locations = self.format_live_locations_list()
-                    for subscriberIP, data in self.subscriber_dict.items():
+                    for subscriber_addr, data in self.subscriber_dict.items():
                         # Forward message
                         forwarding_socket.sendto(serialize_msg('LIVE_LOCATIONS', live_locations),
-                                                (subscriberIP, data['udpPort']))
-                        print(f"Forwarded to {subscriberIP}:{data['udpPort']}")
+                                                (subscriber_addr[0], data['udpPort']))
+                        print(f"Forwarded to {subscriber_addr[0]}:{data['udpPort']}")
                 else:
                     yellow('Empty subscriber_list. No forwarding of live locations. \n')
             except Exception as e:
