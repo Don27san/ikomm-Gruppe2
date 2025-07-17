@@ -1,10 +1,11 @@
 import socket
 from protobuf import messenger_pb2
 from config import config
-from utils import blue, green, yellow, parse_msg, serialize_msg, parse_msg, serialize_msg, MessageStream
+from utils import blue, green, yellow, parse_msg, serialize_msg
 import time
+from .service_base import ServiceBase
 
-class TypingService:
+class TypingService(ServiceBase):
     """
     Has two purposes:
     - Listens for connections requests, stores the requester as feature subscriber. Responds by telling which port to send typing_events to.
@@ -12,41 +13,9 @@ class TypingService:
     """
 
     def __init__(self):
-        self.subscriber_list = [] #List to store feature subscribers
+        super().__init__('TYPING_INDICATOR', bind_port=config['typing_feature']['server_connection_port'],
+                         forwarding_port=config['typing_feature']['server_forwarding_port'])
         self.typing_events_list = [] #List to bundle typing activities. No filtering, this is client's task!
-
-    def handle_connections(self):
-        addr = config['address']
-        connection_port = config['typing_feature']['server_connection_port']
-        stream = MessageStream(addr, connection_port)
-        
-        blue(f"Listening for typing_connections on {addr}:{connection_port}...")
-
-        while True:
-            msg, addr = stream.recv_msg()
-            
-            data = parse_msg(msg)[2]
-            data['subscriberIP'] = addr[0]
-
-            connection_response = messenger_pb2.ConnectionResponse()
-            if data['subscriberIP'] in [subscriber['subscriberIP'] for subscriber in self.subscriber_list]:
-                # If user is already subscribed, send IS_ALREADY_CONNECTED_ERROR
-                connection_response.result = messenger_pb2.ConnectionResponse.Result.IS_ALREADY_CONNECTED_ERROR
-                yellow(f'Subscriber {":".join(map(str, addr))} already subscribed to list.')
-            else:
-                # If this is a fresh connection, reply with CONNECTED
-                connection_response.result = messenger_pb2.ConnectionResponse.Result.CONNECTED
-                green(f"\nTYPING_INDICATOR connection established with: {data}")
-                self.subscriber_list.append(data)
-
-            # Send connection response
-            stream.conn.send(serialize_msg('CONNECTION_RESPONSE', connection_response))
-            
-            
-                
-                
-                
-
 
             
     def handle_forwarding(self):
@@ -56,12 +25,24 @@ class TypingService:
         forwarding_socket.bind((addr, port))
 
         #Listen to incoming typing_event
-        while True:
+        while self._running:
             res, addr = forwarding_socket.recvfrom(1024)
             data = parse_msg(res)[2]
             data['userIP'] = addr[0]
             data['userPort'] = addr[1]
+
+            # Update last active:
+            author_is_subscribed = False
+            for subscriber_addr, item in self.subscriber_dict.items():
+                if addr[0] == subscriber_addr[0] and addr[1] == item['udpPort']:
+                    self.subscriber_dict[subscriber_addr]['lastActive'] = time.time()
+                    author_is_subscribed = True
+                    break
+
             green(f'\nReceived typing_event from {addr[0]}:{addr[1]}')
+            # Check if author is subscribed
+            if not author_is_subscribed:
+                yellow(f"Author {addr[0]}:{addr[1]} is not subscribed to TYPING INDICATOR.")
 
             # 'Upsert' typing_events_list
             if data['userIP'] not in [item['userIP'] for item in self.typing_events_list]:
@@ -72,14 +53,17 @@ class TypingService:
                         item['timestamp'] = time.time()
 
             #Forward typing_events_list to all subscribers.
-            if len(self.subscriber_list) > 0:
+            if len(self.subscriber_dict) > 0:
 
-                for subscriber in self.subscriber_list:
-                    print(f'Forwarded to {subscriber['subscriberIP']}:{subscriber['typingPort']}')
-                    typing_events = self.format_typing_events_list()
-                    # Forward message 
-                    forwarding_socket.sendto(serialize_msg('TYPING_EVENTS', typing_events), (subscriber['subscriberIP'], subscriber['typingPort']))
-            
+                for subscriber_addr, data in self.subscriber_dict.items():
+                    try:
+                        print(f"Forwarded to {subscriber_addr[0]}:{data['udpPort']}")
+                        typing_events = self.format_typing_events_list()
+                        # Forward message
+                        forwarding_socket.sendto(serialize_msg('TYPING_EVENTS', typing_events), (subscriber_addr[0], data['udpPort']))
+                    except Exception as e:
+                        yellow(f"Error forwarding typing_events to {subscriber_addr[0]}:{data['udpPort']}: {e}")
+
             else:
                 yellow('Empty subscriber_list. No forwarding of typing_events.')
 

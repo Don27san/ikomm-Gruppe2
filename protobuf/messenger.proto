@@ -1,6 +1,5 @@
 syntax = "proto3";
 package typing_indicator;
-import "google/protobuf/timestamp.proto";
 
 
 
@@ -8,6 +7,11 @@ import "google/protobuf/timestamp.proto";
 message User {
     string userId = 1; 
     string serverId = 2;
+}
+
+message UserOfGroup {
+    User user = 1;
+    Group group = 2;
 }
 
 message DiscoverServer {
@@ -20,24 +24,28 @@ message ServerAnnounce {
     message Feature {
         string featureName = 1;
         uint32 port = 2;
+        uint32 udpPort = 23;
     }
     repeated Feature feature = 2;
 }
 
-
 message ConnectClient { 
     User user = 1;
-    int32 typingPort = 3; 
-    int32 location_port = 2; //We'll must likely send a port info for location feature as well.
+    int32 udpPort = 22;
 }
 
-message ConnectionResponse {
+message ConnectResponse {
     enum Result {
         UNKNOWN_ERROR = 0;
         CONNECTED = 1;
         IS_ALREADY_CONNECTED_ERROR = 2;
     }
     Result result = 1;
+}
+
+message ConnectServer {
+    string serverId = 1;
+    repeated string features = 2;
 }
 
 message HangUp {
@@ -51,28 +59,97 @@ message HangUp {
     Reason reason = 1;
  }
 
+message Ping {
+}
+
+message Pong {
+}
+
+message UnsupportedMessage {
+    string message_name = 1;
+}
 
 
 
 
 
 // ALL FEATURE Structures
-// Chat Message
+// Group Structure
+message Group {
+    string groupId = 1;
+    string serverId = 2;
+}
+
+// Document Structure
+message Document {
+    string documentId = 1;
+    string filename = 2;
+    string mimeType = 3;
+    bytes data = 4;
+}
+
+// Translation Structure
+enum Language {
+    DE = 0; // German
+    EN = 1; // English
+    ZH = 2; // Chinese
+}
+
+message Translate {
+  Language target_language = 1;
+  string original_text = 2;
+  optional string translated_text = 3;
+}
+
+message Translated {
+  Language target_language = 1;
+  string original_text = 2;
+  optional string translated_text = 3;
+}
+
+
 message ChatMessage {
-    string messageId = 1;
-    google.protobuf.Timestamp timestamp = 2;
+    uint64 messageSnowflake = 1;
 
-    User author = 3;
+    User author = 2;
 
+    message UserOfGroup {
+        User user = 1; 
+        Group group = 2;
+    }
     oneof recipient {
-        User user = 4;
+        User user = 3;
+        Group group = 4;
+        UserOfGroup userOfGroup = 5;
     };
+    reserved 6 to 10;
 
     oneof content {
-        string text = 11;
-        LiveLocation live_location = 12;
-       // stickers , etc...
+        string textContent = 11;
+        Document document = 12;
+        LiveLocation live_location = 22;
+       // stickers, etc...
     }
+}
+
+// Chat Message Response
+message ChatMessageResponse {
+    uint64 messageSnowflake = 1;
+    enum Status {
+        UNKNOWN_STATUS = 0;
+        DELIVERED = 1;
+        OTHER_ERROR = 2;
+        USER_AWAY = 3;
+        USER_NOT_FOUND = 4;
+        OTHER_SERVER_TIMEOUT = 5;
+        OTHER_SERVER_NOT_FOUND = 6;
+        USER_BLOCKED = 7;
+    }
+    message DeliveryStatus {
+        User user = 1;
+        Status status = 2;
+    }
+    repeated DeliveryStatus statuses = 2;
 }
 
 
@@ -90,23 +167,58 @@ message TypingEvents {
 
 //Live Location Structure
 message LiveLocation {
-    User user = 1;
-    double timestamp = 2;
-    double expiry_at = 3;
+
+    User author = 1;
+
+    oneof recipient {
+        User user = 2;
+        Group group = 3;
+        UserOfGroup userOfGroup = 4;
+    };
+
+    double timestamp = 5;
+    double expiry_at = 6;
+
     message Location {
         double latitude = 1;
         double longitude = 2;
     };
-    Location location = 4;
+    Location location = 7;
 }
 
-// Bundle for multiple LiveLocations
+// Bundle for multiple Live Locations
 message LiveLocations {
     message ExtendedLiveLocation {
         LiveLocation live_location = 1;
-        string chatmessageID = 2;
+        uint64 messageSnowflake = 2;
     }
 
     repeated ExtendedLiveLocation extended_live_locations = 1;
 }
 
+// Request document download
+message DownloadDocument {
+    uint64 documentSnowflake = 1;
+}
+
+// Receive document
+message DownloadingDocument {
+    uint64 documentSnowflake = 1;
+    DocumentStatus.Result result = 2;
+    bytes data = 3;
+}
+
+// Document Status
+message DocumentStatus {
+    uint64 documentSnowflake = 1;
+    enum Result {
+        UNKNOWN_ERROR = 0;
+        AVAILABLE = 1;
+        NOT_FOUND = 2;
+        EXPIRED = 3;
+        DELETED = 4;
+        PENDING_UPLOAD = 5;
+    }
+    Result result = 2;
+    uint64 expiry = 3;
+}

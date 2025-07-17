@@ -22,46 +22,81 @@ _runtime_version.ValidateProtobufRuntimeVersion(
 _sym_db = _symbol_database.Default()
 
 
-from google.protobuf import timestamp_pb2 as google_dot_protobuf_dot_timestamp__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18protobuf/messenger.proto\x12\x10typing_indicator\x1a\x1fgoogle/protobuf/timestamp.proto\"(\n\x04User\x12\x0e\n\x06userId\x18\x01 \x01(\t\x12\x10\n\x08serverId\x18\x02 \x01(\t\"\x10\n\x0e\x44iscoverServer\"\x8b\x01\n\x0eServerAnnounce\x12\x10\n\x08serverId\x18\x01 \x01(\t\x12\x39\n\x07\x66\x65\x61ture\x18\x02 \x03(\x0b\x32(.typing_indicator.ServerAnnounce.Feature\x1a,\n\x07\x46\x65\x61ture\x12\x13\n\x0b\x66\x65\x61tureName\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\"`\n\rConnectClient\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12\x12\n\ntypingPort\x18\x03 \x01(\x05\x12\x15\n\rlocation_port\x18\x02 \x01(\x05\"\x9d\x01\n\x12\x43onnectionResponse\x12;\n\x06result\x18\x01 \x01(\x0e\x32+.typing_indicator.ConnectionResponse.Result\"J\n\x06Result\x12\x11\n\rUNKNOWN_ERROR\x10\x00\x12\r\n\tCONNECTED\x10\x01\x12\x1e\n\x1aIS_ALREADY_CONNECTED_ERROR\x10\x02\"\xa1\x01\n\x06HangUp\x12/\n\x06reason\x18\x01 \x01(\x0e\x32\x1f.typing_indicator.HangUp.Reason\"f\n\x06Reason\x12\x12\n\x0eUNKNOWN_REASON\x10\x00\x12\x08\n\x04\x45XIT\x10\x01\x12\x0b\n\x07TIMEOUT\x10\x02\x12\x1a\n\x16PAYLOAD_LIMIT_EXCEEDED\x10\x03\x12\x15\n\x11MESSAGE_MALFORMED\x10\x04\"\x80\x02\n\x0b\x43hatMessage\x12\x11\n\tmessageId\x18\x01 \x01(\t\x12-\n\ttimestamp\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.Timestamp\x12&\n\x06\x61uthor\x18\x03 \x01(\x0b\x32\x16.typing_indicator.User\x12&\n\x04user\x18\x04 \x01(\x0b\x32\x16.typing_indicator.UserH\x00\x12\x0e\n\x04text\x18\x0b \x01(\tH\x01\x12\x37\n\rlive_location\x18\x0c \x01(\x0b\x32\x1e.typing_indicator.LiveLocationH\x01\x42\x0b\n\trecipientB\t\n\x07\x63ontent\"F\n\x0bTypingEvent\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12\x11\n\ttimestamp\x18\x02 \x01(\x01\"D\n\x0cTypingEvents\x12\x34\n\rtyping_events\x18\x01 \x03(\x0b\x32\x1d.typing_indicator.TypingEvent\"\xc6\x01\n\x0cLiveLocation\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12\x11\n\ttimestamp\x18\x02 \x01(\x01\x12\x11\n\texpiry_at\x18\x03 \x01(\x01\x12\x39\n\x08location\x18\x04 \x01(\x0b\x32\'.typing_indicator.LiveLocation.Location\x1a/\n\x08Location\x12\x10\n\x08latitude\x18\x01 \x01(\x01\x12\x11\n\tlongitude\x18\x02 \x01(\x01\"\xcc\x01\n\rLiveLocations\x12U\n\x17\x65xtended_live_locations\x18\x01 \x03(\x0b\x32\x34.typing_indicator.LiveLocations.ExtendedLiveLocation\x1a\x64\n\x14\x45xtendedLiveLocation\x12\x35\n\rlive_location\x18\x01 \x01(\x0b\x32\x1e.typing_indicator.LiveLocation\x12\x15\n\rchatmessageID\x18\x02 \x01(\tb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x18protobuf/messenger.proto\x12\x10typing_indicator\"(\n\x04User\x12\x0e\n\x06userId\x18\x01 \x01(\t\x12\x10\n\x08serverId\x18\x02 \x01(\t\"[\n\x0bUserOfGroup\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12&\n\x05group\x18\x02 \x01(\x0b\x32\x17.typing_indicator.Group\"\x10\n\x0e\x44iscoverServer\"\x9c\x01\n\x0eServerAnnounce\x12\x10\n\x08serverId\x18\x01 \x01(\t\x12\x39\n\x07\x66\x65\x61ture\x18\x02 \x03(\x0b\x32(.typing_indicator.ServerAnnounce.Feature\x1a=\n\x07\x46\x65\x61ture\x12\x13\n\x0b\x66\x65\x61tureName\x18\x01 \x01(\t\x12\x0c\n\x04port\x18\x02 \x01(\r\x12\x0f\n\x07udpPort\x18\x17 \x01(\r\"F\n\rConnectClient\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12\x0f\n\x07udpPort\x18\x16 \x01(\x05\"\x97\x01\n\x0f\x43onnectResponse\x12\x38\n\x06result\x18\x01 \x01(\x0e\x32(.typing_indicator.ConnectResponse.Result\"J\n\x06Result\x12\x11\n\rUNKNOWN_ERROR\x10\x00\x12\r\n\tCONNECTED\x10\x01\x12\x1e\n\x1aIS_ALREADY_CONNECTED_ERROR\x10\x02\"3\n\rConnectServer\x12\x10\n\x08serverId\x18\x01 \x01(\t\x12\x10\n\x08\x66\x65\x61tures\x18\x02 \x03(\t\"\xa1\x01\n\x06HangUp\x12/\n\x06reason\x18\x01 \x01(\x0e\x32\x1f.typing_indicator.HangUp.Reason\"f\n\x06Reason\x12\x12\n\x0eUNKNOWN_REASON\x10\x00\x12\x08\n\x04\x45XIT\x10\x01\x12\x0b\n\x07TIMEOUT\x10\x02\x12\x1a\n\x16PAYLOAD_LIMIT_EXCEEDED\x10\x03\x12\x15\n\x11MESSAGE_MALFORMED\x10\x04\"\x06\n\x04Ping\"\x06\n\x04Pong\"*\n\x12UnsupportedMessage\x12\x14\n\x0cmessage_name\x18\x01 \x01(\t\"*\n\x05Group\x12\x0f\n\x07groupId\x18\x01 \x01(\t\x12\x10\n\x08serverId\x18\x02 \x01(\t\"P\n\x08\x44ocument\x12\x12\n\ndocumentId\x18\x01 \x01(\t\x12\x10\n\x08\x66ilename\x18\x02 \x01(\t\x12\x10\n\x08mimeType\x18\x03 \x01(\t\x12\x0c\n\x04\x64\x61ta\x18\x04 \x01(\x0c\"\x89\x01\n\tTranslate\x12\x33\n\x0ftarget_language\x18\x01 \x01(\x0e\x32\x1a.typing_indicator.Language\x12\x15\n\roriginal_text\x18\x02 \x01(\t\x12\x1c\n\x0ftranslated_text\x18\x03 \x01(\tH\x00\x88\x01\x01\x42\x12\n\x10_translated_text\"\x8a\x01\n\nTranslated\x12\x33\n\x0ftarget_language\x18\x01 \x01(\x0e\x32\x1a.typing_indicator.Language\x12\x15\n\roriginal_text\x18\x02 \x01(\t\x12\x1c\n\x0ftranslated_text\x18\x03 \x01(\tH\x00\x88\x01\x01\x42\x12\n\x10_translated_text\"\xde\x03\n\x0b\x43hatMessage\x12\x18\n\x10messageSnowflake\x18\x01 \x01(\x04\x12&\n\x06\x61uthor\x18\x02 \x01(\x0b\x32\x16.typing_indicator.User\x12&\n\x04user\x18\x03 \x01(\x0b\x32\x16.typing_indicator.UserH\x00\x12(\n\x05group\x18\x04 \x01(\x0b\x32\x17.typing_indicator.GroupH\x00\x12@\n\x0buserOfGroup\x18\x05 \x01(\x0b\x32).typing_indicator.ChatMessage.UserOfGroupH\x00\x12\x15\n\x0btextContent\x18\x0b \x01(\tH\x01\x12.\n\x08\x64ocument\x18\x0c \x01(\x0b\x32\x1a.typing_indicator.DocumentH\x01\x12\x37\n\rlive_location\x18\x16 \x01(\x0b\x32\x1e.typing_indicator.LiveLocationH\x01\x1a[\n\x0bUserOfGroup\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12&\n\x05group\x18\x02 \x01(\x0b\x32\x17.typing_indicator.GroupB\x0b\n\trecipientB\t\n\x07\x63ontentJ\x04\x08\x06\x10\x0b\"\x97\x03\n\x13\x43hatMessageResponse\x12\x18\n\x10messageSnowflake\x18\x01 \x01(\x04\x12\x46\n\x08statuses\x18\x02 \x03(\x0b\x32\x34.typing_indicator.ChatMessageResponse.DeliveryStatus\x1at\n\x0e\x44\x65liveryStatus\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12<\n\x06status\x18\x02 \x01(\x0e\x32,.typing_indicator.ChatMessageResponse.Status\"\xa7\x01\n\x06Status\x12\x12\n\x0eUNKNOWN_STATUS\x10\x00\x12\r\n\tDELIVERED\x10\x01\x12\x0f\n\x0bOTHER_ERROR\x10\x02\x12\r\n\tUSER_AWAY\x10\x03\x12\x12\n\x0eUSER_NOT_FOUND\x10\x04\x12\x18\n\x14OTHER_SERVER_TIMEOUT\x10\x05\x12\x1a\n\x16OTHER_SERVER_NOT_FOUND\x10\x06\x12\x10\n\x0cUSER_BLOCKED\x10\x07\"F\n\x0bTypingEvent\x12$\n\x04user\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12\x11\n\ttimestamp\x18\x02 \x01(\x01\"D\n\x0cTypingEvents\x12\x34\n\rtyping_events\x18\x01 \x03(\x0b\x32\x1d.typing_indicator.TypingEvent\"\xdd\x02\n\x0cLiveLocation\x12&\n\x06\x61uthor\x18\x01 \x01(\x0b\x32\x16.typing_indicator.User\x12&\n\x04user\x18\x02 \x01(\x0b\x32\x16.typing_indicator.UserH\x00\x12(\n\x05group\x18\x03 \x01(\x0b\x32\x17.typing_indicator.GroupH\x00\x12\x34\n\x0buserOfGroup\x18\x04 \x01(\x0b\x32\x1d.typing_indicator.UserOfGroupH\x00\x12\x11\n\ttimestamp\x18\x05 \x01(\x01\x12\x11\n\texpiry_at\x18\x06 \x01(\x01\x12\x39\n\x08location\x18\x07 \x01(\x0b\x32\'.typing_indicator.LiveLocation.Location\x1a/\n\x08Location\x12\x10\n\x08latitude\x18\x01 \x01(\x01\x12\x11\n\tlongitude\x18\x02 \x01(\x01\x42\x0b\n\trecipient\"\xcf\x01\n\rLiveLocations\x12U\n\x17\x65xtended_live_locations\x18\x01 \x03(\x0b\x32\x34.typing_indicator.LiveLocations.ExtendedLiveLocation\x1ag\n\x14\x45xtendedLiveLocation\x12\x35\n\rlive_location\x18\x01 \x01(\x0b\x32\x1e.typing_indicator.LiveLocation\x12\x18\n\x10messageSnowflake\x18\x02 \x01(\x04\"-\n\x10\x44ownloadDocument\x12\x19\n\x11\x64ocumentSnowflake\x18\x01 \x01(\x04\"w\n\x13\x44ownloadingDocument\x12\x19\n\x11\x64ocumentSnowflake\x18\x01 \x01(\x04\x12\x37\n\x06result\x18\x02 \x01(\x0e\x32\'.typing_indicator.DocumentStatus.Result\x12\x0c\n\x04\x64\x61ta\x18\x03 \x01(\x0c\"\xdd\x01\n\x0e\x44ocumentStatus\x12\x19\n\x11\x64ocumentSnowflake\x18\x01 \x01(\x04\x12\x37\n\x06result\x18\x02 \x01(\x0e\x32\'.typing_indicator.DocumentStatus.Result\x12\x0e\n\x06\x65xpiry\x18\x03 \x01(\x04\"g\n\x06Result\x12\x11\n\rUNKNOWN_ERROR\x10\x00\x12\r\n\tAVAILABLE\x10\x01\x12\r\n\tNOT_FOUND\x10\x02\x12\x0b\n\x07\x45XPIRED\x10\x03\x12\x0b\n\x07\x44\x45LETED\x10\x04\x12\x12\n\x0ePENDING_UPLOAD\x10\x05*\"\n\x08Language\x12\x06\n\x02\x44\x45\x10\x00\x12\x06\n\x02\x45N\x10\x01\x12\x06\n\x02ZH\x10\x02\x62\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'protobuf.messenger_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   DESCRIPTOR._loaded_options = None
-  _globals['_USER']._serialized_start=79
-  _globals['_USER']._serialized_end=119
-  _globals['_DISCOVERSERVER']._serialized_start=121
-  _globals['_DISCOVERSERVER']._serialized_end=137
-  _globals['_SERVERANNOUNCE']._serialized_start=140
-  _globals['_SERVERANNOUNCE']._serialized_end=279
-  _globals['_SERVERANNOUNCE_FEATURE']._serialized_start=235
-  _globals['_SERVERANNOUNCE_FEATURE']._serialized_end=279
-  _globals['_CONNECTCLIENT']._serialized_start=281
-  _globals['_CONNECTCLIENT']._serialized_end=377
-  _globals['_CONNECTIONRESPONSE']._serialized_start=380
-  _globals['_CONNECTIONRESPONSE']._serialized_end=537
-  _globals['_CONNECTIONRESPONSE_RESULT']._serialized_start=463
-  _globals['_CONNECTIONRESPONSE_RESULT']._serialized_end=537
-  _globals['_HANGUP']._serialized_start=540
-  _globals['_HANGUP']._serialized_end=701
-  _globals['_HANGUP_REASON']._serialized_start=599
-  _globals['_HANGUP_REASON']._serialized_end=701
-  _globals['_CHATMESSAGE']._serialized_start=704
-  _globals['_CHATMESSAGE']._serialized_end=960
-  _globals['_TYPINGEVENT']._serialized_start=962
-  _globals['_TYPINGEVENT']._serialized_end=1032
-  _globals['_TYPINGEVENTS']._serialized_start=1034
-  _globals['_TYPINGEVENTS']._serialized_end=1102
-  _globals['_LIVELOCATION']._serialized_start=1105
-  _globals['_LIVELOCATION']._serialized_end=1303
-  _globals['_LIVELOCATION_LOCATION']._serialized_start=1256
-  _globals['_LIVELOCATION_LOCATION']._serialized_end=1303
-  _globals['_LIVELOCATIONS']._serialized_start=1306
-  _globals['_LIVELOCATIONS']._serialized_end=1510
-  _globals['_LIVELOCATIONS_EXTENDEDLIVELOCATION']._serialized_start=1410
-  _globals['_LIVELOCATIONS_EXTENDEDLIVELOCATION']._serialized_end=1510
+  _globals['_LANGUAGE']._serialized_start=3255
+  _globals['_LANGUAGE']._serialized_end=3289
+  _globals['_USER']._serialized_start=46
+  _globals['_USER']._serialized_end=86
+  _globals['_USEROFGROUP']._serialized_start=88
+  _globals['_USEROFGROUP']._serialized_end=179
+  _globals['_DISCOVERSERVER']._serialized_start=181
+  _globals['_DISCOVERSERVER']._serialized_end=197
+  _globals['_SERVERANNOUNCE']._serialized_start=200
+  _globals['_SERVERANNOUNCE']._serialized_end=356
+  _globals['_SERVERANNOUNCE_FEATURE']._serialized_start=295
+  _globals['_SERVERANNOUNCE_FEATURE']._serialized_end=356
+  _globals['_CONNECTCLIENT']._serialized_start=358
+  _globals['_CONNECTCLIENT']._serialized_end=428
+  _globals['_CONNECTRESPONSE']._serialized_start=431
+  _globals['_CONNECTRESPONSE']._serialized_end=582
+  _globals['_CONNECTRESPONSE_RESULT']._serialized_start=508
+  _globals['_CONNECTRESPONSE_RESULT']._serialized_end=582
+  _globals['_CONNECTSERVER']._serialized_start=584
+  _globals['_CONNECTSERVER']._serialized_end=635
+  _globals['_HANGUP']._serialized_start=638
+  _globals['_HANGUP']._serialized_end=799
+  _globals['_HANGUP_REASON']._serialized_start=697
+  _globals['_HANGUP_REASON']._serialized_end=799
+  _globals['_PING']._serialized_start=801
+  _globals['_PING']._serialized_end=807
+  _globals['_PONG']._serialized_start=809
+  _globals['_PONG']._serialized_end=815
+  _globals['_UNSUPPORTEDMESSAGE']._serialized_start=817
+  _globals['_UNSUPPORTEDMESSAGE']._serialized_end=859
+  _globals['_GROUP']._serialized_start=861
+  _globals['_GROUP']._serialized_end=903
+  _globals['_DOCUMENT']._serialized_start=905
+  _globals['_DOCUMENT']._serialized_end=985
+  _globals['_TRANSLATE']._serialized_start=988
+  _globals['_TRANSLATE']._serialized_end=1125
+  _globals['_TRANSLATED']._serialized_start=1128
+  _globals['_TRANSLATED']._serialized_end=1266
+  _globals['_CHATMESSAGE']._serialized_start=1269
+  _globals['_CHATMESSAGE']._serialized_end=1747
+  _globals['_CHATMESSAGE_USEROFGROUP']._serialized_start=88
+  _globals['_CHATMESSAGE_USEROFGROUP']._serialized_end=179
+  _globals['_CHATMESSAGERESPONSE']._serialized_start=1750
+  _globals['_CHATMESSAGERESPONSE']._serialized_end=2157
+  _globals['_CHATMESSAGERESPONSE_DELIVERYSTATUS']._serialized_start=1871
+  _globals['_CHATMESSAGERESPONSE_DELIVERYSTATUS']._serialized_end=1987
+  _globals['_CHATMESSAGERESPONSE_STATUS']._serialized_start=1990
+  _globals['_CHATMESSAGERESPONSE_STATUS']._serialized_end=2157
+  _globals['_TYPINGEVENT']._serialized_start=2159
+  _globals['_TYPINGEVENT']._serialized_end=2229
+  _globals['_TYPINGEVENTS']._serialized_start=2231
+  _globals['_TYPINGEVENTS']._serialized_end=2299
+  _globals['_LIVELOCATION']._serialized_start=2302
+  _globals['_LIVELOCATION']._serialized_end=2651
+  _globals['_LIVELOCATION_LOCATION']._serialized_start=2591
+  _globals['_LIVELOCATION_LOCATION']._serialized_end=2638
+  _globals['_LIVELOCATIONS']._serialized_start=2654
+  _globals['_LIVELOCATIONS']._serialized_end=2861
+  _globals['_LIVELOCATIONS_EXTENDEDLIVELOCATION']._serialized_start=2758
+  _globals['_LIVELOCATIONS_EXTENDEDLIVELOCATION']._serialized_end=2861
+  _globals['_DOWNLOADDOCUMENT']._serialized_start=2863
+  _globals['_DOWNLOADDOCUMENT']._serialized_end=2908
+  _globals['_DOWNLOADINGDOCUMENT']._serialized_start=2910
+  _globals['_DOWNLOADINGDOCUMENT']._serialized_end=3029
+  _globals['_DOCUMENTSTATUS']._serialized_start=3032
+  _globals['_DOCUMENTSTATUS']._serialized_end=3253
+  _globals['_DOCUMENTSTATUS_RESULT']._serialized_start=3150
+  _globals['_DOCUMENTSTATUS_RESULT']._serialized_end=3253
 # @@protoc_insertion_point(module_scope)

@@ -1,0 +1,11 @@
+{
+    "files": [
+        "main.py",
+        "GUI/chatwindow.py",
+        "GUI/chatwindow.ui",
+        "GUI/locationviewer.py",
+        "client/typing_feature",
+        "utils.py",
+        "config.py",
+    ]
+}
