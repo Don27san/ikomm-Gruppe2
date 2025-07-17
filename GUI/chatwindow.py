@@ -114,8 +114,6 @@ class ChatWindow(QMainWindow):
     def formatChatMessage(self, message):
         """Format a chat message based on its content type"""
         # Handle dictionary message format with safe access
-        html_prefix = ''
-        html_postfix = ''
         try:
             author_info = message.get('author', {})
             user_id = author_info.get('userId', 'Unknown')
@@ -124,9 +122,13 @@ class ChatWindow(QMainWindow):
         except (AttributeError, TypeError):
             author = "Unknown"
         if author == self.author:
-            html_prefix = '<p align="right">'
-            html_postfix = '</p>'
-        
+            # Your messages: right-aligned using table approach
+            html_prefix = '<table width="100%"><tr><td width="30%"></td><td width="70%" align="right">'
+            html_postfix = '</td></tr></table>'
+        else:
+            # Other messages: left-aligned using table approach  
+            html_prefix = '<table width="100%"><tr><td width="70%" align="left">'
+            html_postfix = '</td><td width="30%"></td></tr></table>'
         # Check if message has textContent
         text_content = message.get('textContent', '')
         if text_content:
