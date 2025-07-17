@@ -93,10 +93,10 @@
     const author = urlParams.get('author') || 'Unknown';
     const colors = ['red', 'blue', 'orange', 'green'];
 
-    const getRandColor = () => {
+    const getRandColor = (author) => {
       const color = colors[Math.floor(Math.random() * colors.length)];
 
-      return `<div class="custom-marker">
+ return `<div class="custom-marker">
               <div class="inner-circle ${color}">${author.split('@')[0][0]+author.split('@')[0][author.split('@')[0].length-1]}</div>
               <div class="pulse-ring ${color}"></div>
             </div>`;
@@ -104,7 +104,7 @@
 
   function createCustomMarker(author) {
         return L.divIcon({
-          html: getRandColor(),
+          html: getRandColor(author),
           className: '',
           iconSize: [20, 20],
           iconAnchor: [10, 10]

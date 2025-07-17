@@ -231,7 +231,7 @@ class ChatWindow(QMainWindow):
             if self.liveMapViewer is None:
                 self.liveMapViewer = LocationViewer(lat, lon, self.author)
             self.liveMapViewer.show()
-            # self.liveMapViewer.updateLocation(lat, lon)
+            self.liveMapViewer.updateLocation(lat, lon, self.author)
             
             # start background location-sharing
             self.locationSharingThread = LocationSharingThread(self.locationFeature, user_id, server_id)
