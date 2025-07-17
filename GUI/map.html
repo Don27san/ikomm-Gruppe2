@@ -56,6 +56,7 @@
     const urlParams = new URLSearchParams(window.location.search);
     const initialLat = parseFloat(urlParams.get('lat')) || 0;
     const initialLon = parseFloat(urlParams.get('lon')) || 0;
+    const author = urlParams.get('author') || 'Unknown';
 
     const customMarker = L.divIcon({
       html: '<div class="custom-marker"><div class="pulse-ring"></div></div>',
@@ -64,24 +65,36 @@
       iconAnchor: [10, 10]
     });
 
-    let map, marker;
-    function initMap(lat = 0, lon = 0) {
+    let map;
+    let markers = {};
+    function initMap(lat = 0, lon = 0, author = 'Unknown') {
       map = L.map('map').setView([lat, lon], 15);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '📍 Live Location Active'
       }).addTo(map);
-      marker = L.marker([lat, lon], { icon: customMarker }).addTo(map);
+       markers[author] = L.marker([lat, lon], { icon: customMarker }).addTo(map);
     }
-    function updatePosition(lat, lng) {
-      // Use proper Leaflet API methods
-      marker.setLatLng([lat, lng]);
-      map.setView([lat, lng], map.getZoom());
+    function updatePosition(lat, lon, author) {
+      if (markers[author]) {
+        markers[author].setLatLng([lat, lon]);
+      } else {
+        markers[author] = L.marker([lat, lon], { icon: customMarker }).addTo(map);
+      }
+      //map.setView([lat, lon], map.getZoom());
+      const allLatLngs = Object.values(markers).map(marker => marker.getLatLng());
+      if (allLatLngs.length > 0) {
+        map.fitBounds(L.latLngBounds(allLatLngs), { padding: [50, 50] });
+      }
     }
+
+    window.onload = function() {
+      initMap(initialLat, initialLon, author);
+    };
   </script>
 </head>
 
-<body onload="initMap(initialLat, initialLon)">
+<body>
   <div id="map"></div>
 </body>
 

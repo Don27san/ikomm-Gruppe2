@@ -37,8 +37,7 @@ class TypingFeature(FeatureBase, QObject):
 
             self.socket.sendto(serialize_msg('TYPING_EVENT', typing_event), (server_addr, server_forwarding_port))
             print(f'Typing Event sent to {server_addr}:{server_forwarding_port}. \n')
-        else:
-            red(f"Didn't send Typing Event to Server. No server_forwarding_port was provided. \n")
+        
 
     # Reduces the frequency of typing events sent to the server
     def debounce(self, fn, debounce_time=1):
