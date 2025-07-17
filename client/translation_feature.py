@@ -46,14 +46,14 @@ class TranslationFeature(FeatureBase):
 
     def handle_message_for_feature(self, message_name=None, payload=None, conn=None, addr=None):
         if message_name == "TRANSLATED":
-            print(f"Received translation: '{payload['translated_text']}' in '{payload['target_language']}' language.")
+            print(f"Received translation: '{payload['translatedText']}' in '{payload['targetLanguage']}' language.")
             self.chat_feature.send_message(
                 self.recipient_user_id,
                 self.recipient_server_id,
                 content={
-                    "textContent": payload['translated_text'],
+                    "textContent": payload['translatedText'],
                 }
             )
             green(f"Translated message sent to {self.recipient_user_id}@{self.recipient_server_id}.")
 
-        
+            return True

@@ -56,11 +56,14 @@ class TypingService(ServiceBase):
             if len(self.subscriber_dict) > 0:
 
                 for subscriber_addr, data in self.subscriber_dict.items():
-                    print(f"Forwarded to {subscriber_addr[0]}:{data['udpPort']}")
-                    typing_events = self.format_typing_events_list()
-                    # Forward message 
-                    forwarding_socket.sendto(serialize_msg('TYPING_EVENTS', typing_events), (subscriber_addr[0], data['udpPort']))
-            
+                    try:
+                        print(f"Forwarded to {subscriber_addr[0]}:{data['udpPort']}")
+                        typing_events = self.format_typing_events_list()
+                        # Forward message
+                        forwarding_socket.sendto(serialize_msg('TYPING_EVENTS', typing_events), (subscriber_addr[0], data['udpPort']))
+                    except Exception as e:
+                        yellow(f"Error forwarding typing_events to {subscriber_addr[0]}:{data['udpPort']}: {e}")
+
             else:
                 yellow('Empty subscriber_list. No forwarding of typing_events.')
 
