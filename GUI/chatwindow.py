@@ -164,6 +164,12 @@ class ChatWindow(QMainWindow):
 
     def sendMessage(self):
         text = self.messageInput.text().strip()
+
+        if text:
+            html = f'<p align="right">{text}</p>'
+            self.chatDisplay.append(html)
+            self.messageInput.clear()
+
         if text and self.recipientUserID() and self.recipientServerID():
             lang = self.chooseLanguage.currentText()
             emoji_to_code = {
