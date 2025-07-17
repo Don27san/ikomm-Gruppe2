@@ -16,13 +16,27 @@
     .custom-marker {
       width: 20px;
       height: 20px;
-      background-color: #007bff;
       border: 3px solid white;
       border-radius: 50%;
-      box-shadow: 0 0 4px rgba(0, 0, 255, 0.5);
       position: relative;
       z-index: 2;
     }
+
+    .inner-circle {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 10px;
+      text-align: center;
+      line-height: 14px;
+      color: black;
+      font-weight: bold;
+    }
+
     .pulse-ring {
       position: absolute;
       top: 50%;
@@ -32,8 +46,26 @@
       height: 24px;
       border-radius: 50%;
       animation: pulse 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
-      background-color: #007bff;
+      
       z-index: -1;
+    }
+
+    .red {
+      background-color: red;
+    }
+
+    .blue {
+      background-color: #007bff;
+      
+    }
+
+    .orange {
+      background-color: orange;
+      
+    }
+
+    .green {
+      background-color: green;
     }
 
     @keyframes pulse {
@@ -57,9 +89,16 @@
     const initialLat = parseFloat(urlParams.get('lat')) || 0;
     const initialLon = parseFloat(urlParams.get('lon')) || 0;
     const author = urlParams.get('author') || 'Unknown';
+    const colors = ['red', 'blue', 'orange', 'green'];
+
+    const getRandColor = () => {
+      const color = colors[Math.floor(Math.random() * colors.length)];
+
+      return `<div class="custom-marker ${color}"><div class="pulse-ring ${color}"></div></div>`;
+    };
 
     const customMarker = L.divIcon({
-      html: '<div class="custom-marker"><div class="pulse-ring"></div></div>',
+      html: getRandColor(),
       className: '',
       iconSize: [20, 20],
       iconAnchor: [10, 10]
@@ -73,13 +112,15 @@
         maxZoom: 19,
         attribution: '📍 Live Location Active'
       }).addTo(map);
-       markers[author] = L.marker([lat, lon], { icon: customMarker }).addTo(map);
+       markers[author] = L.marker([lat, lon], { icon: createCustomMarker(author) }).addTo(map);
+
+
     }
     function updatePosition(lat, lon, author) {
       if (markers[author]) {
         markers[author].setLatLng([lat, lon]);
       } else {
-        markers[author] = L.marker([lat, lon], { icon: customMarker }).addTo(map);
+        markers[author] = L.marker([lat, lon], { icon: createCustomMarker(author) }).addTo(map);
       }
       //map.setView([lat, lon], map.getZoom());
       const allLatLngs = Object.values(markers).map(marker => marker.getLatLng());
