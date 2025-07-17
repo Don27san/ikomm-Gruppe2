@@ -142,7 +142,7 @@ class ChatWindow(QMainWindow):
             location = live_location.get('location', {})
             lat = location.get('latitude', 0.0)
             lon = location.get('longitude', 0.0)
-            live_location_html = f'<a href="location://{lat},{lon}">Click to check the location</a>'
+            live_location_html = f'<a href="location://{lat},{lon},{author}">Click to check the location</a>'
             return f"{author}: 📍 Location ({lat:.5f}, {lon:.5f}) - {live_location_html}"
         
         translation = message.get('translation')
@@ -214,12 +214,13 @@ class ChatWindow(QMainWindow):
     def shareLocation(self):
         user_id = self.recipientUserID()
         server_id = self.recipientServerID()
+        author = f"{user_id}@{server_id}"
         g = geocoder.ip('me')
         if g.ok:
             lat, lon = g.latlng
             # open map viewer and update location
             if self.liveMapViewer is None:
-                self.liveMapViewer = LocationViewer(lat, lon)
+                self.liveMapViewer = LocationViewer(lat, lon, author)
             self.liveMapViewer.show()
             # self.liveMapViewer.updateLocation(lat, lon)
             
@@ -236,11 +237,13 @@ class ChatWindow(QMainWindow):
         if url_str.startswith("location://"):
             coords = url_str.replace("location://", "")
             try:
-                lat, lon = map(float, coords.split(","))
+                lat, lon, author = coords.split(",")
+                lat = float(lat)
+                lon = float(lon)
                 if self.liveMapViewer is None:
-                    self.liveMapViewer = LocationViewer()
+                    self.liveMapViewer = LocationViewer(lat, lon, author)
                 self.liveMapViewer.show()
-                self.liveMapViewer.updateLocation(lat, lon)
+                self.liveMapViewer.updateLocation(lat, lon, author)
             except (ValueError, IndexError):
                 print(f"Invalid location coordinates: {coords}")
         
@@ -252,18 +255,15 @@ class ChatWindow(QMainWindow):
                 print(f"Invalid document request: {url}")
 
         else:
-            # Open the live map viewer (without reloading each time)
-            if self.liveMapViewer is None:
-                self.liveMapViewer = LocationViewer()
-            self.liveMapViewer.show()
+            print('Anchor link is not supported')
 
-    def displayReceivedLocation(self, lat, lon):
+    def displayReceivedLocation(self, lat, lon, author):
         # Update the map marker; open map if needed
         # if self.liveMapViewer is None:
         #     self.liveMapViewer = LocationViewer()
         #     self.liveMapViewer.show()
         if self.liveMapViewer is not None:
-            self.liveMapViewer.updateLocation(lat, lon)
+            self.liveMapViewer.updateLocation(lat, lon, author)
 
 
 

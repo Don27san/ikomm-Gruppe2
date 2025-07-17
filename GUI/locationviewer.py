@@ -3,7 +3,7 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 from PyQt5.QtCore import QUrl
 
 class LocationViewer(QMainWindow):
-    def __init__(self, lat=0, lon=0, parent=None):
+    def __init__(self, lat=0, lon=0, author=None, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Live Location")
         self.setGeometry(100, 100, 800, 600)
@@ -17,11 +17,11 @@ class LocationViewer(QMainWindow):
         import os
         html_path = os.path.join(os.path.dirname(__file__), "map.html")
         url = QUrl.fromLocalFile(html_path)
-        url.setQuery(f"lat={lat}&lon={lon}")
+        url.setQuery(f"lat={lat}&lon={lon}&author={author}")
         self.browser.load(url)
         self.setCentralWidget(self.browser)
 
-    def updateLocation(self, lat, lon):
+    def updateLocation(self, lat, lon, author):
         # call JS to move marker without full reload
-        js = f"updatePosition({lat}, {lon});"
+        js = f"updatePosition({lat}, {lon}, {author});"
         self.browser.page().runJavaScript(js)
