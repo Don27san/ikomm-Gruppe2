@@ -11,7 +11,7 @@ from .feature_base import FeatureBase
 
 class LocationFeature(FeatureBase, QObject):
     # Signal to emit when location is received
-    locationEventReceived = pyqtSignal(float, float)  # lat, lon
+    locationEventReceived = pyqtSignal(float, float, str)  # lat, lon
     """
     ...
     """
@@ -80,11 +80,15 @@ class LocationFeature(FeatureBase, QObject):
                 data = parse_msg(res)[2]
                 self.last_msg_received_time = time.time()
                 green(f'{self.feature_name}: Received live_locations from {addr[0]}:{addr[1]}, {data}')
-                self.location_list = data # Update the event list with the received location events
-                
-                lat = data['extendedLiveLocations'][0]['liveLocation']['location']['latitude']
-                lon = data['extendedLiveLocations'][0]['liveLocation']['location']['longitude']
-                self.locationEventReceived.emit(lat, lon)
+                self.location_list = data['extendedLiveLocations'] # Update the event list with the received location events
+
+                for extendedLiveLocation in self.location_list:
+                    recipient = extendedLiveLocation['liveLocation'].get('user', None)
+                    if recipient is not None and recipient['userId'] == config['user']['userId'] and recipient['serverId'] == config['user']['serverId']:
+                        lat = extendedLiveLocation['liveLocation']['location']['latitude']
+                        lon = extendedLiveLocation['liveLocation']['location']['longitude']
+                        author = f"{extendedLiveLocation['liveLocation']['author']['userId']}@{extendedLiveLocation['liveLocation']['author']['serverId']}"
+                        self.locationEventReceived.emit(lat, lon, author)
                     
             except Exception as e:
                 red(f"{self.feature_name}: Error receiving or processing data: {e}")
