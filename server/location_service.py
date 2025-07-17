@@ -34,7 +34,16 @@ class LocationService(ServiceBase):
                 content=content_dict
             )
             self.chat_service.route_message(chatmessage)
-            print("Initial LiveLocation Chatmessage sent to all clients.")
+
+            author_message = generate_chat_message(
+                author_user_id=data['author']['userId'],
+                author_server_id=data['author']['serverId'],
+                recipient={recipient_type: data['author']},
+                content=content_dict
+            )
+            self.chat_service.route_message(author_message)
+
+            print("Initial LiveLocation Chatmessage sent to recipient.")
             return chatmessage.messageSnowflake
 
         addr = config['address']
