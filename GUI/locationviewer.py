@@ -20,8 +20,8 @@ class LocationViewer(QMainWindow):
         url.setQuery(f"lat={lat}&lon={lon}&author={author}")
         self.browser.load(url)
         self.setCentralWidget(self.browser)
-
+        
     def updateLocation(self, lat, lon, author):
         # call JS to move marker without full reload
-        js = f"updatePosition({lat}, {lon}, {author});"
+        js = f"updatePosition({lat}, {lon}, '{author}');"
         self.browser.page().runJavaScript(js)

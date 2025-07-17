@@ -87,10 +87,14 @@
         map.fitBounds(L.latLngBounds(allLatLngs), { padding: [50, 50] });
       }
     }
+
+    window.onload = function() {
+      initMap(initialLat, initialLon, author);
+    };
   </script>
 </head>
 
-<body onload="initMap(initialLat, initialLon, author)">
+<body>
   <div id="map"></div>
 </body>
 
