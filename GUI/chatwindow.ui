@@ -102,13 +102,6 @@
        </widget>
       </item>
       <item>
-     <widget class="QPushButton" name="downloadButton">
-      <property name="text">
-       <string>📁</string>
-      </property>
-     </widget>
-    </item>
-      <item>
        <widget class="QComboBox" name="chooseLanguage">
         <property name="currentText">
          <string>choose language</string>
