@@ -50,6 +50,7 @@ class ChatWindow(QMainWindow):
         # Set window title with user info from config
         user_id = config['user']['userId']
         server_id = config['user']['serverId']
+        self.author = f"{user_id}@{server_id}"
         self.setWindowTitle(f"Chat - {user_id}@{server_id}")
 
         # Initialize TypingFeature instance
@@ -214,13 +215,12 @@ class ChatWindow(QMainWindow):
     def shareLocation(self):
         user_id = self.recipientUserID()
         server_id = self.recipientServerID()
-        author = f"{user_id}@{server_id}"
         g = geocoder.ip('me')
-        if g.ok:
+        if g.ok and user_id and server_id:
             lat, lon = g.latlng
             # open map viewer and update location
             if self.liveMapViewer is None:
-                self.liveMapViewer = LocationViewer(lat, lon, author)
+                self.liveMapViewer = LocationViewer(lat, lon, self.author)
             self.liveMapViewer.show()
             # self.liveMapViewer.updateLocation(lat, lon)
             
