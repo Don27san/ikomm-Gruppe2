@@ -84,7 +84,8 @@ class LocationFeature(FeatureBase, QObject):
 
                 for extendedLiveLocation in self.location_list:
                     recipient = extendedLiveLocation['liveLocation'].get('user', None)
-                    if recipient is not None and recipient['userId'] == config['user']['userId'] and recipient['serverId'] == config['user']['serverId']:
+                    author = extendedLiveLocation['liveLocation'].get('author', None)
+                    if recipient is not None and ((recipient['userId'] == config['user']['userId'] and recipient['serverId'] == config['user']['serverId']) or (author['userId'] == config['user']['userId'] and author['serverId'] == config['user']['serverId'])):
                         lat = extendedLiveLocation['liveLocation']['location']['latitude']
                         lon = extendedLiveLocation['liveLocation']['location']['longitude']
                         author = f"{extendedLiveLocation['liveLocation']['author']['userId']}@{extendedLiveLocation['liveLocation']['author']['serverId']}"
