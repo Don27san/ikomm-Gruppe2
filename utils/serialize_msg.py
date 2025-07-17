@@ -6,6 +6,7 @@ MessageName = Literal[
     'DISCOVER_SERVER',
     'SERVER_ANNOUNCE',
     'CONNECT_CLIENT',
+    'CONNECT_SERVER',
     'CONNECTED',
     'HANGUP',
     'TYPING_EVENT',

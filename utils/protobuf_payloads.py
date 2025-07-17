@@ -16,6 +16,11 @@ connect_client = messenger_pb2.ConnectClient()
 connect_client.user.userId = config['user']['userId']
 connect_client.user.serverId = config['user']['serverId']
 
+# Connect_Server Payload  
+connect_server = messenger_pb2.ConnectServer()
+connect_server.serverId = config['serverId']
+# Features will be populated dynamically when connecting
+
 # Typing_Event Payload
 typing_event = messenger_pb2.TypingEvent()
 typing_event.user.userId = config['user']['userId'] #Static value, must be replaced if necessary

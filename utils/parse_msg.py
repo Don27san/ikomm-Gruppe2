@@ -8,6 +8,7 @@ message_classes = {
     'DISCOVER_SERVER': messenger_pb2.DiscoverServer,
     'SERVER_ANNOUNCE': messenger_pb2.ServerAnnounce,
     'CONNECT_CLIENT': messenger_pb2.ConnectClient,
+    'CONNECT_SERVER': messenger_pb2.ConnectServer,
     'CONNECTED': messenger_pb2.ConnectResponse,
     'HANGUP': messenger_pb2.HangUp,
     'TYPING_EVENT': messenger_pb2.TypingEvent,

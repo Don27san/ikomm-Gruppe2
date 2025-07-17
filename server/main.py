@@ -7,8 +7,8 @@ from .announcement_service import AnnouncementService
 from .typing_service import TypingService
 from .location_service import LocationService
 from .chat_service import ChatService
-# from .discovery_service import DiscoveryService
-from utils import red
+from .server_discovery_service import ServerDiscoveryService
+from utils import red, blue
 
 
 def main():
@@ -24,29 +24,32 @@ def main():
     signal.signal(signal.SIGINT, shutdown_handler)
     signal.signal(signal.SIGTERM, shutdown_handler)
 
-    # Server Discovery Service (commented for now)
-    # discovery = DiscoveryService()
-    # server_list = discovery.discover_servers()
-
     # Listen for discovery calls and announce server
     announcer = AnnouncementService()
     threading.Thread(target=announcer.announce_server, daemon=True).start()
 
-    # Typing Indicator Feature
-    typing_service= TypingService()
+    # Server Discovery (exactly like client main.py)
+    server_discovery = ServerDiscoveryService()
+    server_list = server_discovery.discover_servers()
+
+    # Initialize services
+    typing_service = TypingService()
+    chat_service = ChatService()
+    location_service = LocationService(chat_service=chat_service)
+
+    # Connect each service to other servers (exactly like client pattern)
+    typing_service.set_server_list_and_connect(server_list)
+    chat_service.set_server_list_and_connect(server_list)
+    location_service.set_server_list_and_connect(server_list)
+
+    # Start services
     threading.Thread(target=typing_service.handle_connections, daemon=True).start()
     threading.Thread(target=typing_service.handle_forwarding, daemon=True).start()
 
-    # Chat Service
-    chat_service = ChatService()
     threading.Thread(target=chat_service.handle_connections, daemon=True).start()
-    # threading.Thread(target=chat_service.handle_connections, args=(server_list,), daemon=True).start()
 
-    # Location Service
-    location_service = LocationService(chat_service=chat_service)
     threading.Thread(target=location_service.handle_connections, daemon=True).start()
     threading.Thread(target=location_service.handle_forwarding, daemon=True).start()
-
 
     # Keep the main thread alive.
     while True:

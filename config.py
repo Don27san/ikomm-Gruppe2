@@ -49,7 +49,7 @@ config : Config = {
     # Address based on env set in pipenv script
     'address': ni.ifaddresses('en0')[ni.AF_INET][0]['addr'] if os.getenv('APP_ENV') == 'prod' else '127.0.0.1',
     'user': {
-        'userId': 'user_1',
+        'userId': 'user_2',
         'serverId': 'server_2'
     },
     'feature_support': ['TYPING_INDICATOR', 'LIVE_LOCATION', 'MESSAGES'],  # Features our client wants to support
