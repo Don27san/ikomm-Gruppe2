@@ -114,6 +114,8 @@ class ChatWindow(QMainWindow):
     def formatChatMessage(self, message):
         """Format a chat message based on its content type"""
         # Handle dictionary message format with safe access
+        html_prefix = ''
+        html_postfix = ''
         try:
             author_info = message.get('author', {})
             user_id = author_info.get('userId', 'Unknown')
@@ -121,11 +123,14 @@ class ChatWindow(QMainWindow):
             author = f"{user_id}@{server_id}"
         except (AttributeError, TypeError):
             author = "Unknown"
+        if author == self.author:
+            html_prefix = '<p align="right">'
+            html_postfix = '</p>'
         
         # Check if message has textContent
         text_content = message.get('textContent', '')
         if text_content:
-            return f"{author}: {text_content}"
+            return f"{html_prefix}{author}: {text_content}{html_postfix}"
 
         # Handle other content types if they exist
         document = message.get('document')
@@ -137,7 +142,7 @@ class ChatWindow(QMainWindow):
                 download_link = f'<a href="document://{doc_id}">Click to download</a>'
             else:
                 download_link = '[No link]'
-            return f"{author}: 📄 {filename} ({mime_type}) - {download_link}"
+            return f"{html_prefix}{author}: 📄 {filename} ({mime_type}) - {download_link}{html_postfix}"
         
         live_location = message.get('liveLocation')
         if live_location:
@@ -145,7 +150,7 @@ class ChatWindow(QMainWindow):
             lat = location.get('latitude', 0.0)
             lon = location.get('longitude', 0.0)
             live_location_html = f'<a href="location://{lat},{lon},{author}">Click to check the location</a>'
-            return f"{author}: 📍 Location ({lat:.5f}, {lon:.5f}) - {live_location_html}"
+            return f"{html_prefix}{author}: 📍 Location ({lat:.5f}, {lon:.5f}) - {live_location_html}{html_postfix}"
         
         translation = message.get('translation')
 
@@ -155,9 +160,9 @@ class ChatWindow(QMainWindow):
             target_lang = translation.get('target_language', -1)
             lang_name = lang_names.get(target_lang, 'Unknown')
             original_msg = translation.get('original_message', '')
-            return f"{author}: 🌐 Translation to {lang_name}: \"{original_msg}\""
+            return f"{html_prefix}{author}: 🌐 Translation to {lang_name}: \"{original_msg}\"{html_postfix}"
         
-        return f"{author}: [No content]"
+        return f"{html_prefix}{author}: [No content]{html_postfix}"
 
     def thread_safe_log(self, text):
         self.log_signal.emit(text)
@@ -165,11 +170,6 @@ class ChatWindow(QMainWindow):
 
     def sendMessage(self):
         text = self.messageInput.text().strip()
-
-        if text:
-            html = f'<p align="right">{text}</p>'
-            self.chatDisplay.append(html)
-            self.messageInput.clear()
 
         if text and self.recipientUserID() and self.recipientServerID():
             lang = self.chooseLanguage.currentText()
