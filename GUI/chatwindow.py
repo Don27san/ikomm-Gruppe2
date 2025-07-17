@@ -50,6 +50,7 @@ class ChatWindow(QMainWindow):
         # Set window title with user info from config
         user_id = config['user']['userId']
         server_id = config['user']['serverId']
+        self.author = f"{user_id}@{server_id}"
         self.setWindowTitle(f"Chat - {user_id}@{server_id}")
 
         # Initialize TypingFeature instance
@@ -120,11 +121,18 @@ class ChatWindow(QMainWindow):
             author = f"{user_id}@{server_id}"
         except (AttributeError, TypeError):
             author = "Unknown"
-        
+        if author == self.author:
+            # Your messages: right-aligned using table approach
+            html_prefix = '<table width="100%"><tr><td width="30%"></td><td width="70%" align="right">'
+            html_postfix = '</td></tr></table>'
+        else:
+            # Other messages: left-aligned using table approach  
+            html_prefix = '<table width="100%"><tr><td width="70%" align="left">'
+            html_postfix = '</td><td width="30%"></td></tr></table>'
         # Check if message has textContent
         text_content = message.get('textContent', '')
         if text_content:
-            return f"{author}: {text_content}"
+            return f"{html_prefix}{author}: {text_content}{html_postfix}"
 
         # Handle other content types if they exist
         document = message.get('document')
@@ -136,7 +144,7 @@ class ChatWindow(QMainWindow):
                 download_link = f'<a href="document://{doc_id}">Click to download</a>'
             else:
                 download_link = '[No link]'
-            return f"{author}: 📄 {filename} ({mime_type}) - {download_link}"
+            return f"{html_prefix}{author}: 📄 {filename} ({mime_type}) - {download_link}{html_postfix}"
         
         live_location = message.get('liveLocation')
         if live_location:
@@ -144,7 +152,7 @@ class ChatWindow(QMainWindow):
             lat = location.get('latitude', 0.0)
             lon = location.get('longitude', 0.0)
             live_location_html = f'<a href="location://{lat},{lon},{author}">Click to check the location</a>'
-            return f"{author}: 📍 Location ({lat:.5f}, {lon:.5f}) - {live_location_html}"
+            return f"{html_prefix}{author}: 📍 Location ({lat:.5f}, {lon:.5f}) - {live_location_html}{html_postfix}"
         
         translation = message.get('translation')
 
@@ -154,9 +162,9 @@ class ChatWindow(QMainWindow):
             target_lang = translation.get('target_language', -1)
             lang_name = lang_names.get(target_lang, 'Unknown')
             original_msg = translation.get('original_message', '')
-            return f"{author}: 🌐 Translation to {lang_name}: \"{original_msg}\""
+            return f"{html_prefix}{author}: 🌐 Translation to {lang_name}: \"{original_msg}\"{html_postfix}"
         
-        return f"{author}: [No content]"
+        return f"{html_prefix}{author}: [No content]{html_postfix}"
 
     def thread_safe_log(self, text):
         self.log_signal.emit(text)
@@ -164,11 +172,6 @@ class ChatWindow(QMainWindow):
 
     def sendMessage(self):
         text = self.messageInput.text().strip()
-
-        if text:
-            html = f'<p align="right">{text}</p>'
-            self.chatDisplay.append(html)
-            self.messageInput.clear()
 
         if text and self.recipientUserID() and self.recipientServerID():
             lang = self.chooseLanguage.currentText()
@@ -221,13 +224,12 @@ class ChatWindow(QMainWindow):
     def shareLocation(self):
         user_id = self.recipientUserID()
         server_id = self.recipientServerID()
-        author = f"{user_id}@{server_id}"
         g = geocoder.ip('me')
-        if g.ok:
+        if g.ok and user_id and server_id:
             lat, lon = g.latlng
             # open map viewer and update location
             if self.liveMapViewer is None:
-                self.liveMapViewer = LocationViewer(lat, lon, author)
+                self.liveMapViewer = LocationViewer(lat, lon, self.author)
             self.liveMapViewer.show()
             # self.liveMapViewer.updateLocation(lat, lon)
             
