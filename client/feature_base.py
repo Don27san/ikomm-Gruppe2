@@ -154,7 +154,12 @@ class FeatureBase:
         for feature_server in server_list:
             for features in feature_server['feature']:
                 if features['featureName'] == self.feature_name:
-                    return feature_server['server_ip'], features['port'], features.get('udpPort')
+                    # For MESSAGES feature, only connect to the server specified in config
+                    if self.feature_name == 'MESSAGES':
+                        if feature_server.get('serverId') == config['user']['serverId']:
+                            return feature_server['server_ip'], features['port'], features.get('udpPort')
+                    else:
+                        return feature_server['server_ip'], features['port'], features.get('udpPort')
 
         raise ValueError(f"Could not connect to feature '{self.feature_name}'. Not found in provided server list.")
 
