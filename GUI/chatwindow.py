@@ -87,6 +87,7 @@ class ChatWindow(QMainWindow):
         self.chatDisplay.setOpenLinks(False)
 
         self.sendButton.clicked.connect(self.sendMessage)
+        self.messageInput.returnPressed.connect(self.sendMessage)
 
         self.document_feature = document
 
