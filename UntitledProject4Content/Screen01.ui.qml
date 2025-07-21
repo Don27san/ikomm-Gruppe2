@@ -26,6 +26,8 @@ Rectangle {
     property bool showAddContact: false
     property alias webView: webView
 
+    property string myContactId: chatBackend.myContactId
+
     Rectangle {
         id: addContactOverlay
         visible: showAddContact
@@ -119,14 +121,14 @@ Rectangle {
             var latitude = ""
             var longitude = ""
 
-            if (messageType === "live_location" && messageText.indexOf(":") !== -1) {
-                var parts = messageText.split(":")
+            if (messageType === "liveLocation" && message.indexOf(":") !== -1) {
+                var parts = message.split(":")
                 message = ""
-                latitude = parts[0]
-                longitude = parts[1]
+                latitude = parts[0] + ""
+                longitude = parts[1] + ""
             } else if (messageType === "document") {
                 // If messageText is formatted as 'filename|filesize', split it
-                var fileParts = messageText.split("|")
+                var fileParts = message.split("|")
                 fileName = fileParts[0] || "Unknown file"
                 fileSize = fileParts[1] || "Unknown size"
             }
@@ -134,15 +136,15 @@ Rectangle {
                 onRemoveTypingMessage(author)
                 chatModel.append({
                     "isOwn": isOwn,
-                    "userInitials": isOwn ? "U3" : userInitials,
-                    "avatarColor": isOwn ? "#afdeff" : avatarColor,
+                    "userInitials": userInitials,
+                    "avatarColor": avatarColor,
                     "messageType": messageType,
                     "messageText": message,
                     "fileName": fileName,
                     "fileSize": fileSize,
                     "latitude": latitude,
                     "longitude": longitude,
-                    "userId": author,
+                    "userId": isOwn ? rectangle.myContactId : author,
                     "isGroupedMessage": false
                 })
                 chatListView.positionViewAtEnd()

@@ -20,6 +20,8 @@ Item {
     property string fileName: model ? (model.fileName || "") : ""
     property string fileSize: model ? (model.fileSize || "") : ""
     property string locationCoord: model ? (model.locationCoord || "") : ""
+    property string latitude: model ? (model.latitude || "") : ""
+    property string longitude: model ? (model.longitude || "") : ""
     property bool isGroupedMessage: model ? (model.isGroupedMessage || false) : false
     
     property int maxMessageWidth: 400
@@ -81,8 +83,8 @@ Item {
         LocationMessage {
             userId: messageDelegate.userId
             isOwnMessage: messageDelegate.isOwnMessage
-            latitude: (messageDelegate.messageText && messageDelegate.messageText.indexOf(":") !== -1) ? Number(messageDelegate.messageText.split(":")[0]) : 0
-            longitude: (messageDelegate.messageText && messageDelegate.messageText.indexOf(":") !== -1) ? Number(messageDelegate.messageText.split(":")[1]) : 0
+            latitude: messageDelegate.latitude
+            longitude: messageDelegate.longitude
             anchors.right: messageDelegate.isOwnMessage ? parent.right : undefined
         }
     }

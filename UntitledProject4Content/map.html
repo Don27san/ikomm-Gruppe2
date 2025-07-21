@@ -53,21 +53,29 @@
       z-index: -1;
     }
 
-    .red {
-      background-color: red;
+    .afdeff {
+      background-color: #afdeff;
     }
 
-    .blue {
-      background-color: #007bff;
+    .ffafaf {
+      background-color: #ffafaf;
     }
 
-    .orange {
-      background-color: orange;
+    .afffaf {
+      background-color: #afffaf;
       
     }
 
-    .green {
-      background-color: green;
+    .ffdfaf {
+      background-color: #ffdfaf;
+    }
+
+    .dfafff {
+      background-color: #dfafff;
+    }
+
+    .afafff {
+      background-color: #afafff;
     }
 
     @keyframes pulse {
@@ -91,7 +99,7 @@
     const initialLat = parseFloat(urlParams.get('lat')) || 0;
     const initialLon = parseFloat(urlParams.get('lon')) || 0;
     const author = urlParams.get('author') || 'Unknown';
-    const colors = ['red', 'blue', 'orange', 'green'];
+    colors = ["afdeff", "ffafaf", "afffaf", "ffdfaf", "dfafff", "afafff"];
 
     const getRandColor = (author) => {
       // Simple deterministic hash
@@ -101,13 +109,13 @@
           hash = hash & hash;
       }
       const color = colors[Math.abs(hash) % colors.length];
-      return color;
-    };
 
  return `<div class="custom-marker">
               <div class="inner-circle ${color}">${author.split('@')[0][0]+author.split('@')[0][author.split('@')[0].length-1]}</div>
               <div class="pulse-ring ${color}"></div>
             </div>`;
+
+          };
 
   function createCustomMarker(author) {
         return L.divIcon({

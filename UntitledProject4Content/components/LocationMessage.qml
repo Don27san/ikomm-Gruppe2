@@ -6,8 +6,8 @@ Rectangle {
     
     property string userId: ""
     property bool isOwnMessage: false
-    property real latitude: 0
-    property real longitude: 0
+    property string latitude: ""
+    property string longitude: ""
     
     width: 250
     height: 105
@@ -93,6 +93,7 @@ Rectangle {
                 
                 var mainWindow = findByName(root, "mainWindow");
                 if (mainWindow && mainWindow.webView) {
+                    console.log(latitude, longitude, userId)
                     var fileUrl = Qt.resolvedUrl("../map.html") + "?lat=" + latitude + "&lon=" + longitude + "&author=" + encodeURIComponent(userId)
                     mainWindow.webView.url = fileUrl;
                     mainWindow.showHtmlOverlay = true;

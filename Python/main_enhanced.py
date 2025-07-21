@@ -49,6 +49,9 @@ class ChatBackend(QObject):
         self.location_viewer_window = None
         self.location_component = None  # Store component reference
         self.engine = engine
+        self.user_id = self.chat_feature.user_id
+        self.server_id = self.chat_feature.server_id
+        self.contact_id = f"{self.user_id}@{self.server_id}"
 
         self.typing_users = {}
         self.typingTimer = QTimer(self)
@@ -162,6 +165,10 @@ class ChatBackend(QObject):
             self.removeTypingMessage.emit(author)
             del self.typing_users[author]
 
+    @Property(str, constant=True)
+    def myContactId(self):
+        # Assuming self.chat_feature has user_id and server_id
+        return self.contact_id
 
     @Slot(str, str, str)
     def sendMessage(self, contact_id, message, lang_code=""):
@@ -205,6 +212,38 @@ class ChatBackend(QObject):
                 )
                 self.locationSharingThread.start()
                 print(f"Emitting locationReceived: {lat}, {lon}, {author}")
+                self.chat_feature.chat_history.append({
+                    'author': {
+                        'userId': self.chat_feature.user_id,
+                        'serverId': self.chat_feature.server_id
+                    },
+                    'user': {
+                        'userId': recipient_user_id,
+                        'serverId': recipient_server_id
+                    },
+                    ''
+                    'liveLocation': {
+                        'location': {
+                            'latitude': lat,
+                            'longitude': lon
+                        },
+                        'author': author
+                    },
+                    "expiry_at": 0,
+                    "timestamp": 0,
+                    "user": {
+                        "userId": recipient_user_id,
+                        "serverId": recipient_server_id
+                    }
+                })
+                self.messageReceived.emit(
+                    f"{lat}:{lon}",
+                    "liveLocation",
+                    contact_id,
+                    self.chat_feature.get_contact_info(contact_id)[0],
+                    self.chat_feature.get_contact_info(contact_id)[1],
+                    True
+                )
                 self.locationReceived.emit(lat, lon, author)
             else:
                 if not g.ok:
