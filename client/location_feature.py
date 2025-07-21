@@ -3,7 +3,7 @@ import time
 import geocoder
 import random
 import math
-from PyQt5.QtCore import QObject, pyqtSignal
+from PySide6.QtCore import QObject, Signal
 from utils import green, red, serialize_msg, parse_msg, live_location
 from config import config
 from .feature_base import FeatureBase
@@ -11,7 +11,7 @@ from .feature_base import FeatureBase
 
 class LocationFeature(FeatureBase, QObject):
     # Signal to emit when location is received
-    locationEventReceived = pyqtSignal(float, float, str)  # lat, lon
+    locationEventReceived = Signal(float, float, str)  # lat, lon
     """
     ...
     """

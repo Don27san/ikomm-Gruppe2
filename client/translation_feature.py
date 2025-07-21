@@ -9,6 +9,7 @@ target_languages = Literal[
     'DE',  # German
     'EN',  # English
     'ZH',  # Chinese
+    'TR',  # Turkish
 ]
 
 class TranslationFeature(FeatureBase):
@@ -46,7 +47,7 @@ class TranslationFeature(FeatureBase):
 
     def handle_message_for_feature(self, message_name=None, payload=None, conn=None, addr=None):
         if message_name == "TRANSLATED":
-            print(f"Received translation: '{payload['translatedText']}' in '{payload['targetLanguage']}' language.")
+            print(f"Received translation: '{payload.get('translatedText', "Unknown Text")}' in '{payload.get('targetLanguage', "Unknown language.")}' language.")
             self.chat_feature.send_message(
                 self.recipient_user_id,
                 self.recipient_server_id,

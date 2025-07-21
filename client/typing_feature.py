@@ -3,7 +3,7 @@ import time
 from utils import typing_event, blue, green, red, parse_msg, serialize_msg
 from config import config
 from .feature_base import FeatureBase
-from PyQt5.QtCore import QObject, pyqtSignal
+from PySide6.QtCore import QObject, Signal
 
 class TypingFeature(FeatureBase, QObject):
     
@@ -14,7 +14,7 @@ class TypingFeature(FeatureBase, QObject):
     - Listens for incoming typing_events forwarded by the server.
     """
 
-    typing_event_received = pyqtSignal(list)  # Signal to notify GUI about new typing events
+    typing_event_received = Signal(list)  # Signal to notify GUI about new typing events
 
     def __init__(self):
         super().__init__('TYPING_INDICATOR')  #Takes care of connection
