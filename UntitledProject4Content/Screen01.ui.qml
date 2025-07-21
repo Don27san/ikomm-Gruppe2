@@ -8,7 +8,6 @@ Check out https://doc.qt.io/qtcreator/creator-quick-ui-forms.html for details on
 import QtQuick
 import QtQuick.Controls
 import UntitledProject4
-import QtQuick.Studio.DesignEffects
 import QtQuick.Timeline 1.0
 import QtQml.Models
 import "components"
@@ -452,6 +451,7 @@ Rectangle {
                         height: input_comp.height
                         clip: true
                         textRole: "text"
+                        valueRole: "code"
                         opacity: rectangle.selectedContactId.length > 0 ? 1.0 : 0.5
                         enabled: rectangle.selectedContactId.length > 0
                         indicator: Item {}
@@ -463,19 +463,19 @@ Rectangle {
                             } // ⬅️ Default item, triggers icon
                             ListElement {
                                 text: "🇩🇪"
-                                code: ""
+                                code: "DE"
                             }
                             ListElement {
                                 text: "🇨🇳"
-                                code: "de"
+                                code: "ZH"
                             }
                             ListElement {
                                 text: "🇬🇧"
-                                code: "en"
+                                code: "EN"
                             }
                             ListElement {
                                 text: "🇹🇷"
-                                code: "tr"
+                                code: "TR"
                             }
                         }
 

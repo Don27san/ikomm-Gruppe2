@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import UntitledProject4
-import QtQuick.Studio.DesignEffects
 import QtQuick.Layouts
 
 Rectangle {
