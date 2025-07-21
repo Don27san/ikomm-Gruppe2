@@ -99,6 +99,7 @@ class ChatService(ServiceBase):
 
     def route_message(self, chat_message):
         recipient_type = chat_message.WhichOneof('recipient')
+        print(f"Sending message {chat_message} to {recipient_type}")
 
         if recipient_type == 'user':
             recipient_user = chat_message.user
@@ -135,32 +136,34 @@ class ChatService(ServiceBase):
         red(f"Local recipient {recipient_user.userId} not found or not connected.")
 
     def send_msg_to_server(self, chat_message):
+        print(self.connected_servers)
         recipient_user = chat_message.user
         target_server_id = recipient_user.serverId
         yellow(f"Attempting to forward message to server: {target_server_id}")
 
         # Find the server in the server_dict by its serverId
-        for server_ip, server_data in self.server_dict.items():
-            if server_data.get('serverId') == target_server_id:
-                chat_feature_info = server_data['functions'].get('MESSAGES')
+        server_data = self.connected_servers.get(target_server_id, None)
+        if server_data:
+            # chat_feature_info = server_data['features'].get('MESSAGES')
+            server_addr = server_data.get('addr', None)
+            print(server_data)
+            # if not chat_feature_info:
+            #     red(f"MESSAGE feature not available for server {target_server_id}")
+            #     return
 
-                if not chat_feature_info:
-                    red(f"MESSAGE feature not available for server {target_server_id}")
-                    return
-
-                conn = chat_feature_info.get('conn')
-                if conn:
-                    try:
-                        serialized_message = serialize_msg('MESSAGE', chat_message)
-                        conn.sendall(serialized_message)
-                        green(f"Successfully forwarded message to server {target_server_id}")
-                    except Exception as e:
-                        red(f"Failed to send to {target_server_id} at {server_ip}. Error: {e}")
-                        conn.close()
-                        chat_feature_info['conn'] = None
-                else:
-                    red(f"No active connection to server {target_server_id}. Cannot forward message.")
-                return
+            conn = server_data.get('conn')
+            if conn:
+                try:
+                    serialized_message = serialize_msg('MESSAGE', chat_message)
+                    conn.send(serialized_message)
+                    green(f"Successfully forwarded message to server {target_server_id}")
+                except Exception as e:
+                    red(f"Failed to send to {target_server_id} at {server_addr}. Error: {e}")
+                    conn.close()
+                    server_data['conn'] = None
+            else:
+                red(f"No active connection to server {target_server_id}. Cannot forward message.")
+            return
 
         red(f"Server {target_server_id} not found in server_dict.")
 

@@ -81,6 +81,7 @@ class ServerConnectionBase:
             connect_server_msg = messenger_pb2.ConnectServer()
             connect_server_msg.serverId = config['serverId']
             connect_server_msg.features.extend(self.offered_features)
+            print("self.offeredfeature: ", self.offered_features)
             
             client.send_msg(serialize_msg('CONNECT_SERVER', connect_server_msg))
             blue(f"Connecting to server '{server_id}' at {server_ip}:{server_port}...")
