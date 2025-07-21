@@ -1,0 +1,39 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[scripts]
+client = "env APP_ENV=dev python -m client.main"
+server = "env APP_ENV=dev python -m server.main"
+client-prod = "env APP_ENV=prod python -m client.main"
+server-prod = "env APP_ENV=prod python -m server.main"
+pb-compile = "protoc --python_out=. --pyi_out=. ./protobuf/messenger.proto"
+update-requirements = "pip freeze > requirements.txt"
+count-lines = "find client server GUI -type f -name '*.py' ! -path '*/__pycache__/*' ! -name '*_pb2.py' | xargs wc -l"
+gui = "env APP_ENV=prod python -m main"
+
+[packages]
+beautifulsoup4 = "==4.13.4"
+certifi = "==2025.4.26"
+distlib = "==0.3.9"
+filelock = "==3.18.0"
+netifaces = "==0.11.0"
+packaging = "==25.0"
+pipenv = "==2025.0.3"
+platformdirs = "==4.3.8"
+protobuf = "==5.29.3"
+six = "==1.17.0"
+soupsieve = "==2.7"
+typing-extensions = "==4.14.0"
+virtualenv = "==20.31.2"
+google = "*"
+geocoder = "*"
+pyqt5 = "*"
+pyqtwebengine = "*"
+
+[dev-packages]
+pynput = "==1.8.1"
+
+[requires]
+python_version = "3.13"

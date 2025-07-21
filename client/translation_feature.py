@@ -9,6 +9,7 @@ target_languages = Literal[
     'DE',  # German
     'EN',  # English
     'ZH',  # Chinese
+    'TR',  # Turkish
 ]
 
 class TranslationFeature(FeatureBase):
