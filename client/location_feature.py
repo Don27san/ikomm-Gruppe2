@@ -61,7 +61,7 @@ class LocationFeature(FeatureBase, QObject):
                         live_location.location.longitude = synthetic_lon
                         try:
                             self.socket.sendto(serialize_msg('LIVE_LOCATION', live_location), (self.server_address, self.udp_server_port))
-                            print(f'{self.feature_name}: \nLive Location sent to {self.server_address}:{self.udp_server_port}')
+                            print(f'\n{self.feature_name}: sent to {self.server_address}:{self.udp_server_port}')
                         except Exception as e:
                             red(f"{self.feature_name}: Error while sending live location: {e}")
                     else:

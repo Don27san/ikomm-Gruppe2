@@ -69,7 +69,7 @@ class ChatFeature(FeatureBase, QObject):
         }
 
         self.contact_dict[contact_id] = contact
-        green(f"Added contact: {user_id}@{server_id}")
+        green(f"\nAdded contact: {user_id}@{server_id}")
         self.contactAdded.emit(
                     contact_id,
                     self.contact_dict[contact_id]['userInitials'],
@@ -79,13 +79,13 @@ class ChatFeature(FeatureBase, QObject):
     def get_messages(self, contact_id):
         """Retrieve messages for a specific contact"""
         # Filter messages by contact_id
-        print(self.chat_history)
+        # print(self.chat_history)
         messages = [msg for msg in self.chat_history if (f"{msg.get('author', {}).get('userId', '')}@{msg.get('author', {}).get('serverId', '')}" == contact_id or f"{msg.get('user', {}).get('userId', '')}@{msg.get('user', {}).get('serverId', '')}" == contact_id)]
         return messages
 
     def send_message(self, recipient_user_id, recipient_server_id, content=None):
         if not self.is_connected():
-            red("Not connected to chat server.")
+            red("\nMessage not sent. No connection to chat server.\n")
             return
 
         # If no content is provided, default to text content
@@ -102,7 +102,7 @@ class ChatFeature(FeatureBase, QObject):
 
         try:
             self.client.send_msg(serialize_msg('MESSAGE', message))
-            yellow(f"Sent message: {content}")
+            green(f"Sent message: {content}")
             # Add sent message to chat_history so it appears in GUI
             msg_dict = MessageToDict(message)
             self.chat_history.append(msg_dict)

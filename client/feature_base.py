@@ -119,9 +119,9 @@ class FeatureBase:
         # Handle connection response
         if message_name == 'CONNECTED':
             if payload['result'] == 'IS_ALREADY_CONNECTED_ERROR':
-                yellow(f"Already subscribed to {self.feature_name} on {self.feature_ip}:{self.feature_port} \n")
+                yellow(f"Already subscribed to {self.feature_name} on {self.feature_ip}:{self.feature_port}")
             elif payload['result'] == 'CONNECTED':
-                green(f"CONNECTED to {self.feature_name} on {self.feature_ip}:{self.feature_port} \n")
+                green(f"CONNECTED to {self.feature_name} on {self.feature_ip}:{self.feature_port}")
             else:
                 red(f"Unknown connection response for {self.feature_name} from {self.feature_ip}:{self.feature_port}. Check the payload of the connection response. \n")
 
@@ -161,7 +161,7 @@ class FeatureBase:
                     else:
                         return feature_server['server_ip'], features['port'], features.get('udpPort')
 
-        raise ValueError(f"Could not connect to feature '{self.feature_name}'. Not found in provided server list.")
+        raise ValueError(f"Could not connect to feature '{self.feature_name.upper()}'. Not found in provided server list.")
 
     def stop(self):
         """Gracefully stop the feature process when client UI is closed."""

@@ -5,6 +5,7 @@ from pathlib import Path
 import geocoder
 import time
 
+
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine, QQmlComponent
 from PySide6.QtCore import QObject, Signal, Slot, Property, QThread, QUrl, QTimer
@@ -23,7 +24,7 @@ from client.typing_feature import TypingFeature
 
 
 from autogen.settings import url, import_paths
-
+from utils import yellow
 
 class LocationSharingThread(QThread):
     def __init__(self, location_feature, user_id, server_id):
@@ -70,7 +71,7 @@ class ChatBackend(QObject):
     @Slot()
     def closeEvent(self, event=None):
         """Gracefully stop all features when window is closed"""
-        print("Window closing, gracefully stopping all features...")
+        print("\nWindow closing, gracefully stopping all features...")
         
         # Stop all features in order
         try:
@@ -174,7 +175,6 @@ class ChatBackend(QObject):
     @Slot(str, str, str)
     def sendMessage(self, contact_id, message, lang_code=""):
         """Slot that QML can call to send messages"""
-        print(lang_code)
         if len(contact_id.split('@')) == 2:
             user_id, server_id = contact_id.split('@')
             if self.chat_feature:
@@ -202,7 +202,7 @@ class ChatBackend(QObject):
                     self.locationSharingThread.isRunning() and
                     self.locationSharingThread.user_id == recipient_user_id and
                     self.locationSharingThread.server_id == recipient_server_id):
-                    print(f"Already sharing location with user {contact_id}")
+                    yellow(f"\nAlready sharing location with user {contact_id}")
                     return
                 lat, lon = g.latlng
                 author = getattr(self.chat_feature, 'author', 'Unknown User')
@@ -212,7 +212,7 @@ class ChatBackend(QObject):
                     recipient_server_id
                 )
                 self.locationSharingThread.start()
-                print(f"Emitting locationReceived: {lat}, {lon}, {author}")
+                print(f"\nEmitting locationReceived: {lat}, {lon}, {author}")
                 self.chat_feature.chat_history.append({
                     'author': {
                         'userId': self.chat_feature.user_id,
