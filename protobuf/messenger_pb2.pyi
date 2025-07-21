@@ -11,9 +11,11 @@ class Language(int, metaclass=_enum_type_wrapper.EnumTypeWrapper):
     DE: _ClassVar[Language]
     EN: _ClassVar[Language]
     ZH: _ClassVar[Language]
+    TR: _ClassVar[Language]
 DE: Language
 EN: Language
 ZH: Language
+TR: Language
 
 class User(_message.Message):
     __slots__ = ("userId", "serverId")
