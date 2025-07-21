@@ -7,7 +7,7 @@ Check out https://doc.qt.io/qtcreator/creator-quick-ui-forms.html for details on
 */
 import QtQuick
 import QtQuick.Controls
-import UntitledProject4
+import ChatApp
 import QtQuick.Timeline 1.0
 import QtQml.Models
 import "components"

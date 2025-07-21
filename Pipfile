@@ -11,7 +11,7 @@ server-prod = "env APP_ENV=prod python -m server.main"
 pb-compile = "protoc --python_out=. --pyi_out=. ./protobuf/messenger.proto"
 update-requirements = "pip freeze > requirements.txt"
 count-lines = "find client server GUI -type f -name '*.py' ! -path '*/__pycache__/*' ! -name '*_pb2.py' | xargs wc -l"
-gui = "env APP_ENV=prod python Python/main_enhanced.py"
+gui = "env APP_ENV=prod python Python/main.py"
 
 [packages]
 beautifulsoup4 = "==4.13.4"

@@ -3,9 +3,9 @@
 
 
 
-qt_add_library(UntitledProject4Content STATIC)
-qt6_add_qml_module(UntitledProject4Content
-    URI "UntitledProject4Content"
+qt_add_library(ChatAppContent STATIC)
+qt6_add_qml_module(ChatAppContent
+    URI "ChatAppContent"
     VERSION 1.0
     RESOURCE_PREFIX "/qt/qml"
     QML_FILES

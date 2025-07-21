@@ -8,9 +8,9 @@ set_source_files_properties(Constants.qml
 
 
 
-qt_add_library(UntitledProject4 STATIC)
-qt6_add_qml_module(UntitledProject4
-    URI "UntitledProject4"
+qt_add_library(ChatApp STATIC)
+qt6_add_qml_module(ChatApp
+    URI "ChatApp"
     VERSION 1.0
     RESOURCE_PREFIX "/qt/qml"
     QML_FILES

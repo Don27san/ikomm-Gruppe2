@@ -1,5 +1,5 @@
 
-url = "UntitledProject4Content/App.qml"
+url = "ChatAppContent/App.qml"
 import_paths = [
     ".",
 ]

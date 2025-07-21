@@ -1,5 +1,5 @@
 import QtQuick
-import UntitledProject4
+import ChatApp
 import "components"
 
 Window {
@@ -7,7 +7,7 @@ Window {
     height: mainScreen.height
 
     visible: true
-    title: "UntitledProject4"
+    title: "ChatApp"
 
     Screen01 {
         id: mainScreen

@@ -8,10 +8,10 @@
 #include <QGuiApplication>
 #include "qqmlextensionplugin.h"
 
-Q_IMPORT_QML_PLUGIN(UntitledProject4ContentPlugin)
-Q_IMPORT_QML_PLUGIN(UntitledProject4Plugin)
+Q_IMPORT_QML_PLUGIN(ChatAppContentPlugin)
+Q_IMPORT_QML_PLUGIN(ChatAppPlugin)
 
-const char mainQmlFile[] = "qrc:/qt/qml/UntitledProject4Content/App.qml";
+const char mainQmlFile[] = "qrc:/qt/qml/ChatAppContent/App.qml";
 
 #ifdef BUILD_QDS_COMPONENTS
 
