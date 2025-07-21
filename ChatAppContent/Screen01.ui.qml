@@ -26,7 +26,7 @@ Rectangle {
     property bool showAddContact: false
     property alias webView: webView
 
-    property string myContactId: chatBackend.myContactId
+    property string myContactId: chatBackend.myContactId || "my_contact_id"
 
     Rectangle {
         id: addContactOverlay
@@ -221,6 +221,10 @@ Rectangle {
                         color: "#00ffffff"
                         anchors.fill: parent
                     }
+                    background: Rectangle {
+                        color: "transparent"  // or a fixed color you want
+                        border.width: 0
+                    }
 
                     Image {
                         id: new_contact
@@ -250,7 +254,7 @@ Rectangle {
 
                 // Smooth scrolling
                 ScrollBar.vertical: ScrollBar {
-                    active: true
+                    active: false
                     policy: ScrollBar.AsNeeded
                     width: 8
                 }
@@ -393,11 +397,11 @@ Rectangle {
                     delegate: ChatMessage {}
 
                     // Smooth scrolling
-                    ScrollBar.vertical: ScrollBar {
-                        active: true
-                        policy: ScrollBar.AsNeeded
-                        width: 8
-                    }
+                    // ScrollBar.vertical: ScrollBar {
+                    //     active: false
+                    //     policy: ScrollBar.AsNeeded
+                    //     width: 8
+                    // }
 
                     // Add some spacing at the top and bottom
                     header: Item {
@@ -457,6 +461,7 @@ Rectangle {
                         opacity: rectangle.selectedContactId.length > 0 ? 1.0 : 0.5
                         enabled: rectangle.selectedContactId.length > 0
                         indicator: Item {}
+                        
 
                         model: ListModel {
                             ListElement {
@@ -487,12 +492,12 @@ Rectangle {
                             color: "white"
                             radius: 6
                             border.width: 2
-                            border.color: (comboBox.focus
-                                           || comboBox.popup.visible) ? "#1f5cf1" : "transparent"
+                            border.color: (comboBox.focus || comboBox.popup.visible) ? "#1f5cf1" : "transparent"
                         }
 
                         popup: Popup {
-                            y: comboBox.height
+                            
+                            y: comboBox.height + 5
                             width: comboBox.width
                             implicitHeight: contentItem.implicitHeight
                             padding: 0
@@ -536,6 +541,7 @@ Rectangle {
                         // Optional: Clean look for popup items
                         delegate: ItemDelegate {
                             width: comboBox.width
+                            background: Rectangle { color: "transparent" }
                             contentItem: Text {
                                 text: model.text === "" ? "-" : model.text
                                 font.pixelSize: 20
@@ -556,7 +562,10 @@ Rectangle {
                         width: 40
                         flat: true
                         opacity: rectangle.selectedContactId.length > 0 ? 1.0 : 0.5
-
+                        background: Rectangle {
+                            color: "transparent"  // or a fixed color you want
+                            border.width: 0
+                        }
                         Image {
                             id: location_icon1
                             x: -201
@@ -612,6 +621,18 @@ Rectangle {
                                 target: messageText
                                 function onTextChanged() { chatBackend.on_text_changed() }
                             }
+
+                            Keys.onReturnPressed: {
+                                if (messageText.text.length > 0 && rectangle.selectedContactId.length > 0) {
+                                    chatBackend.sendMessage(
+                                        rectangle.selectedContactId,
+                                        messageText.text,
+                                        comboBox.currentValue)
+                                    messageText.text = ""
+                                } else {
+                                    console.log("Message is empty or no contact selected")
+                                }
+                            }
                         }
 
                         Text {
@@ -640,6 +661,10 @@ Rectangle {
                             icon.color: "#00ffffff"
                             flat: true
                             opacity: rectangle.selectedContactId.length > 0 ? 1.0 : 0.5
+                            background: Rectangle {
+                                color: "transparent"  // or a fixed color you want
+                                border.width: 0
+                            }
                             Rectangle {
                                 id: rectangle3
                                 color: "#00ffffff"

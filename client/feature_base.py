@@ -84,7 +84,7 @@ class FeatureBase:
                         continue
 
                     # Handle messages; pass client conn and address
-                print(f"Received message '{message_name}' from {addr} for {self.feature_name} on {self.feature_ip}:{self.feature_port} - {payload}")
+                # print(f"Received message '{message_name}' from {addr} for {self.feature_name} on {self.feature_ip}:{self.feature_port} - {payload}")
                 message_handled = self.handle_message_for_feature(message_name, payload, self.client, addr)
                 if not message_handled:
                     self._handle_base_messages(message_name, payload, self.client, addr)

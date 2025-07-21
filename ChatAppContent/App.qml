@@ -13,5 +13,10 @@ Window {
         id: mainScreen
     }
 
+    onClosing: {
+        // Handle Cleanup
+        chatBackend.closeEvent()
+    }
+
 }
 

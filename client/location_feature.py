@@ -79,7 +79,7 @@ class LocationFeature(FeatureBase, QObject):
                 res, addr = self.socket.recvfrom(1024)
                 data = parse_msg(res)[2]
                 self.last_msg_received_time = time.time()
-                green(f'{self.feature_name}: Received live_locations from {addr[0]}:{addr[1]}, {data}')
+                green(f'{self.feature_name}: Received live_locations from {addr[0]}:{addr[1]}')
                 self.location_list = data['extendedLiveLocations'] # Update the event list with the received location events
 
                 for extendedLiveLocation in self.location_list:

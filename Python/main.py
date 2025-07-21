@@ -8,6 +8,7 @@ import time
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlApplicationEngine, QQmlComponent
 from PySide6.QtCore import QObject, Signal, Slot, Property, QThread, QUrl, QTimer
+os.environ["QT_QUICK_CONTROLS_STYLE"] = "Material"
 
 
 # Import your existing backend
@@ -66,13 +67,14 @@ class ChatBackend(QObject):
         if hasattr(self, 'typing_feature') and self.typing_feature:
             self.typing_feature.typing_event_received.connect(self.handleTypingEvent)
 
-    def closeEvent(self, event):
+    @Slot()
+    def closeEvent(self, event=None):
         """Gracefully stop all features when window is closed"""
         print("Window closing, gracefully stopping all features...")
         
         # Stop all features in order
         try:
-            self.locationFeature.stop()
+            self.location_feature.stop()
             print("Location feature stopped")
         except Exception as e:
             print(f"Error stopping location feature: {e}")
@@ -102,7 +104,6 @@ class ChatBackend(QObject):
             print(f"Error stopping translation feature: {e}")
         
         print("All features stopped successfully")
-        event.accept()  # Accept the close event
 
     def setup_backend(self):
         """Initialize your existing backend - same as your current main.py"""
@@ -296,7 +297,7 @@ class ChatBackend(QObject):
         """Called from QML when a contact is clicked"""
         for message in self.chat_feature.get_messages(contact_id):
             isOwn = (message['author']['userId'] == self.chat_feature.user_id) and (message['author']['serverId'] == self.chat_feature.server_id)
-            print(f"[Python] contactClicked: {contact_id} - {message}")
+            # print(f"[Python] contactClicked: {contact_id} - {message}")
             if 'textContent' in message:
                 messageType = "textContent"
                 messageText = message['textContent']
@@ -323,7 +324,7 @@ class ChatBackend(QObject):
                 self.chat_feature.get_contact_info(contact_id)[1],
                 isOwn
             )
-        print(f"[Python] contactClicked received: {contact_id}")
+        # print(f"[Python] contactClicked received: {contact_id}")
 
 
     @Slot()
