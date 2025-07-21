@@ -44,7 +44,7 @@ class DocumentFeature(FeatureBase):
         """
         try:
             if not self.is_connected():
-                red(f"{self.feature_name}: No connection to server.")
+                red(f"\n{self.feature_name}: No connection to server.\n")
                 return
 
             download_msg = messenger_pb2.DownloadDocument()

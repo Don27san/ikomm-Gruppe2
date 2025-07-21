@@ -61,7 +61,7 @@ class LocationFeature(FeatureBase, QObject):
                         live_location.location.longitude = synthetic_lon
                         try:
                             self.socket.sendto(serialize_msg('LIVE_LOCATION', live_location), (self.server_address, self.udp_server_port))
-                            print(f'{self.feature_name}: \nLive Location sent to {self.server_address}:{self.udp_server_port}')
+                            print(f'\n{self.feature_name}: sent to {self.server_address}:{self.udp_server_port}')
                         except Exception as e:
                             red(f"{self.feature_name}: Error while sending live location: {e}")
                     else:
@@ -79,7 +79,7 @@ class LocationFeature(FeatureBase, QObject):
                 res, addr = self.socket.recvfrom(1024)
                 data = parse_msg(res)[2]
                 self.last_msg_received_time = time.time()
-                green(f'{self.feature_name}: Received live_locations from {addr[0]}:{addr[1]}, {data}')
+                green(f'{self.feature_name}: Received live_locations from {addr[0]}:{addr[1]}')
                 self.location_list = data['extendedLiveLocations'] # Update the event list with the received location events
 
                 for extendedLiveLocation in self.location_list:

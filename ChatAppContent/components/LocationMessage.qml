@@ -51,7 +51,7 @@ Rectangle {
                     color: "#575757"
                     text: userId + " started sharing"
                     font.pixelSize: 12
-                    wrapMode: Text.WrapAnywhere
+                    elide: Text.ElideRight
                 }
             }
         }

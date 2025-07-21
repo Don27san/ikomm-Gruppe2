@@ -28,7 +28,7 @@ class TranslationFeature(FeatureBase):
             target_language (str): The language to translate the text into.
         """
         if not self.is_connected():
-            red("Feature inactive because  connected to translation server.")
+            red("\nFeature disabled because not connected to translation server.\n")
             return
         
             # Store recipient information for later use
