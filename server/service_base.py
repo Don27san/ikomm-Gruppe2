@@ -8,6 +8,9 @@ from protobuf import messenger_pb2
 FeatureName = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'MESSAGES']
 
 class ServiceBase:
+    """
+    Base class for backend services handling connections and messages.
+    """
     def __init__(self, feature_name : FeatureName, bind_port, forwarding_port=None):
         self.feature_name = feature_name
 

@@ -24,6 +24,7 @@ class FeatureBase:
             - Sends a connection request and processes the server's response.
             - Handles connection errors and prints status messages.
     """
+    
     def __init__(self, feature_name: FeatureName):
         self.feature_name = feature_name
         self._running = True

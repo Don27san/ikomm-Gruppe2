@@ -10,7 +10,6 @@ class TypingFeature(FeatureBase, QObject):
     """
     Has three purposes:
     - Establishes and maintains connection to feature server
-    - Listens for keystroke events to send typing_event to feature host.
     - Listens for incoming typing_events forwarded by the server.
     """
 
@@ -52,19 +51,6 @@ class TypingFeature(FeatureBase, QObject):
             self.debounce(fn=self.send_typing_event)
         except AttributeError:
             pass
-            
-        # Starts listening for keyboard events
-        # listener = keyboard.Listener(on_press=on_press)
-        # listener.start()
-        # while self._running:
-        #     time.sleep(1)
-        # listener.stop()
-
-        # with keyboard.Listener(on_press=on_press) as listener:
-        #     blue('Ready to handle typing event...\n')
-        #     listener.join()
-
-
 
 
     # Listens for incoming typing events forwarded by the server

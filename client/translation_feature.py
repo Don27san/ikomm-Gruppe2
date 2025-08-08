@@ -13,6 +13,7 @@ target_languages = Literal[
 ]
 
 class TranslationFeature(FeatureBase):
+    """Handles the translation of messages between users in different languages. Whenever a user selects one of the translation options in the GUI, this feature is used to send the translation request to the server of group 4."""
     
     def __init__(self, chat_feature: ChatFeature):
         super().__init__('TRANSLATION')  #Takes care of connection

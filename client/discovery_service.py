@@ -16,12 +16,12 @@ class DiscoveryService:
         self.discovery_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.discovery_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.discovery_socket.bind(('', 0)) #pick arbitrary port cuz we dont care.
-        self.server_list = []
+        self.server_list = [] # List to store discovered servers
     
 
     def discover_servers(self, timeout=2):
         blue(f"Discovering servers at port {config['conn_mgmt']['discovery_port']} for {timeout}s ...")
-        addr = self._get_broadcast_ip() if os.getenv('APP_ENV') == 'prod' else '127.0.0.1'   # Actual broadcast address of your active network interface using netiface
+        addr = self._get_broadcast_ip()
 
         # Broadcast discovery request to entire local network.
         self.discovery_socket.sendto(serialize_msg('DISCOVER_SERVER'), (addr, config['conn_mgmt']['discovery_port']))

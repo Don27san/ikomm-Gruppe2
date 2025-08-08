@@ -47,7 +47,7 @@ class Config(TypedDict):
 
 config : Config = {
     # Address based on env set in pipenv script
-    'address': ni.ifaddresses('en0')[ni.AF_INET][0]['addr'] if os.getenv('APP_ENV') == 'prod' else '127.0.0.1',
+    'address': ni.ifaddresses('en0')[ni.AF_INET][0]['addr'],
     'user': {
         'userId': 'user_1',
         'serverId': 'server_2'
