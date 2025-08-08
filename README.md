@@ -25,11 +25,11 @@ cd ikomm-Gruppe2
 ### 2. Install Dependencies
 
 ```bash
-# Using pip
-pip install -r requirements.txt
-
 # Using Pipenv
 pipenv install
+
+# Using pip
+pip install -r requirements.txt
 ```
 
 ### 3. Start the Server (before the client)
