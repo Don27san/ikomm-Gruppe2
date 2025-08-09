@@ -22,8 +22,7 @@ from client.translation_feature import TranslationFeature
 from client.typing_feature import TypingFeature
 # from GUI.locationviewer import LocationViewer
 
-
-from autogen.settings import url, import_paths
+from settings import url, import_paths
 from utils import yellow
 
 class LocationSharingThread(QThread):
@@ -256,29 +255,6 @@ class ChatBackend(QObject):
             import traceback
             traceback.print_exc()
 
-
-    # @Slot(str)
-    # def shareLocation(self, contact_id):
-    #     g = geocoder.ip('me')
-    #     recipient_user_id, recipient_server_id = contact_id.split('@')
-    #     if g.ok and recipient_user_id and recipient_server_id:
-    #         lat, lon = g.latlng
-            
-    #         # Create location viewer window if it doesn't exist
-    #         if not self.location_viewer_window:
-    #             self.create_location_viewer()
-            
-    #         # if self.location_viewer_window:
-    #             # Update location and show window
-    #             # self.location_viewer_window.updateLocation(lat, lon, self.chat_feature.author)
-    #             # self.location_viewer_window.showWindow()
-            
-    #         # Start background location-sharing
-    #         self.locationSharingThread = LocationSharingThread(self.location_feature, recipient_user_id, recipient_server_id)
-    #         self.locationSharingThread.start()
-    #     else:
-    #         print("Failed to get location or invalid contact ID")
-
     @Slot(str, str)
     def addContact(self, user_id, server_id):
         """Slot that QML can call to add contacts"""
@@ -297,24 +273,18 @@ class ChatBackend(QObject):
         """Called from QML when a contact is clicked"""
         for message in self.chat_feature.get_messages(contact_id):
             isOwn = (message['author']['userId'] == self.chat_feature.user_id) and (message['author']['serverId'] == self.chat_feature.server_id)
-            # print(f"[Python] contactClicked: {contact_id} - {message}")
             if 'textContent' in message:
                 messageType = "textContent"
                 messageText = message['textContent']
             elif 'document' in message:
                 messageType = "document"
                 messageText = message['document'].get('fileName', 'Document')
-            # elif 'translation' in message:
-            #     messageType = "translation"
-            #     messageText = message['translation'].translatedText if message['translation'].translatedText else "Translation"
             elif 'liveLocation' in message:
                 messageType = "liveLocation"
                 messageText = str(message['liveLocation'].get('location', {}).get('latitude', 'Unknown')) + ":" + str(message['liveLocation'].get('location', {}).get('longitude', 'Unknown'))
             else:
                 messageType = "unknown"
                 messageText = "Unknown Content"
-
-            
             # Emit the messageReceived signal to QML
             self.messageReceived.emit(
                 messageText,
@@ -324,8 +294,6 @@ class ChatBackend(QObject):
                 self.chat_feature.get_contact_info(contact_id)[1],
                 isOwn
             )
-        # print(f"[Python] contactClicked received: {contact_id}")
-
 
     @Slot()
     def on_text_changed(self):
@@ -340,10 +308,10 @@ if __name__ == '__main__':
     # Create your backend
     chat_backend = ChatBackend(engine)
     
-    # Expose it to QML - this is the "bridge" (much simpler than I initially suggested)
+    # Expose to QML
     engine.rootContext().setContextProperty("chatBackend", chat_backend)
 
-    app_dir = Path(__file__).parent.parent
+    app_dir = Path(__file__).parent
 
     engine.addImportPath(os.fspath(app_dir))
     for path in import_paths:

@@ -8,6 +8,61 @@ from PySide6.QtCore import QObject, Signal
 from google.protobuf.json_format import MessageToDict
 
 class ChatFeature(FeatureBase, QObject):
+    """
+    Client-side feature that manages chat messaging, contact management, and UI integration.
+
+    The feature provides a complete chat messaging interface including sending,
+    receiving and displaying incoming messages, and maintaining chat history.
+    It integrates with Qt's signal system to provide real-time updates to QML UI
+    components. The feature supports various content types including text, documents, 
+    and live location sharing.
+
+    Attributes
+    ----------
+    chat_history : list[dict]
+        Complete history of sent and received messages in dictionary format
+        (converted from protobuf). Used for message persistence and UI display.
+    ack_list : list[dict]
+        Collection of received message acknowledgments for delivery confirmation
+        and message status tracking.
+    contact_dict : dict[str, dict]
+        Contact information keyed by contact_id (userId@serverId) containing
+        user details, generated initials, avatar colors, and timestamps.
+    user_id : str
+        Current user's identifier from configuration.
+    server_id : str
+        Current user's server identifier from configuration.
+    author : str
+        Formatted author string (user_id@server_id).
+    messageReceived : Signal(str, str, str, str, str, bool)
+        Qt signal emitted when new messages arrive: (messageText, messageType,
+        authorId, userInitials, avatarColor, isOwnMessage).
+    contactAdded : Signal(str, str, str)
+        Qt signal emitted when new contacts are added: (contactId, userInitials,
+        avatarColor).
+
+    Methods
+    -------
+    __init__():
+        Initialize chat feature with Qt signal integration and contact management.
+    get_contact_info(contact_id: str) -> tuple[str, str]:
+        Retrieve or generate contact display info (initials, avatar color) for
+        a given contact_id, creating consistent UI representation.
+    add_contact(user_id: str, server_id: str):
+        Add new contact to contact_dict and emit contactAdded signal for UI
+        updates. Handles duplicate contact detection.
+    get_messages(contact_id: str) -> list[dict]:
+        Filter and return message history for a specific contact, used for
+        populating chat conversations in the UI.
+    send_message(recipient_user_id: str, recipient_server_id: str, content: dict):
+        Compose and send chat message with specified content (text, document,
+        location). Handles message creation, server transmission, and UI updates.
+    handle_message_for_feature(message_name, payload, conn, addr) -> bool:
+        Process incoming chat messages and acknowledgments. Updates chat history,
+        manages contacts, sends delivery confirmations, and emits UI signals.
+    stop():
+        Gracefully shutdown the chat feature and close connections.
+    """
     # Signal to emit when a new message is sent or received
     messageReceived = Signal(str, str, str, str, str, bool)  # message, messageType, author, userinitials, color, isown
     contactAdded = Signal(str, str, str)  # contactId, userInitials, avatarColor
@@ -33,7 +88,7 @@ class ChatFeature(FeatureBase, QObject):
             user_id = contact_id
             server_id = ""
 
-        # Generate user initials (first and last letter of user_id, capitalized)
+        # Generate user initials
         user_initials = f"{user_id[0].upper()}{user_id[-1].upper()}" if user_id else "?"
         # Generate a simple avatar color based on user_id
         colors = ["#afdeff", "#ffafaf", "#afffaf", "#ffdfaf", "#dfafff", "#afafff"]
@@ -51,11 +106,6 @@ class ChatFeature(FeatureBase, QObject):
         # Check if contact already exists in contact_dict
         if contact_id in self.contact_dict:
             print(f"Contact {contact_id} already exists")
-            # self.contactAdded.emit(
-            #         contact_id,
-            #         self.contact_dict[contact_id]['userInitials'],
-            #         self.contact_dict[contact_id]['avatarColor']
-            #     )
             return
 
         user_initials, avatar_color = self.get_contact_info(contact_id)
@@ -79,7 +129,6 @@ class ChatFeature(FeatureBase, QObject):
     def get_messages(self, contact_id):
         """Retrieve messages for a specific contact"""
         # Filter messages by contact_id
-        # print(self.chat_history)
         messages = [msg for msg in self.chat_history if (f"{msg.get('author', {}).get('userId', '')}@{msg.get('author', {}).get('serverId', '')}" == contact_id or f"{msg.get('user', {}).get('userId', '')}@{msg.get('user', {}).get('serverId', '')}" == contact_id)]
         return messages
 
@@ -92,7 +141,6 @@ class ChatFeature(FeatureBase, QObject):
         if content is None:
             content = {'textContent': "Hello, this is a test message!"}
 
-        # Use the generate_chat_message utility function
         message = generate_chat_message(
             author_user_id=config['user']['userId'],
             author_server_id=config['user']['serverId'],
@@ -113,9 +161,6 @@ class ChatFeature(FeatureBase, QObject):
             elif 'document' in content:
                 messageType = "document"
                 messageText = content['document'].get('fileName', 'Document')
-            # elif 'translation' in message:
-            #     messageType = "translation"
-            #     messageText = message['translation'].translatedText if message['translation'].translatedText else "Translation"
             elif 'live_location' in content:
                 messageType = "live_location"
                 messageText = content['live_location'].get('location', {}).get('latitude', 'Unknown') + ":" + content['live_location'].get('location', {}).get('longitude', 'Unknown')
@@ -144,7 +189,6 @@ class ChatFeature(FeatureBase, QObject):
             server_id = author_info.get('serverId', 'Unknown')
             message_text = payload.get('textContent', '')
             green(f"Received message from {user_id}@{server_id}: \"{message_text}\"")
-            # Emit signal for QML
             contact_id = f"{user_id}@{server_id}"
         
         # Check if contact already exists
@@ -155,21 +199,20 @@ class ChatFeature(FeatureBase, QObject):
             elif 'document' in payload:
                 messageType = "document"
                 messageText = payload['document'].get('fileName', 'Document')
-            # elif 'translation' in message:
-            #     messageType = "translation"
-            #     messageText = message['translation'].translatedText if message['translation'].translatedText else "Translation"
             elif 'liveLocation' in payload:
                 messageType = "liveLocation"
                 messageText = str(payload['liveLocation'].get('location', {}).get('latitude', 'Unknown')) + ":" + str(payload['liveLocation'].get('location', {}).get('longitude', 'Unknown'))
             else:
                 messageType = "unknown"
                 messageText = "Unknown Content"
+
+            # Emit signal for QML
             self.messageReceived.emit(messageText, messageType, f"{user_id}@{server_id}", self.get_contact_info(contact_id)[0], self.get_contact_info(contact_id)[1],False)
+            
             # Acknowledge the message back to the server
             try:
                 response = messenger_pb2.ChatMessageResponse()
                 response.messageSnowflake = int(payload.get('messageSnowflake'))
-                # In a real app, you'd identify the current user. Here, we just confirm delivery.
                 delivery_status = response.statuses.add()
                 delivery_status.status = messenger_pb2.ChatMessageResponse.Status.DELIVERED
                 conn.send_msg(serialize_msg('MESSAGE_ACK', response))

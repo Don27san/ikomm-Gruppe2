@@ -21,7 +21,7 @@ class DiscoveryService:
 
     def discover_servers(self, timeout=2):
         blue(f"Discovering servers at port {config['conn_mgmt']['discovery_port']} for {timeout}s ...")
-        addr = self._get_broadcast_ip()
+        addr = '<broadcast>'
 
         # Broadcast discovery request to entire local network.
         self.discovery_socket.sendto(serialize_msg('DISCOVER_SERVER'), (addr, config['conn_mgmt']['discovery_port']))
@@ -44,13 +44,3 @@ class DiscoveryService:
             blue("Discovery finished.\n")
         
         return self.server_list
-
-    def _get_broadcast_ip(self, interface='en0'):
-        """
-        Replaces <broadcast> with the actual broadcast address of your active network interface using netiface
-        """
-        try:
-            return ni.ifaddresses(interface)[ni.AF_INET][0]['broadcast']
-        except Exception as e:
-            red(f"Could not determine broadcast address: {e}")
-            return None

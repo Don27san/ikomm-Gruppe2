@@ -163,7 +163,7 @@ Rectangle {
         }
     }
 
-    Row {
+    Item {
         id: application_container
         anchors.fill: parent
 

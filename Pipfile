@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [scripts]
-client = "python Python/main.py"
+client = "python GUI/main.py"
 server = "python -m server.main"
 pb-compile = "protoc --python_out=. --pyi_out=. ./protobuf/messenger.proto"
 update-requirements = "pip freeze > requirements.txt"
@@ -31,6 +31,7 @@ typing-extensions = "==4.14.0"
 virtualenv = "==20.31.2"
 geocoder = "==1.38.1"
 pyside6 = "*"
+pyside6-addons = "*"
 
 [dev-packages]
 

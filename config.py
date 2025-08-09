@@ -1,6 +1,17 @@
 import os
-import netifaces as ni
+import socket
 from typing import Literal, List, TypedDict
+
+def get_local_ip():
+    try:
+        # Connect to a remote address to determine local IP
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip = s.getsockname()[0]
+        s.close()
+        return local_ip
+    except:
+        return "127.0.0.1"
 
 # Config Types
 Feature = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'MESSAGES']
@@ -47,7 +58,8 @@ class Config(TypedDict):
 
 config : Config = {
     # Address based on env set in pipenv script
-    'address': ni.ifaddresses('en0')[ni.AF_INET][0]['addr'],
+    # Change here for your local setup
+    'address': get_local_ip(),
     'user': {
         'userId': 'user_1',
         'serverId': 'server_2'
