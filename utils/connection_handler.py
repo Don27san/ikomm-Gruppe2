@@ -63,7 +63,7 @@ class ConnectionHandler:
                 except (ConnectionResetError, BrokenPipeError) as e:
                     continue  # Retry — don't close
                 except Exception as e:
-                    print(f"Fatal error from {addr}: {e}. Closing connection.")
+                    # print(f"Fatal error from {addr}: {e}. Closing connection.")
                     break  # Exit loop on fatal
         finally:
             client_socket.close()

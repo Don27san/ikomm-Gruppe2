@@ -9,9 +9,11 @@ target_languages = Literal[
     'DE',  # German
     'EN',  # English
     'ZH',  # Chinese
+    'TR',  # Turkish
 ]
 
 class TranslationFeature(FeatureBase):
+    """Handles the translation of messages between users in different languages. Whenever a user selects one of the translation options in the GUI, this feature is used to send the translation request to the server of group 4."""
     
     def __init__(self, chat_feature: ChatFeature):
         super().__init__('TRANSLATION')  #Takes care of connection
@@ -27,7 +29,7 @@ class TranslationFeature(FeatureBase):
             target_language (str): The language to translate the text into.
         """
         if not self.is_connected():
-            red("Feature inactive because  connected to translation server.")
+            red("\nFeature disabled because not connected to translation server.\n")
             return
         
             # Store recipient information for later use
@@ -46,7 +48,7 @@ class TranslationFeature(FeatureBase):
 
     def handle_message_for_feature(self, message_name=None, payload=None, conn=None, addr=None):
         if message_name == "TRANSLATED":
-            print(f"Received translation: '{payload['translatedText']}' in '{payload['targetLanguage']}' language.")
+            print(f"Received translation: '{payload.get('translatedText', "Unknown Text")}' in '{payload.get('targetLanguage', "Unknown language.")}' language.")
             self.chat_feature.send_message(
                 self.recipient_user_id,
                 self.recipient_server_id,

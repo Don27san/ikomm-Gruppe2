@@ -4,6 +4,47 @@ from utils import serialize_msg, red, green, yellow
 from protobuf import messenger_pb2
 
 class ChatService(ServiceBase):
+    """
+    Server-side feature that handles chat message routing, delivery, and acknowledgments.
+
+    The service accepts TCP chat messages from clients, maintains a message history
+    for acknowledgment tracking, and routes messages to appropriate recipients either
+    locally (same server) or to remote servers. It handles both direct user-to-user
+    messaging and provides infrastructure for group messaging. The service ensures
+    reliable delivery through message acknowledgments and maintains connections to
+    other servers for inter-server communication.
+
+    Attributes
+    ----------
+    message_history : dict[int, messenger_pb2.ChatMessage]
+        In-memory cache of sent messages keyed by messageSnowflake for ACK tracking.
+        Used to route acknowledgments back to original message authors.
+    subscriber_dict : dict
+        (Inherited from ServiceBase) Active subscribers keyed by (ip, tcp_port)
+        with metadata including connection objects, user info, and activity timestamps.
+    server_dict : dict
+        (Inherited from ServiceBase) Connections to other servers with their exposed
+        functions and connection details for inter-server message routing.
+
+    Methods
+    -------
+    __init__():
+        Initialize the chat service with message history and TCP connection handling.
+    handle_message_for_feature(message_name, data, conn, addr) -> bool:
+        Process chat-specific messages: MESSAGE (incoming chat) and MESSAGE_ACK
+        (delivery confirmations). Routes messages and acknowledgments appropriately.
+    route_message(chat_message: messenger_pb2.ChatMessage):
+        Determine message destination and route to local users or remote servers
+        based on recipient's serverId. Handles user and group recipient types.
+    send_msg_to_user(chat_message: messenger_pb2.ChatMessage):
+        Deliver message to a local user by finding their active connection in
+        the subscriber_dict and sending via TCP.
+    send_msg_to_server(chat_message: messenger_pb2.ChatMessage):
+        Forward message to a remote server by locating the appropriate server
+        connection and sending via inter-server TCP link.
+    stop():
+        Gracefully shutdown the chat service and close all connections.
+    """
     def __init__(self):
         super().__init__('MESSAGES', bind_port=config['chat_feature']['server_connection_port'])
         self.message_history = {} # Using dict to store messages with snowflake as key
@@ -33,7 +74,6 @@ class ChatService(ServiceBase):
                 chat_message.user.userId = data['user'].get('userId', '')
                 chat_message.user.serverId = data['user'].get('serverId', '')
             elif 'group' in data:
-                # Handle group recipient if necessary
                 pass
 
             if 'textContent' in data:
@@ -109,8 +149,7 @@ class ChatService(ServiceBase):
                 self.send_msg_to_server(chat_message)
         
         elif recipient_type == 'group':
-            # TODO: Implement group messaging logic
-            # This would involve checking the group's serverId and then either handling locally or forwarding.
+            # TODO: Implement group messaging logic correctly
             yellow("Group messaging not yet implemented.")
 
         else:

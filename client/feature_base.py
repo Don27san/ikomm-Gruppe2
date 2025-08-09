@@ -11,25 +11,46 @@ FeatureName = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'MESSAGES', 'TRANSLAT
 
 class FeatureBase:
     """
-    Base class for handling feature-specific client connections.
+    This base class handles the feature-specific client connection Itabstracts the lifecycle of a client connection for
+    a specific feature (e.g., chat messages, live location, typing indicator, translation, documents. It manages
+    connecting to the correct server, sending initial handshake messages, processing inbound messages,
+    health-checking (PING/PONG), and graceful shutdown.
 
-    Attributes:
-        feature_name (FeatureName): The name of the feature this instance represents.
+    Attributes
+    ----------
+    feature_name : FeatureName
+        The name of the feature this instance represents.
 
-    Methods:
-        handle_connection(server_list):
-            Handles the process of connecting to the appropriate server for the feature.
+    Methods
+    -------
+    is_connected() -> bool
+        Return True if the client has been created and the loop is running.
+    handle_connection(server_list: List[Dict[str, Any]]) -> None
+        Handles the process of connecting to the appropriate server for the feature.
             - Looks up the server and port for the feature in the provided server list.
             - Establishes a client connection using ConnectionHandler.
             - Sends a connection request and processes the server's response.
             - Handles connection errors and prints status messages.
+            - Checks if server is still active with PING management
+    _send_connection_request() -> None
+        Send the initial CONNECT_CLIENT message with the correct UDP port.
+    handle_message_for_feature(message_name: Optional[str], payload: Optional[dict], conn: Optional[ConnectionHandler], addr: Optional[Tuple[str, int]]) -> bool
+        Hook for subclasses to handle feature-specific messages. Return True if
+        handled to prevent base processing.
+    _handle_base_messages(message_name: Optional[str], payload: Optional[dict], conn: Optional[ConnectionHandler], addr: Optional[Tuple[str, int]]) -> None
+        Handle protocol-level messages common to all features (CONNECTED, PING/PONG, HANGUP, UNSUPPORTED_MESSAGE).
+    _get_server_for_feature(server_list: List[Dict[str, Any]]) -> Tuple[str, int, Optional[int]]
+        Look up the server host, port, and optional UDP port for this feature.
+    stop() -> None
+        Gracefully stop the feature process and close the connection.
     """
+    
     def __init__(self, feature_name: FeatureName):
         self.feature_name = feature_name
-        self._running = True
-        self.udp_server_port = None
+        self._running = True  # Flag controlling the main loop; set to False to stop.
+        self.udp_server_port = None  # UDP port of the selected feature server, if applicable.
         self.server_address = None
-        self.client = None  # Initialize client as None
+        self.client = None  # The underlying client connection handler; `None` until connected.
 
         # Check: server still active?
         self.last_msg_received_time = None
@@ -37,11 +58,9 @@ class FeatureBase:
         self.ping_timeout = config["conn_mgmt"]["ping_timeout"]
 
     def is_connected(self):
-        """Check if the client is connected to the server."""
         return self._running and self.client is not None
 
     def handle_connection(self, server_list):
-
         try:
             self.feature_ip, self.feature_port, self.udp_server_port = self._get_server_for_feature(server_list)
         except ValueError as e:
@@ -58,6 +77,8 @@ class FeatureBase:
             self.client.start_client(self.feature_ip, self.feature_port)
 
             self._send_connection_request()
+
+            # main loop
             while self._running:
                 # Check: server still active?
                 try:
@@ -84,7 +105,7 @@ class FeatureBase:
                         continue
 
                     # Handle messages; pass client conn and address
-                print(f"Received message '{message_name}' from {addr} for {self.feature_name} on {self.feature_ip}:{self.feature_port} - {payload}")
+                # print(f"Received message '{message_name}' from {addr} for {self.feature_name} on {self.feature_ip}:{self.feature_port} - {payload}")
                 message_handled = self.handle_message_for_feature(message_name, payload, self.client, addr)
                 if not message_handled:
                     self._handle_base_messages(message_name, payload, self.client, addr)
@@ -119,9 +140,9 @@ class FeatureBase:
         # Handle connection response
         if message_name == 'CONNECTED':
             if payload['result'] == 'IS_ALREADY_CONNECTED_ERROR':
-                yellow(f"Already subscribed to {self.feature_name} on {self.feature_ip}:{self.feature_port} \n")
+                yellow(f"Already subscribed to {self.feature_name} on {self.feature_ip}:{self.feature_port}")
             elif payload['result'] == 'CONNECTED':
-                green(f"CONNECTED to {self.feature_name} on {self.feature_ip}:{self.feature_port} \n")
+                green(f"CONNECTED to {self.feature_name} on {self.feature_ip}:{self.feature_port}")
             else:
                 red(f"Unknown connection response for {self.feature_name} from {self.feature_ip}:{self.feature_port}. Check the payload of the connection response. \n")
 
@@ -161,7 +182,7 @@ class FeatureBase:
                     else:
                         return feature_server['server_ip'], features['port'], features.get('udpPort')
 
-        raise ValueError(f"Could not connect to feature '{self.feature_name}'. Not found in provided server list.")
+        raise ValueError(f"Could not connect to feature '{self.feature_name.upper()}'. Not found in provided server list.")
 
     def stop(self):
         """Gracefully stop the feature process when client UI is closed."""

@@ -10,9 +10,44 @@ from .chat_service import ChatService
 
 class LocationService(ServiceBase):
     """
-    Has two purposes:
-    - Listens for connections requests, stores the requester as feature subscriber. Responds by telling which port to send location_events to.
-    - Handles receival, bundling and forwarding of location events to the subscriber group.
+    Server-side feature that receives, aggregates, and forwards live location updates.
+
+    The service accepts UDP live-location packets from clients, keeps a short-lived
+    in-memory list of the latest locations per (author, recipient) pair, and
+    forwards batched updates to all subscribed clients. On the first update from a
+    sender/recipient pair, the service also emits a chat message (via
+    `ChatService`) that carries an initial `LiveLocation` so recipients can anchor
+    the stream.
+
+    Attributes
+    ----------
+    location_events_list : list[dict]
+        Rolling cache of the latest live-location events. Each item contains the
+        author and recipient descriptors, latest coordinates, expiry, timestamps,
+        source IP/port, and the associated `messageSnowflake`.
+    chat_service : ChatService
+        Reference to the chatservice to create and route the initial chat message that anchors a
+        live-location stream for a (author, recipient) pair.
+    subscriber_dict : dict
+        (Inherited from `ServiceBase`) Active subscribers keyed by (ip, tcp_port)
+        with metadata like UDP port and `lastActive` timestamp.
+    _running : bool
+        (Inherited) Main loop guard; set to `False` to stop the service.
+    forwarding_port : int
+        (Configured) UDP port on which live location updates are sent and received.
+
+    Methods
+    -------
+    __init__(chat_service: ChatService):
+        Initialize the service, ports, caches, and chat-service dependency.
+    handle_forwarding():
+        Main UDP receive/forward loop. Ingests client updates, refreshes the
+        rolling cache, sends an initial chat message for new streams, prunes
+        expired entries, and forwards the batched `LiveLocations` to each
+        subscriber.
+    format_live_locations_list() -> messenger_pb2.LiveLocations:
+        Build a protobuf message containing the current batch of extended live
+        locations (including `messageSnowflake` references) for forwarding.
     """
 
     def __init__(self, chat_service: ChatService):
@@ -34,14 +69,6 @@ class LocationService(ServiceBase):
                 content=content_dict
             )
             self.chat_service.route_message(chatmessage)
-
-            author_message = generate_chat_message(
-                author_user_id=data['author']['userId'],
-                author_server_id=data['author']['serverId'],
-                recipient={recipient_type: data['author']},
-                content=content_dict
-            )
-            self.chat_service.route_message(author_message)
 
             print("Initial LiveLocation Chatmessage sent to recipient.")
             return chatmessage.messageSnowflake
@@ -163,59 +190,3 @@ def extract_recipient(data_dict):
         if key in data_dict:
             return key, data_dict[key]
     return None, None
-
-
-
-
-    #         dict_data = MessageToDict(data)
-    #         dict_data['userIP'] = addr[0]
-    #         dict_data['userPort'] = addr[1]
-    #         green(f'\nReceived Live Location from {addr[0]}:{addr[1]}')
-    #
-    #         # Update location_events_list
-    #         if dict_data['userIP'] not in [item['userIP'] for item in self.location_events_list]:
-    #             chatmessageId = self.send_chatmessage()
-    #             dict_data['chatmessageId'] = chatmessageId
-    #             self.location_events_list.append(dict_data)
-    #         else:
-    #             for item in self.location_events_list:
-    #                 if item['userIP'] == dict_data['userIP']:
-    #                     item['timestamp'] = dict_data['timestamp']
-    #                     item['expiryAt'] = dict_data['expiryAt']
-    #                     item['location'] = dict_data['location']
-    #
-    #         # Delete expired items in location_events_list -> key error
-    #         if len(self.location_events_list) > 0:
-    #             self.location_events_list = [
-    #                 item for item in self.location_events_list if item['expiryAt'] < time.time()
-    #             ]
-    #
-    #         # Forward typing_events_list to all subscribers.
-    #         if len(self.subscriber_list) > 0:
-    #
-    #             for subscriber in self.subscriber_list:
-    #                 print(f'Forwarded to {subscriber['subscriberIP']}:{subscriber['locationPort']}')
-    #                 live_locations = self.format_live_locations_list()
-    #                 # Forward message
-    #                 forwarding_socket.sendto(live_locations, (subscriber['subscriberIP'], subscriber['locationPort']))
-    #
-    #         else:
-    #             yellow('Empty subscriber_list. No forwarding of live locations.')
-    #
-    # def format_live_locations_list(self):
-    #     live_locations = messenger_pb2.LiveLocations()
-    #     for event in self.location_events_list:
-    #             live_location = live_locations.live_locations.add()
-    #             live_location.user.userId = event["user"]["userId"]
-    #             live_location.user.serverId = event["user"]["serverId"]
-    #             live_location.timestamp = event["timestamp"]
-    #             live_location.expiry_at = event["expiryAt"]
-    #             live_location.location = event["location"]
-    #     return live_locations.SerializeToString()
-    #
-    # def send_chatmessage(self):
-    #     chatmessage = messenger_pb2.ChatMessage()
-    #     chatmessage.messageId = "chatmessage123"
-    #     chatmessage.live_location =
-    #
-    #     return chatmessage.messageId

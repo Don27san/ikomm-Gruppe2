@@ -3,7 +3,7 @@ import time
 import geocoder
 import random
 import math
-from PyQt5.QtCore import QObject, pyqtSignal
+from PySide6.QtCore import QObject, Signal
 from utils import green, red, serialize_msg, parse_msg, live_location
 from config import config
 from .feature_base import FeatureBase
@@ -11,9 +11,49 @@ from .feature_base import FeatureBase
 
 class LocationFeature(FeatureBase, QObject):
     # Signal to emit when location is received
-    locationEventReceived = pyqtSignal(float, float, str)  # lat, lon
+    locationEventReceived = Signal(float, float, str)  # lat, lon
     """
-    ...
+    Handles live location sharing and receiving between client and server.
+
+    This feature uses UDP for sending and receiving live location updates to
+    specific recipients. Locations are periodically retrieved from the current
+    IP-based geolocation, and sent to the connected feature server.
+
+    Signals
+    -------
+    locationEventReceived(float, float, str)
+        Emitted when a live location is received for the current user. Provides
+        latitude, longitude, and author identifier.
+
+    Attributes
+    ----------
+    src_addr : str
+        Local address for the UDP socket.
+    src_port : int
+        Local UDP port used for sending location data.
+    socket : socket.socket
+        UDP socket bound to (src_addr, src_port).
+    location_list : list
+        List of received location events with timestamps.
+    last_location_sent : float
+        Timestamp of the last location update sent.
+    expiry_at : float
+        Expiry timestamp for active location sharing.
+    _running_sharing : bool
+        Whether live location sharing is currently active.
+
+    Methods
+    -------
+    __init__():
+        Initialize the location feature, UDP socket, and state.
+    start_location_sharing(recipient_userId: str=None, recipient_serverId: str=None):
+        Begin periodic sending of live location to the specified recipient until
+        stopped or expired.
+    stop_location_sharing():
+        Stop the active location sharing loop.
+    handle_listening():
+        Listen for incoming live location events and emit the locationEventReceived
+        signal when relevant data is received.
     """
 
     def __init__(self):
@@ -61,7 +101,7 @@ class LocationFeature(FeatureBase, QObject):
                         live_location.location.longitude = synthetic_lon
                         try:
                             self.socket.sendto(serialize_msg('LIVE_LOCATION', live_location), (self.server_address, self.udp_server_port))
-                            print(f'{self.feature_name}: \nLive Location sent to {self.server_address}:{self.udp_server_port}')
+                            print(f'\n{self.feature_name}: sent to {self.server_address}:{self.udp_server_port}')
                         except Exception as e:
                             red(f"{self.feature_name}: Error while sending live location: {e}")
                     else:
@@ -79,7 +119,7 @@ class LocationFeature(FeatureBase, QObject):
                 res, addr = self.socket.recvfrom(1024)
                 data = parse_msg(res)[2]
                 self.last_msg_received_time = time.time()
-                green(f'{self.feature_name}: Received live_locations from {addr[0]}:{addr[1]}, {data}')
+                green(f'{self.feature_name}: Received live_locations from {addr[0]}:{addr[1]}')
                 self.location_list = data['extendedLiveLocations'] # Update the event list with the received location events
 
                 for extendedLiveLocation in self.location_list:

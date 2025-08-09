@@ -93,6 +93,7 @@ enum Language {
     DE = 0; // German
     EN = 1; // English
     ZH = 2; // Chinese
+    TR = 3; //Turkish
 }
 
 message Translate {

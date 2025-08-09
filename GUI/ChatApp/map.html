@@ -37,7 +37,7 @@
       font-size: 10px;
       text-align: center;
       line-height: 14px;
-      color: black;
+      color: rgba(0, 0, 0, 0.528);
       font-weight: bold;
     }
 
@@ -53,21 +53,29 @@
       z-index: -1;
     }
 
-    .red {
-      background-color: red;
+    .afdeff {
+      background-color: #afdeff;
     }
 
-    .blue {
-      background-color: #007bff;
+    .ffafaf {
+      background-color: #ffafaf;
     }
 
-    .orange {
-      background-color: orange;
+    .afffaf {
+      background-color: #afffaf;
       
     }
 
-    .green {
-      background-color: green;
+    .ffdfaf {
+      background-color: #ffdfaf;
+    }
+
+    .dfafff {
+      background-color: #dfafff;
+    }
+
+    .afafff {
+      background-color: #afafff;
     }
 
     @keyframes pulse {
@@ -91,16 +99,23 @@
     const initialLat = parseFloat(urlParams.get('lat')) || 0;
     const initialLon = parseFloat(urlParams.get('lon')) || 0;
     const author = urlParams.get('author') || 'Unknown';
-    const colors = ['red', 'blue', 'orange', 'green'];
+    colors = ["afdeff", "ffafaf", "afffaf", "ffdfaf", "dfafff", "afafff"];
 
     const getRandColor = (author) => {
-      const color = colors[Math.floor(Math.random() * colors.length)];
+      // Simple deterministic hash
+      let hash = 0;
+      for (let i = 0; i < author.length; i++) {
+          hash = ((hash << 5) - hash) + author.charCodeAt(i);
+          hash = hash & hash;
+      }
+      const color = colors[Math.abs(hash) % colors.length];
 
  return `<div class="custom-marker">
-              <div class="inner-circle ${color}">${author.split('@')[0][0]+author.split('@')[0][author.split('@')[0].length-1]}</div>
+              <div class="inner-circle ${color}">${author.split('@')[0][0].toUpperCase()+author.split('@')[0][author.split('@')[0].length-1].toUpperCase()}</div>
               <div class="pulse-ring ${color}"></div>
             </div>`;
-    };
+
+          };
 
   function createCustomMarker(author) {
         return L.divIcon({
