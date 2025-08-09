@@ -52,3 +52,10 @@ pipenv run client
 python -m client.main
 ```
 
+---
+
+## 💡 Usage Hints
+
+- For best compatibility, we recommend using this application on **macOS**.
+- Please **deactivate your firewall** temporarily to ensure proper connection between server and client.
+- Make sure both server and client are running on the same local network for seamless communication.
