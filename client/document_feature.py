@@ -7,15 +7,43 @@ from protobuf import messenger_pb2
 
 class DocumentFeature(FeatureBase):
     """
-    ...
+    Handles document-related communication between the client and the server.
+
+    This feature enables requesting documents from the server and receiving them.
+    If a document is available, it will be saved to the local `downloads` directory.
+
+    Methods
+    __init__():
+        Initializes the DocumentFeature based on the FeatureBase.
+    trigger_document_download(documentSnowflake: int):
+        Sends a request to the server to download a document with the specified identifier.
+    handle_message_for_feature(message_name=None, payload=None, conn=None, addr=None):
+        Processes incoming messages specific to the document feature and saves documents if available.
     """
 
     def __init__(self):
+        """
+        Initializes the DocumentFeature with the feature name 'documents'.
+        """
         super().__init__('documents')
 
     def handle_message_for_feature(self, message_name=None, payload=None, conn=None, addr=None):
         """
-        Handles feature specific message "DownloadingDocument"
+        This method is overwritten from the parent class to handle document specific messages.
+
+        Args:
+            message_name (str, optional): The name of the message type received.
+            payload (dict, optional): The message payload containing document data.
+            conn (socket, optional): The connection object (not used in this handler).
+            addr (tuple, optional): The address of the sender (not used in this handler).
+
+        Returns:
+            bool: True if the message was handled by this feature, False otherwise.
+
+        Behavior:
+            - If the message is 'DOWNLOADING_DOCUMENT' and the result is 'AVAILABLE',
+              saves the document to the `downloads` directory.
+            - If the document is unavailable or an error occurs, logs an error message.
         """
 
         if message_name == 'DOWNLOADING_DOCUMENT':
@@ -40,7 +68,15 @@ class DocumentFeature(FeatureBase):
 
     def trigger_document_download(self, documentSnowflake: int):
         """
-        Request document download from server
+        Sends a document download request to the server, triggered in the GUI.
+
+        Args:
+            documentSnowflake (int): The unique identifier of the document to be downloaded.
+
+        Behavior:
+            - Checks if there is an active connection to the server.
+            - Constructs and sends a 'DOWNLOAD_DOCUMENT' request.
+            - Logs the request status.
         """
         try:
             if not self.is_connected():

@@ -13,7 +13,47 @@ class LocationFeature(FeatureBase, QObject):
     # Signal to emit when location is received
     locationEventReceived = Signal(float, float, str)  # lat, lon
     """
-    ...
+    Handles live location sharing and receiving between client and server.
+
+    This feature uses UDP for sending and receiving live location updates to
+    specific recipients. Locations are periodically retrieved from the current
+    IP-based geolocation, and sent to the connected feature server.
+
+    Signals
+    -------
+    locationEventReceived(float, float, str)
+        Emitted when a live location is received for the current user. Provides
+        latitude, longitude, and author identifier.
+
+    Attributes
+    ----------
+    src_addr : str
+        Local address for the UDP socket.
+    src_port : int
+        Local UDP port used for sending location data.
+    socket : socket.socket
+        UDP socket bound to (src_addr, src_port).
+    location_list : list
+        List of received location events with timestamps.
+    last_location_sent : float
+        Timestamp of the last location update sent.
+    expiry_at : float
+        Expiry timestamp for active location sharing.
+    _running_sharing : bool
+        Whether live location sharing is currently active.
+
+    Methods
+    -------
+    __init__():
+        Initialize the location feature, UDP socket, and state.
+    start_location_sharing(recipient_userId: str=None, recipient_serverId: str=None):
+        Begin periodic sending of live location to the specified recipient until
+        stopped or expired.
+    stop_location_sharing():
+        Stop the active location sharing loop.
+    handle_listening():
+        Listen for incoming live location events and emit the locationEventReceived
+        signal when relevant data is received.
     """
 
     def __init__(self):

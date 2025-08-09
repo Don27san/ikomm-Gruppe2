@@ -58,7 +58,7 @@ config : Config = {
     # Features and Ports
     'conn_mgmt': {
         'discovery_port': 9999,
-        'ping_timeout': 300,
+        'ping_timeout': 300,  # timeout after which the ping is sent
     },
     'chat_feature': {
         'server_connection_port': 6666, #Server handles client connection

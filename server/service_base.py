@@ -9,7 +9,53 @@ FeatureName = Literal['TYPING_INDICATOR', 'LIVE_LOCATION', 'MESSAGES']
 
 class ServiceBase:
     """
-    Base class for backend services handling connections and messages.
+    Base class for backend services that manage client subscriptions and messages.
+
+    This class abstracts the server-side lifecycle for a feature (e.g., MESSAGES
+    or LIVE_LOCATION): accepting TCP control connections, tracking active
+    subscribers, performing health checks (PING/PONG), and forwarding or handling
+    incoming messages. Subclasses implement feature-specific behavior in
+    `handle_message_for_feature` and can run their own UDP forwarding loops as
+    needed.
+
+    Attributes
+    ----------
+    feature_name : FeatureName
+        Identifier of the feature this service implements.
+    server : ConnectionHandler | None
+        TCP server socket wrapper for accepting control connections.
+    _running : bool
+        Main loop guard; set to False to stop `handle_connections` for graceful shutdown.
+    subscriber_dict : dict
+        Active subscribers keyed by address `(ip, tcp_port)` with metadata including
+        `conn`, `addr`, `lastActive`, `ping_sent`, and optional UDP info.
+    server_dict : dict
+        Outbound connections to other servers and their exposed functions.
+    bind_ip : str
+        Interface/IP address on which the TCP server listens.
+    bind_port : int
+        TCP port used to accept client control connections.
+    forwarding_port : int | None
+        UDP port for feature-specific forwarding (if applicable).
+    ping_timeout : float
+        Timeout window (seconds) used for liveness checks and disconnects.
+
+    Methods
+    -------
+    __init__(feature_name: FeatureName, bind_port: int, forwarding_port: int | None = None):
+        Initialize identifiers, network configuration, and runtime state.
+    handle_connections():
+        Accept and process client control connections; maintain subscribers,
+        route messages, and perform PING/PONG health checks and disconnects.
+    handle_message_for_feature(message_name=None, data=None, conn=None, addr=None) -> bool:
+        Hook for subclasses to process feature-specific messages. Return True if
+        handled to suppress base processing.
+    _handle_base_messages(message_name=None, data=None, conn=None, addr=None):
+        Handle protocol-level messages common to all services: CONNECT_CLIENT,
+        PING/PONG, HANGUP, and unsupported message reporting.
+    stop():
+        Gracefully notify subscribers with HANGUP(EXIT), close connections, and
+        stop the server loop.
     """
     def __init__(self, feature_name : FeatureName, bind_port, forwarding_port=None):
         self.feature_name = feature_name
@@ -137,7 +183,7 @@ class ServiceBase:
 
             
     def stop(self):
-        """Gracefully stop the feature process when client UI is closed."""
+        """Gracefully stop the feature process when server is closed."""
         self._running = False
 
         client_list_text = ""
