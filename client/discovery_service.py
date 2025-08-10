@@ -2,7 +2,6 @@ import socket
 from utils import red, blue, parse_msg, serialize_msg
 from config import config
 import os
-import netifaces as ni
 
 class DiscoveryService:
     """
